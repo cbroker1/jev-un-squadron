@@ -192,14 +192,17 @@ class CombatTests(unittest.TestCase):
 
     def test_measured_terrain_is_reported_and_unmeasured_stays_unknown(self):
         from brain import combat
-        with patch.object(combat,"_terrain",({200:{"hit_min_y":174,"safe_max_y":174},201:{"hit_min_y":None,"safe_max_y":160}},4)):
-            self.assertEqual(combat.terrain_at([40,170],760),(174,174))   # level column 200
-            self.assertEqual(combat.terrain_at([40,170],9000),(None,None))  # nothing measured out there
+        columns={200:{"hit_min_y":174,"safe_max_y":174,"ground_object_y":156.0},
+                 201:{"hit_min_y":None,"safe_max_y":160,"ground_object_y":None}}
+        with patch.object(combat,"_terrain",(columns,4)):
+            self.assertEqual(combat.terrain_at([40,170],760),(174,174,156.0))   # level column 200
+            self.assertEqual(combat.terrain_at([40,170],9000),(None,None,None))  # nothing measured out there
             tracker=TableTracker(); tracker.observe(self.table_ram(),100,"unit")
             obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":170},
                  "tracks":tracker.observe(self.table_ram(shift=256),101,"unit")}
             text=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]["hold"]
-            self.assertIn("a collision was recorded here at Y 174",text)
+            self.assertIn("A terrain collision was recorded here at Y 174",text)
+            self.assertIn("tanks or turrets stand at Y 156",text)
 
     def test_lua_object_table_matches_python(self):
         source=(Path(player.ROOT) / "lua" / "main.lua").read_text()

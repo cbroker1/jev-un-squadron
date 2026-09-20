@@ -11,6 +11,8 @@ import argparse
 import json
 from pathlib import Path
 
+from brain.observations import RECORD_BYTES, TABLE_BASES, classify_record, fixed24
+
 BUCKET = 4
 
 
@@ -26,7 +28,18 @@ def run_samples(run):
         scroll = state.get("scroll_x")
         if scroll is None:
             return
-        yield (state["player_x_candidate"]+scroll)//BUCKET, state["player_y_candidate"], state["frame"] in terrain_hits
+        yield ("player", (state["player_x_candidate"]+scroll)//BUCKET,
+               state["player_y_candidate"], state["frame"] in terrain_hits)
+        # Tanks and turrets stand on the terrain, so they measure its surface wherever they appear.
+        table = state.get("observation_profile", {}).get("object_table")
+        if not table:
+            continue
+        data = bytes.fromhex(table["bytes_hex"])
+        for index, base in enumerate(TABLE_BASES):
+            record = data[index*RECORD_BYTES:(index+1)*RECORD_BYTES]
+            kind, gated = classify_record(record)
+            if gated and kind in ("ground_tank", "turret"):
+                yield ("ground", int(fixed24(record, 16)+scroll)//BUCKET, fixed24(record, 19), False)
 
 
 def main():
@@ -34,27 +47,30 @@ def main():
     ap.add_argument("--runs", type=Path, default=Path("runs"))
     ap.add_argument("--out", type=Path, default=Path("terrain_map.json"))
     args = ap.parse_args()
-    safe, hits, used = {}, {}, []
+    safe, hits, surface, used = {}, {}, {}, []
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
         count = 0
-        for column, y, was_hit in run_samples(run) or ():
+        for source, column, y, was_hit in run_samples(run) or ():
             count += 1
-            if was_hit:
+            if source == "ground":
+                surface[column] = min(surface.get(column, 999), y)
+            elif was_hit:
                 hits[column] = min(hits.get(column, 999), y)
             else:
                 safe[column] = max(safe.get(column, 0), y)
         if count:
             used.append({"run": run.name, "frames": count})
-    columns = sorted(set(safe) | set(hits))
+    columns = sorted(set(safe) | set(hits) | set(surface))
     payload = {"status": "measured: lowest altitude flown without an untracked hit, and untracked-hit altitudes",
                "bucket_px": BUCKET, "scroll_address": "0x007B", "runs": used,
                "level_column_range": [columns[0]*BUCKET, columns[-1]*BUCKET] if columns else None,
-               "columns": {str(c): {"safe_max_y": safe.get(c), "hit_min_y": hits.get(c)} for c in columns}}
+               "columns": {str(c): {"safe_max_y": safe.get(c), "hit_min_y": hits.get(c),
+                                    "ground_object_y": round(surface[c], 1) if c in surface else None} for c in columns}}
     args.out.write_text(json.dumps(payload, separators=(",", ":"))+"\n")
     print(json.dumps({"runs_used": len(used), "columns": len(columns),
-                      "columns_with_hits": len(hits),
+                      "columns_with_hits": len(hits), "columns_with_ground_objects": len(surface),
                       "level_range": payload["level_column_range"], "out": str(args.out)}, indent=2))
 
 

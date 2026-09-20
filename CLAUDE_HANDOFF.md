@@ -11,6 +11,7 @@ Best recent runs, counting kills after Jev takes control at frame 20663:
 | `combat-20260919-190025-afb1d?-live` | **42** (29/5/8) | 3 | 3 | full window |
 | `combat-20260919-192145-60236?-live` | 39 (28/5/6) | 3 | 3 | full window |
 | `combat-20260919-192417-b6847?-live` | 36 (30/0/6) | 3 | 2 | full window |
+| `combat-20260919-215629-fcae4?-live` | **42** (30/4/8) | **2** | 2 | full window |
 
 For scale: a passive configuration reached 10 kills, and an aircraft that only sits and fires gets 5 and dies around frame 21205.
 
@@ -29,7 +30,7 @@ Read next: [PROJECT_STATE.md](PROJECT_STATE.md) current checkpoint, [MEMORY_MAP.
 Terrain is **not** in the object table and is now the main damage source; most remaining hits have no tracked object within 36 px, always while flying low (Y 174-191).
 
 - **Level scroll position is WRAM `0x007B`** (16-bit, +0.5 px/frame), exported as `scroll_x`. `level column = player_x + scroll_x`.
-- `build_terrain_map.py` builds `terrain_map.json` from past runs: per 4 px level column, the lowest altitude flown without an untracked hit and the altitude of any untracked hit. The request reports that per option. **Rerun it after new runs** to extend coverage: `python build_terrain_map.py`.
+- `build_terrain_map.py` builds `terrain_map.json` from past runs: per 4 px level column, the surface altitude measured from tanks and turrets standing on it (122 columns), the lowest altitude flown without an untracked hit, and the altitude of any untracked hit (13 columns). The request reports that per option. **Rerun it after new runs** to extend coverage: `python build_terrain_map.py`.
 - `build_terrain_profile.py` tried to read the ground surface from screenshots; **it does not work** because colour cannot separate collidable ground from background art (it returns the mountains at Y 103-128). Kept only as a record of the approach.
 - Next: keep growing the measured map, and extend it into the boss section once runs get that far.
 
