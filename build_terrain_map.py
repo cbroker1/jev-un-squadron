@@ -26,6 +26,11 @@ NEAR_A_TARGET_PX = 14
 DESTROYED_MARKER = bytes.fromhex("c0fc04")      # $04:FCC0
 MARKER_WINDOW_FRAMES = 3
 MARKER_NEAR_PX = 20
+# A cell was only ever cleared at its exact altitude while the firing rule blocked a band
+# around it, so a structure recorded at Y 176 kept blocking shots that fly freely at 177:
+# 29.6% of shots that actually killed something would have been refused. Clearing over the
+# same band the rule uses keeps the two consistent.
+PASS_CLEARANCE_PX = 4
 # A shot also stops against an enemy this code cannot classify yet, and those appear at any
 # altitude, which made the first version of this map mark 37 altitudes in one column. The
 # level is deterministic, so a real structure stops shots at the same place in run after
@@ -158,7 +163,8 @@ def main():
                 seen.setdefault((column, y), set()).add(run.name)
                 repeats[(column, y)] = repeats.get((column, y), 0)+1
             else:
-                passed.add((column, y))
+                for near in range(y-PASS_CLEARANCE_PX, y+PASS_CLEARANCE_PX+1):
+                    passed.add((column, near))
         if count:
             used.append({"run": run.name, "frames": count})
     for (column, y), runs in seen.items():
