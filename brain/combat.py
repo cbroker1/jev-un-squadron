@@ -458,6 +458,23 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
                     if position and t["vx"] is not None and t["vx"] < -0.05
                     and t["x"] > position[0] and (t["x"]-position[0])/-t["vx"] <= lookahead]
         option["targets_that_will_slip_behind_you"] = len(crossing)
+        # A run destroys about 40% of the units it meets; the rest leave alive. A target
+        # drifting off the left edge that never crosses the gun line is a kill being lost,
+        # and it has a clock, the same way a power-up does.
+        leaving = []
+        for target in (reachable if position else []):
+            if target["vx"] is None or target["vx"] >= -0.05:
+                continue
+            frames_left = (target["x"]+32)/-target["vx"]
+            if frames_left > lookahead*3:
+                continue
+            crosses = any(abs(target["y"]+target["vy"]*f-position[1]) <= SHOT_BAND
+                          and target["x"]+target["vx"]*f > position[0]
+                          for f in range(0, int(frames_left)+1, 3))
+            if not crosses:
+                leaving.append(frames_left)
+        option["targets_leaving_unshot"] = len(leaving)
+        option["soonest_one_leaves_in_frames"] = round(min(leaving)) if leaving else None
         option["first_slips_behind_in_frames"] = round(min(crossing)) if crossing else None
         option["frames_to_get_behind_nearest_target_behind"] = None
         option["nearest_target_behind_kind"] = None
@@ -592,6 +609,10 @@ def combat_request(digest, model="jev-latest"):
         coming = ("" if not f["targets_entering_your_line_soon"]
                   else f" Holding this position, {f['targets_entering_your_line_soon']} target(s) drift into the gun's line "
                        f"within the next minute of play, the first in about {f['first_such_target_in_frames']} frames.")
+        losing = ("" if not f["targets_leaving_unshot"]
+                  else f" {f['targets_leaving_unshot']} tracked target(s) will drift out of play without ever "
+                       f"crossing the gun's line from here, the first in about "
+                       f"{f['soonest_one_leaves_in_frames']} frames.")
         slipping = ("" if not f["targets_that_will_slip_behind_you"]
                     else f" From here {f['targets_that_will_slip_behind_you']} target(s) pass behind you within "
                          f"{f['first_slips_behind_in_frames']} to 30 frames, the first in about "
@@ -694,7 +715,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{hidden}{coming}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
+            f"Attack: {shots}.{hidden}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."

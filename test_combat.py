@@ -439,6 +439,23 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
+    def test_a_target_about_to_be_lost_is_reported_with_its_clock(self):
+        """Runs destroy about 40% of the units they meet; the rest leave alive."""
+        from brain.combat import combat_digest, combat_request
+        # Well below the gun line and heading for the left edge: it will never be shot.
+        missed={"kind":"enemy_aircraft","x":90.0,"y":190.0,"vx":-1.5,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":"WRAM:0x1840","generation":1}
+        digest=combat_digest({"source_frame":101,"player":{"x":60,"y":100},"tracks":[missed]},6)
+        hold=digest["actions"]["hold"]
+        self.assertEqual(hold["targets_leaving_unshot"],1)
+        self.assertAlmostEqual(hold["soonest_one_leaves_in_frames"],round((90+32)/1.5),delta=2)
+        self.assertIn("without ever crossing the gun's line",
+                      combat_request(digest)["questions"]["movement"]["criteria"]["hold"])
+        # Dropping onto its line means it is no longer being lost.
+        lined_up=combat_digest({"source_frame":101,"player":{"x":60,"y":190},"tracks":[missed]},6)
+        self.assertEqual(lined_up["actions"]["hold"]["targets_leaving_unshot"],0)
+
     def test_measured_danger_comes_from_what_happened_to_past_runs(self):
         """Every frame ever flown is evidence, which covers far more than collisions do."""
         from brain import combat
