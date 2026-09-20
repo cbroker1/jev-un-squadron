@@ -419,6 +419,23 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
+    def test_a_stopped_shot_maps_structure_where_no_collision_was_ever_taken(self):
+        """Shots fly straight at 11 px/frame; one that stops short has hit something solid."""
+        from brain import combat
+        columns={c:{"hit_min_y":None,"collision_altitudes":None,"safe_max_y":None,
+                    "ground_object_y":None,"shots_stopped_at":[176]} for c in range(150,260)}
+        with patch.object(combat,"_terrain",(columns,4)):
+            self.assertEqual(combat.blocked_altitudes([40,170],760),[176])
+            self.assertIsNone(combat.blocked_altitudes([40,170],65529))     # wrapped scroll
+            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":176},"tracks":[]}
+            digest=combat.combat_digest(obs,6)
+            self.assertTrue(digest["actions"]["hold"]["ends_level_with_something_that_stopped_a_shot"])
+            self.assertFalse(digest["actions"]["up"]["ends_level_with_something_that_stopped_a_shot"])
+            text=combat.combat_request(digest)["questions"]["movement"]["criteria"]["hold"]
+            self.assertIn("STRUCTURE: shots fired along this path have been stopped at Y 176",text)
+            # No collision was ever recorded here, so it must not claim one.
+            self.assertNotIn("collision was actually recorded",text)
+
     def test_a_structure_is_an_altitude_band_not_a_floor(self):
         """At one measured column a collision happened at Y 171 while Y 189 was flown safely."""
         from brain import combat
