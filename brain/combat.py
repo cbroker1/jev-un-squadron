@@ -111,7 +111,20 @@ SHOT_SPEED = 11
 PLAYER_SPEED = 2.5
 # Structure evidence is recorded and cleared over this band; see build_terrain_map.py.
 STRUCTURE_BAND = 4
-SHOT_BAND = 10
+SHOT_BAND = 10          # the widest band any kind uses; kept for callers that ask generally
+# Measured from 101 kills recorded across runs, as aircraft altitude minus target altitude
+# at the moment the target was destroyed. The bands are asymmetric and differ by kind:
+# tanks p10 -10 p90 +7, turrets p10 -10 p90 +6, aircraft p10 -7.4 p90 +12. A symmetric
+# 10 px band claimed hits on ground targets from 8 px too high, and one run held that
+# altitude for 40 decisions while every shot sailed over the tanks and off the screen.
+FIRING_BANDS = {"ground_tank": (-10, 7), "turret": (-10, 6), "enemy_aircraft": (-8, 12)}
+DEFAULT_BAND = (-10, 12)
+
+
+def on_the_gun_line(shooter_y, target_y, kind):
+    """Is a shot fired at this altitude on the line that has actually killed this kind?"""
+    low, high = FIRING_BANDS.get(kind, DEFAULT_BAND)
+    return low <= shooter_y-target_y <= high
 SHOT_MAX_X = 251
 
 
@@ -153,7 +166,7 @@ def future_shots(position, targets, window=30, step=3):
             x = target["x"] + target["vx"]*frame
             if x <= px:
                 break
-            if abs(target["y"] + target["vy"]*frame - py) <= SHOT_BAND and (x-px)/SHOT_SPEED <= window:
+            if on_the_gun_line(py, target["y"] + target["vy"]*frame, target["kind"])                     and (x-px)/SHOT_SPEED <= window:
                 count += 1
                 soonest = frame if soonest is None else min(soonest, frame)
                 break
@@ -195,7 +208,7 @@ def shot_intersections(position, targets, horizon):
         if not 0 <= travel <= horizon*4:
             continue
         meet_x = px + SHOT_SPEED*travel
-        if meet_x > SHOT_MAX_X or abs(target["y"] + target["vy"]*travel - py) > SHOT_BAND:
+        if meet_x > SHOT_MAX_X or not on_the_gun_line(py, target["y"] + target["vy"]*travel, target["kind"]):
             continue
         landings.append((round(travel, 1), target["kind"], round(meet_x)))
     return sorted(landings)
@@ -262,7 +275,7 @@ def sustained_path(position, action, frames, threats, target):
     if x is None:
         return None, None, None
     end_x, end_y = target["x"]+target["vx"]*frames, target["y"]+target["vy"]*frames
-    reaches = end_x > x and abs(end_y-y) <= SHOT_BAND and end_x <= SHOT_MAX_X
+    reaches = end_x > x and on_the_gun_line(y, end_y, target["kind"]) and end_x <= SHOT_MAX_X
     final_gap = round(((end_x-x)**2 + (end_y-y)**2)**0.5, 1)
     return (round(tightest, 1) if tightest is not None else None), reaches, final_gap
 
@@ -468,7 +481,7 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
             frames_left = (target["x"]+32)/-target["vx"]
             if frames_left > lookahead*3:
                 continue
-            crosses = any(abs(target["y"]+target["vy"]*f-position[1]) <= SHOT_BAND
+            crosses = any(on_the_gun_line(position[1], target["y"]+target["vy"]*f, target["kind"])
                           and target["x"]+target["vx"]*f > position[0]
                           for f in range(0, int(frames_left)+1, 3))
             if not crosses:

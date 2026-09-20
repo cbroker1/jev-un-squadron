@@ -439,6 +439,23 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
+    def test_the_firing_band_matches_what_has_actually_killed_each_kind(self):
+        """Run 73 held Y 180 for 40 decisions while its shots sailed over tanks at Y 188."""
+        from brain.combat import combat_digest, on_the_gun_line
+        # Measured bands: ground targets die from -10 to +7, aircraft from -8 to +12.
+        self.assertTrue(on_the_gun_line(183,188,"ground_tank"))    # 5 px above: kills
+        self.assertFalse(on_the_gun_line(180,188,"ground_tank"))   # 8 px above: the stutter
+        self.assertTrue(on_the_gun_line(180,188,"enemy_aircraft")) # same gap, different kind
+        self.assertTrue(on_the_gun_line(198,188,"ground_tank"))    # 10 px below still kills
+        self.assertFalse(on_the_gun_line(200,188,"ground_tank"))
+        tank={"kind":"ground_tank","x":200.0,"y":188.0,"vx":-0.5,"vy":0.0,
+              "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+              "slot":"WRAM:0x1840","generation":1}
+        high=combat_digest({"source_frame":101,"player":{"x":80,"y":180},"tracks":[tank]},6)
+        self.assertEqual(high["actions"]["hold"]["targets_the_gun_would_hit"],0)
+        low=combat_digest({"source_frame":101,"player":{"x":80,"y":186},"tracks":[tank]},6)
+        self.assertEqual(low["actions"]["hold"]["targets_the_gun_would_hit"],1)
+
     def test_a_target_about_to_be_lost_is_reported_with_its_clock(self):
         """Runs destroy about 40% of the units they meet; the rest leave alive."""
         from brain.combat import combat_digest, combat_request
