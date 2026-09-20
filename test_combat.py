@@ -109,6 +109,25 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(combat.terrain_at([40,170],65529),(None,None,None))
             self.assertEqual(combat.terrain_at([40,170],None),(None,None,None))
 
+    def test_the_level_one_boss_is_classified(self):
+        """Confirmed across two boss encounters by measured motion and screenshots."""
+        from brain.observations import classify_record
+        from brain.combat import TARGETS, KINDS
+        def record(routine_hex, flags, byte8=0):
+            payload=bytearray(22)
+            payload[0]=flags
+            payload[1:4]=bytes.fromhex(routine_hex)
+            payload[8]=byte8
+            return classify_record(payload)
+        # Its fire carries the same gating as the known bullet routine.
+        self.assertEqual(record("fcc404",0xCC,1),("hostile_projectile",True))
+        # Its body parts collide but are never aimed at, because nothing shows they break.
+        for routine, flags in (("b1c304",0x89),("e6c304",0xC0),("05c004",0xC8),("e6c504",0xD0)):
+            self.assertEqual(record(routine,flags),("boss_part",True),routine)
+        self.assertIn("boss_part",KINDS)
+        self.assertNotIn("boss_part",TARGETS)
+        self.assertEqual(record("59c504",0xC8,3),("enemy_aircraft",True))
+
     def test_the_fortified_line_past_frame_22400_is_classified(self):
         """Routines confirmed in two long recordings by measured motion and screenshots."""
         from brain.observations import classify_record

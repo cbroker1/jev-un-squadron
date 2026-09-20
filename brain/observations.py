@@ -51,6 +51,19 @@ OBJECT_TYPES = {
     # $02:B05A: the helicopter that sits on the ground and climbs away, one byte from the
     # flying routine $02:B04A. Carl flagged it four times as a target Jev never engages.
     bytes.fromhex("5ab002"): ("enemy_aircraft", {0xC8}, None),
+    # The level 1 boss, a fortress tank with a health bar, reached at frame ~24040 and
+    # confirmed in two encounters (R23 and R28) by measured motion and screenshots.
+    # $04:C4FC carries the same flag and byte-8 gating as the known bullet $04:F97F and
+    # flies left at 3.5 px/frame: the boss's fire.
+    bytes.fromhex("fcc404"): ("hostile_projectile", {0xCC}, {1}),
+    # Its body: each part tracks left at 1 px/frame across the boss's own extent. Solid,
+    # and not claimed to be destructible, so they collide but are never aimed at.
+    bytes.fromhex("b1c304"): ("boss_part", {0x89, 0x80}, None),
+    bytes.fromhex("e6c304"): ("boss_part", {0xC0}, None),
+    bytes.fromhex("05c004"): ("boss_part", {0xC8}, None),
+    bytes.fromhex("e6c504"): ("boss_part", {0x90, 0xD0}, None),
+    # $04:C559 carries the aircraft gating exactly (flags C8, byte 8 = 3) and flies left.
+    bytes.fromhex("59c504"): ("enemy_aircraft", {0xC8}, {3}),
 }
 ROM_SHA256 = "0b155a54b6134601fc0791252a63ca73efd522667c3d6fd7a44f5b3c500039d7"
 SLOT1_SHA256 = "c1ea750e24cdb17e2050eb4f490c82b3e7544c11441f736f60df7c014fde0f3d"
