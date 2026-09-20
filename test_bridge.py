@@ -115,5 +115,20 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(release.call_args_list[0].args[0], release.call_args_list[-1].args[0])
 
 
+class KeyShadowingTests(unittest.TestCase):
+    def test_nothing_inside_the_run_loop_rebinds_the_api_key(self):
+        """Shadowing `key` inside the loop sent a tuple to the Authorization header, twice
+        now: once as a track identity, once as a wall position."""
+        import ast, inspect
+        import play_segment
+        source = inspect.getsource(play_segment.run)
+        tree = ast.parse(source.lstrip())
+        rebinds = [node.lineno for node in ast.walk(tree)
+                   if isinstance(node, ast.Assign)
+                   for target in node.targets
+                   if isinstance(target, ast.Name) and target.id == "key"]
+        self.assertEqual(rebinds, [], f"`key` is reassigned inside run() at lines {rebinds}")
+
+
 if __name__ == "__main__":
     unittest.main()
