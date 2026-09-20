@@ -46,6 +46,24 @@ def terrain_at(position, scroll, spread=2, span_from=None):
     return (sorted(hit) or None), safe, ground
 
 
+def blocked_altitudes(position, scroll, spread=2, span_from=None):
+    """Altitudes where our own shots stopped against something solid on this path.
+
+    Shots travel right at a measured 11 px per frame; one that stops short of the screen
+    edge with no visible target beside it has hit structure. This maps far more of the
+    level than collisions do, because it costs nothing to measure.
+    """
+    columns, bucket = terrain_columns()
+    if not columns or scroll is None or scroll > 60000 or not position:
+        return None
+    ends = sorted({int((position[0]+scroll)//bucket),
+                   int(((span_from if span_from is not None else position[0])+scroll)//bucket)})
+    found = set()
+    for column in range(ends[0]-spread, ends[-1]+spread+1):
+        found.update((columns.get(column) or {}).get("shots_stopped_at") or ())
+    return sorted(found) or None
+
+
 KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret",
          "clear_screen_power_up", "boss_part")
 # A boss part is solid and collides, but nothing yet shows it can be destroyed, so it is
@@ -315,6 +333,9 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         # while Y 189 was flown safely. Compare against the altitudes actually recorded.
         option["terrain_hit_recorded_y"] = (min(option["collision_altitudes_here"])
                                             if option["collision_altitudes_here"] else None)
+        option["shots_stopped_here_at"] = blocked_altitudes(position, obs.get("scroll_x"), span_from=px)
+        option["ends_level_with_something_that_stopped_a_shot"] = bool(
+            position and any(abs(position[1]-a) <= 6 for a in (option["shots_stopped_here_at"] or ())))
         # The altitude at or below which terrain is known to be solid along this path.
         # Only recorded untracked hits measure that. A tank or turret standing here measures
         # where ground targets sit, and the aircraft has flown at or below that altitude
@@ -499,6 +520,11 @@ def combat_request(digest, model="jev-latest"):
             ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, level with an altitude where a "
                        f"collision was actually recorded on this path (Y {hit_at}); contact is damage every "
                        f"time.{escape}")
+        elif f["ends_level_with_something_that_stopped_a_shot"]:
+            near = [a for a in f["shots_stopped_here_at"] if abs(f["projected_position"][1]-a) <= 6]
+            ground += (" STRUCTURE: shots fired along this path have been stopped at Y "
+                       + ", ".join(f"{a:.0f}" for a in near)
+                       + ", which is where this option ends, so something solid is there.")
         elif f["collision_altitudes_here"]:
             ground += (" Collisions have been recorded on this path at Y "
                        + ", ".join(f"{a:.0f}" for a in f["collision_altitudes_here"])
@@ -636,7 +662,9 @@ def combat_request(digest, model="jev-latest"):
                 "level with an altitude where a collision was recorded on that path. These are structures, not a floor: "
                 "at one measured column a collision happened at Y 171 while Y 189 was flown safely, so going "
                 "around or under one can be as good as climbing over it, and each option says which altitudes "
-                "have actually been flown there. Colliding with an aircraft, tank or turret is the main way this "
+                "have actually been flown there. A STRUCTURE line means our own shots were stopped at that "
+                "altitude on that path: shots travel in a straight line, so something solid is there even where "
+                "no collision has been recorded yet, and flying level with it invites one. Colliding with an aircraft, tank or turret is the main way this "
                 "aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. "
                 "time_in_the_collision_range counts how long this has already been going on: staying inside that "
                 "band decision after decision is how the run that died spent its last seconds, and no single option "
