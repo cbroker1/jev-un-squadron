@@ -126,7 +126,11 @@ SHOT_BAND = 10          # the widest band any kind uses; kept for callers that a
 # Ground targets are only reliably hit from level with them or below; an earlier symmetric
 # 10 px band claimed hits from 8 px above, where the real rate is 5.8%, and one run held
 # that altitude for forty decisions while every shot sailed over the tanks.
-FIRING_BANDS = {"ground_tank": (-3, 10), "turret": (-3, 10), "enemy_aircraft": (-8, 17)}
+# Carl, from playing it: a ground target is always reachable, you just drop a little.
+# The measured kill rate by offset backs a wider band than the -3 I first set: -6..-5 is
+# 40%, -4..-3 is 32%, -2..-1 is 68%. So a tank at Y 196 is hit from Y 190, which is inside
+# the flyable range; claiming it could not be shot at all was wrong.
+FIRING_BANDS = {"ground_tank": (-6, 10), "turret": (-6, 10), "enemy_aircraft": (-8, 17)}
 DEFAULT_BAND = (-8, 17)
 
 
@@ -731,16 +735,10 @@ def combat_request(digest, model="jev-latest"):
         needed = ""
         if f["altitude_that_hits_the_nearest_ground_target"]:
             low, high = f["altitude_that_hits_the_nearest_ground_target"]
-            floor = PLAYER_BOUNDS[3]
-            if high < PLAYER_BOUNDS[2] or low > floor:
-                needed = (f" The nearest ground target ahead is only hit from Y {low} to {high}, which is outside "
-                          f"the flyable range, so it cannot be shot from anywhere and lining up on it is wasted.")
-            else:
-                short = f["pixels_too_high_for_it"]
-                needed = (f" The nearest ground target ahead is hit from Y {low} to {high}"
-                          + (f", and this option ends {short} pixels above that." if short else ", and this option "
-                             "ends inside that.")
-                          + (f" The lowest altitude that can be flown is {floor}." if high > floor else ""))
+            short = f["pixels_too_high_for_it"]
+            needed = (f" The nearest ground target ahead is hit from Y {low} to {high}"
+                      + (f", and this option ends {short} pixels above that: dropping that far lines it up."
+                         if short else ", and this option ends inside that."))
         tanks = ("" if f["tank_firing_line_error_px"] is None
                  else f"; ground-tank firing-line error {f['tank_firing_line_error_px']:.1f} pixels (smaller lets the gun hit tanks)")
         turrets = ("" if f["turret_firing_line_error_px"] is None
