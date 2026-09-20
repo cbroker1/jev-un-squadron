@@ -19,11 +19,26 @@ from brain.observations import RECORD_BYTES, TABLE_BASES, classify_record, fixed
 PLAYER_SHOT = bytes.fromhex("afe604")
 SHOT_EDGE_X = 235          # beyond this a shot is leaving the screen, not stopping
 NEAR_A_TARGET_PX = 14
+# When a shot destroys something the game spawns this marker where it died. A stop with no
+# marker beside it hit terrain instead, which separates the two far better than proximity
+# to a classified object: over 15 runs, stops with a marker were 42% near the ground and
+# stops without were 90%, matching what structures look like.
+DESTROYED_MARKER = bytes.fromhex("c0fc04")      # $04:FCC0
+MARKER_WINDOW_FRAMES = 3
+MARKER_NEAR_PX = 20
 # A shot also stops against an enemy this code cannot classify yet, and those appear at any
 # altitude, which made the first version of this map mark 37 altitudes in one column. The
 # level is deterministic, so a real structure stops shots at the same place in run after
 # run while an enemy hit does not: keep only what two separate runs both found.
-RUNS_THAT_MUST_AGREE = 2
+# Repetition is the real discriminator, not how many runs saw it: a structure stops shots
+# again and again as the aircraft passes, while an unclassified enemy is hit once. Measured
+# over every run: 2 stops gives 23 columns at 92% near the ground, 3 gives 11 at 97%, 5
+# gives 8 at 100%. Taking stops in separate runs OR enough stops overall keeps the columns
+# that matter without the mid-air noise that made an earlier version block 74% of options.
+# With the marker filter doing the separating, a single unpassed stop is already good
+# evidence; requiring repetition on top of it only threw away coverage.
+RUNS_THAT_MUST_AGREE = 1
+STOPS_THAT_MUST_AGREE = 1
 
 BUCKET = 4
 # WRAM 0x007B counts the level scroll, but it wraps once the level stops scrolling at the
@@ -35,48 +50,51 @@ MAX_PLAUSIBLE_SCROLL = 60000
 def shot_samples(run):
     """("stop"|"pass", level column, altitude) for our own shots.
 
-    A stop is evidence of something solid; a shot that flies through the same column at
-    the same altitude is evidence that it is open, and outweighs a stop that was really
-    an enemy this code cannot classify. Without the passes, one stray stop condemned an
-    entire firing line and the aircraft stopped attacking (9 kills, dead at frame 21208).
+    A stop with no destroyed marker beside it hit terrain; one with a marker killed
+    something. A shot that flies through the same cell is evidence it is open and
+    outweighs any stop there, because an unclassified enemy can die anywhere.
 
-    Each shot is followed as a trajectory, because its own final sample sits inside the
-    column where it stopped: counting that as a pass cancelled every stop ever recorded.
+    Each shot is followed as a trajectory: its own final sample sits inside the column
+    where it stopped, and counting that as a pass cancelled every stop in the map.
     """
-    flying = {}
+    flying, pending = {}, []
     for line in (run / "states.jsonl").read_text().splitlines():
         state = json.loads(line)["state"]
         table = state.get("observation_profile", {}).get("object_table")
         scroll = state.get("scroll_x")
         if not table or scroll is None or scroll > MAX_PLAUSIBLE_SCROLL:
-            flying = {}
+            flying, pending = {}, []
             continue
+        frame = state["frame"]
         data = bytes.fromhex(table["bytes_hex"])
-        live, targets = {}, []
+        live, markers = {}, []
         for index, base in enumerate(TABLE_BASES):
             record = data[index*RECORD_BYTES:(index+1)*RECORD_BYTES]
-            kind, gated = classify_record(record)
             x, y = fixed24(record, 16), fixed24(record, 19)
-            if gated and kind in ("enemy_aircraft", "ground_tank", "turret", "boss_part"):
-                targets.append((x, y))
             if bytes(record[1:4]) == PLAYER_SHOT and record[0] & 0x40:
                 live[base] = (x, y, scroll)
+            elif bytes(record[1:4]) == DESTROYED_MARKER:
+                markers.append((x, y))
+        # A stop is only terrain once no marker has appeared beside it for a few frames.
+        for entry in pending[:]:
+            x, y, at, column = entry
+            if any(abs(x-mx) < MARKER_NEAR_PX and abs(y-my) < MARKER_NEAR_PX for mx, my in markers):
+                pending.remove(entry)                  # it killed something
+            elif frame-at > MARKER_WINDOW_FRAMES:
+                pending.remove(entry)
+                yield "stop", column, round(y)
         for base, track in list(flying.items()):
             if base in live:
-                continue                       # still in the air; keep following it
+                continue
             x, y, shot_scroll = track[-1]
-            stopped = (x < SHOT_EDGE_X and not any(
-                abs(x-tx) < NEAR_A_TARGET_PX and abs(y-ty) < NEAR_A_TARGET_PX for tx, ty in targets))
-            # Everything before the final sample is open air the shot flew through.
             for px, py, ps in track[:-1]:
                 yield "pass", int((px+ps)//BUCKET), round(py)
-            if stopped:
-                yield "stop", int((x+shot_scroll)//BUCKET), round(y)
+            if x < SHOT_EDGE_X:
+                pending.append((x, y, frame, int((x+shot_scroll)//BUCKET)))
             else:
                 yield "pass", int((x+shot_scroll)//BUCKET), round(y)
             del flying[base]
         for base, sample in live.items():
-            # A slot is reused by a new shot once its x jumps backwards.
             if base in flying and sample[0] < flying[base][-1][0]:
                 for px, py, ps in flying[base]:
                     yield "pass", int((px+ps)//BUCKET), round(py)
@@ -121,6 +139,7 @@ def main():
     # Y 189 was flown safely, so these are structures with open air below them. Keep every
     # measured altitude rather than collapsing them into a floor that was never observed.
     safe, hits, surface, used, bands, blocked, seen, passed = {}, {}, {}, [], {}, {}, {}, set()
+    repeats = {}
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
@@ -134,16 +153,19 @@ def main():
                 bands.setdefault(column, set()).add(round(y))
             else:
                 safe[column] = max(safe.get(column, 0), y)
-        for what, column, y in set(shot_samples(run)):
+        for what, column, y in shot_samples(run):
             if what == "stop":
                 seen.setdefault((column, y), set()).add(run.name)
+                repeats[(column, y)] = repeats.get((column, y), 0)+1
             else:
                 passed.add((column, y))
         if count:
             used.append({"run": run.name, "frames": count})
     for (column, y), runs in seen.items():
-        # Solid only where shots stopped in separate runs and none has ever flown through.
-        if len(runs) >= RUNS_THAT_MUST_AGREE and (column, y) not in passed:
+        # Solid only where shots stopped repeatedly and none has ever flown through.
+        if (column, y) in passed:
+            continue
+        if len(runs) >= RUNS_THAT_MUST_AGREE or repeats.get((column, y), 0) >= STOPS_THAT_MUST_AGREE:
             blocked.setdefault(column, set()).add(y)
     columns = sorted(set(safe) | set(hits) | set(surface) | set(blocked))
     payload = {"status": "measured: lowest altitude flown without an untracked hit, and untracked-hit altitudes",
