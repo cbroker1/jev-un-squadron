@@ -1,12 +1,12 @@
 # Jev U.N. Squadron experiment
 
-BizHawk/Lua handles the SNES game; Python reads observations and sends controller actions. **Level 1 completion is not demonstrated.** The original D/L launcher is target-70 calibration. A separate experimental combat runner has now applied two real threat-informed Jev movement choices, but its first live test stopped at a safety guard and did not complete the intended segment.
+BizHawk/Lua handles the SNES game; Python reads observations and sends controller actions. **Level 1 completion is not demonstrated**: the best runs end on their frame budget, not at a level end, and the boss has never been reached. The original D/L launcher is target-70 calibration. The experimental combat runner destroys 43 units in an 1800-frame segment with 1 to 2 hits taken.
 
 For the next agent: read [CLAUDE_HANDOFF.md](CLAUDE_HANDOFF.md) first.
 
 ## Experimental combat (separate from D/L calibration)
 
-With BizHawk closed, `run_jev_segment.bat` opens slot 1 at 50% speed and uses the intentionally local key. It runs **pause-and-step**: the game pauses on each decision frame while Jev decides, and the choice applies from that frame. The gun fires from the start. It permits at most **300 paid attempts** over 1800 combat frames with a decision every 6 game frames, releases controls and closes only its own emulator. Jev now sees helicopters, bullets, the dropped power-up and ground tanks from the game's object table. It is asked to collect the power-up when safe and, at lowest priority, to shoot tanks from a distance. Stop with **Ctrl+C** or **stop_segment.bat**. Do not run both launchers at once. The bounded runner refuses an already-open emulator.
+With BizHawk closed, `run_jev_segment.bat` opens slot 1 at 50% speed and uses the intentionally local key. It runs **pause-and-step**: the game pauses on each decision frame while Jev decides, and the choice applies from that frame. The gun fires from the start. It permits at most **300 paid attempts** over 1800 combat frames with a decision every 6 game frames (bounds allow up to 1600 attempts over 7200 frames for runs aimed at the level end), releases controls and closes only its own emulator. Jev now sees helicopters, bullets, the dropped power-up and ground tanks from the game's object table. It is asked to collect the power-up when safe and, at lowest priority, to shoot tanks from a distance. Stop with **Ctrl+C** or **stop_segment.bat**. Do not run both launchers at once. The bounded runner refuses an already-open emulator.
 
 The first 480 game frames are a deterministic prelude (gun firing with `--prelude-fire`, otherwise neutral and gun off; the gun-off prelude lets the player take a hit before Jev starts), followed by the combat window (`--frames`, default 210). Combat movement comes from Jev; Y firing is independent. Firing-only waiting/no-checked-track intervals are explicitly deterministic, not attributed to Jev. Logs, frames, provenance and failures are under a unique `runs/combat-*` folder. Observation now covers 7 checked aircraft slots and 6 projectile slots, including the orange helicopters missing from the first live test. Ground objects, terrain and other hazards are still unknown, so this is a research test, not a level-clear agent. Compare a run only against a baseline with the same prelude, frame budget and export: `runs/combat-20260919-162523-593790-baseline` (firing prelude, 420 frames) or `runs/combat-20260919-140905-903ba4-baseline` (gun off, 210 frames). See [the pause-and-step report](hazard_observation/PAUSE_AND_STEP_2026-09-19.md).
 
@@ -17,7 +17,24 @@ python run_segment.py --mode baseline --prelude-fire --frames 420
 python run_segment.py --mode live --stepped --prelude-fire --interval 6 --max-calls 300 --frames 1800
 ```
 
-Dry/baseline modes make zero API calls and never read the key. `--max-calls` changes this runner's limit (1..60); it does not use the old launcher's config limit. Its pending-result logging was amended after the live test; see the handoff's verification caveat.
+Dry/baseline modes make zero API calls and never read the key. `--max-calls` changes this runner's limit (1..1600); it does not use the old launcher's config limit. Its pending-result logging was amended after the live test; see the handoff's verification caveat.
+
+## Jev Squadron dashboard
+
+`dashboard.bat` (or `python dashboard.py`) serves **http://127.0.0.1:8770** and opens it. Leave it
+open across runs: it follows `runs/active_segment.json` and switches to each new run by itself.
+
+- Header: run label, frame, elapsed frames, decision id, chosen action, Jev's confidence, latency,
+  plane position and the aircraft's recent station-keeping.
+- **What Jev sees**: a radar of the classified object table only - the plane and its gun line,
+  aircraft, bullets, both power-up types, tanks and turrets, each with a 30-frame velocity trail.
+  Objects with no classified routine do not appear, which is the honest picture of what is tracked.
+- **Judgment**: Jev's own probabilities per movement option. There is exactly one question per
+  decision (movement); the feed's tags are derived from the facts Jev was given, not extra judgments.
+- **Live feed** and a **run history** table of kills, hits and what caused them, pickups and median X.
+
+It reads only the files runs already write, holds no state, and has no hook into the controller or
+the emulator, so it cannot affect a run.
 
 ## Your existing D/L launcher
 

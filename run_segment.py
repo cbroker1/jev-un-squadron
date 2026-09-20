@@ -92,12 +92,12 @@ def main():
                 raise SystemExit("Invalid runner location")
             (target / "STOP").touch()
         print("Stop requested for this runner only."); return
-    if not 1 <= args.max_calls <= 400:
+    if not 1 <= args.max_calls <= 1600:
         ap.error("Request limit must be 1..400")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")
-    if not (1 if args.stepped else 0) <= args.warmup <= 900 or not 1 <= args.frames <= 1800:
-        ap.error("Warmup must be 0..900 (1.. when stepped) and frames 1..1800")
+    if not (1 if args.stepped else 0) <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
+        ap.error("Warmup must be 0..900 (1.. when stepped) and frames 1..7200")
     if args.expect_stop and args.mode!="dry":
         ap.error("Expected-error tests are offline only")
     listing=subprocess.run(["tasklist","/FI","IMAGENAME eq EmuHawk.exe","/FO","CSV","/NH"],capture_output=True,text=True,check=True)

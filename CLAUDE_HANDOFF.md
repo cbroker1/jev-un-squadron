@@ -1,73 +1,117 @@
-# Handoff - 2026-09-19 evening, America/Chicago
+# Handoff - 2026-09-19 late evening, America/Chicago
 
 ## Where this stands
 
-A bounded experimental controller plays a 1800-game-frame segment of U.N. Squadron level 1 with Jev choosing movement. **Level 1 is not finished**; the segment ends on its frame budget, not at a level end.
+A bounded experimental controller plays U.N. Squadron level 1 with Jev choosing movement.
+**Level 1 is not finished and the boss has never been reached**; 1800-frame runs end on their
+frame budget. Runs aimed at the level end are now allowed up to 7200 frames and 1600 requests.
 
-Best recent runs, counting kills after Jev takes control at frame 20663:
+Best runs, counting kills after Jev takes control at frame 20663:
 
-| Run (`runs/`) | Kills (aircraft/tank/turret) | Hits | Power-ups | End |
-|---|---|---:|---:|---|
-| `combat-20260919-190025-afb1d?-live` | **42** (29/5/8) | 3 | 3 | full window |
-| `combat-20260919-192145-60236?-live` | 39 (28/5/6) | 3 | 3 | full window |
-| `combat-20260919-192417-b6847?-live` | 36 (30/0/6) | 3 | 2 | full window |
-| `combat-20260919-215629-fcae4?-live` | **42** (30/4/8) | **2** | 2 | full window |
+| Run | Kills (air/tank/turret) | Hits | Pickups | Median X | End |
+|---|---:|---:|---:|---:|---|
+| R19 `combat-20260919-232140` | **43** (30/5/8) | 2 | **3** | 126 | full window |
+| R14 `combat-20260919-230019` | **43** (30/5/8) | **1** | 2 | 81 | full window |
+| R12 `combat-20260919-225212` | 43 (30/5/8) | 2 | 2 | 126 | full window |
+| R20 `combat-20260919-232804` | 12 | 1 | 1 | 111 | **died at 21344** |
 
-For scale: a passive configuration reached 10 kills, and an aircraft that only sits and fires gets 5 and dies around frame 21205.
+For scale: a passive configuration reached 10 kills; before this evening the best was 42 with 3 hits.
 
-Read next: [PROJECT_STATE.md](PROJECT_STATE.md) current checkpoint, [MEMORY_MAP.md](MEMORY_MAP.md), then the reports [OBJECT_TYPES](hazard_observation/OBJECT_TYPES_2026-09-19.md), [PAUSE_AND_STEP](hazard_observation/PAUSE_AND_STEP_2026-09-19.md) and [AIRCRAFT_SLOTS](hazard_observation/AIRCRAFT_SLOTS_2026-09-19.md).
+## What moved the numbers, and what did not
+
+Every gain came from the same discovery: **Jev was being given distances for decisions that are
+about time**, or warnings that the code silenced. Four measurement defects, all fixed with tests:
+
+1. **Terrain floor read from ground-target altitude.** A tank standing at Y 176 was treated as
+   solid ground, so with a tank lined up (3 px error) *all five options* were labelled "ends at or
+   below terrain" - tank kills were forbidden by construction. Only recorded collisions measure
+   the surface now; a ground target's altitude is the firing line, flown safely in 74 of 122
+   mapped columns. Tank kills went 1 -> 5.
+2. **Velocity aliased to exactly zero.** Objects stationary in the level drift with the scroll at
+   0.5 px/frame - one pixel every *other* frame - and a one-frame difference sampled on a fixed
+   6-frame cadence always lands on the same parity. Turrets and screen-clear power-ups read 0.00
+   in 100% of samples, so a drifting power-up looked parked. Velocity is measured over a 30-frame
+   baseline now; those objects read -0.500.
+3. **Terrain warnings cleared when every option was too low.** A valve meant to avoid an impossible
+   constraint deleted the warning exactly when the aircraft was below a recorded collision
+   altitude (three hits at Y 174 in one run). Warnings are kept; every option reports clearance in
+   pixels, and the instruction says to climb out on the option with the most.
+4. **No memory across decisions.** Each decision was judged fresh, so nothing could show that the
+   aircraft had camped on one side for seconds, or sat inside the collision range for four
+   decisions in a row (which is how R20 died). `where_you_have_been_recently` and
+   `time_in_the_collision_range` are measured from the run itself.
+
+**Both attempts to write tactics instead of measurements made runs worse and were reverted.**
+Telling Jev to "turn and work the targets ahead" pushed it to median X 171: 36 kills, 5 hits, died.
+Telling it to stay level with crossing targets pushed it to X 77 and 41 kills. Position correlates
+strongly with outcome: every 43-kill run sat between X 81 and 131, both worst runs sat at 171.
+Give Jev measurements; let Jev choose the tactics.
 
 ## How it works now
 
-- **Pause-and-step.** Lua pauses the emulator on each decision frame (`client.pause()`, frozen heartbeat, 5 s watchdog) and the choice applies from the observed frame. Decisions run every **6 game frames** (`--interval`).
-- **Whole object table.** WRAM `0x1000..0x1FC0` holds 0x40-byte records; bytes 1..3 are a routine address that identifies the type. `TableTracker` classifies every record: helicopters `$02:B04A`, enemy bullets `$04:F97F` (blue or orange), weapon power-up `$04:FABA`, screen-clearing power-up `$04:FAD9`, tanks `$02:9274` and `$02:90F0..9203`, turrets `$02:93DD`.
-- **What Jev is given per option** (all computed, none of it a tactic): closest tracked threat and its direction; whether that gap sits inside the measured 9-22 px collision range; which targets a shot fired from there would hit and when; the aim error to the nearest reachable target; targets ahead and behind, with the distance to slip past the nearest behind; nearest threat ahead and behind separately; how many targets drift into the gun's line within 30 frames if it holds that position; where the move ends; room from the entry side and room to fall back; what the nearest threat closes to if it stays; and the measured terrain floor there.
-- **Whole-field map.** `field_forecast_next_30_frames` gives a 4x8 grid over the flyable area with, per cell, the targets that would cross the gun line within 30 frames and how close threats would come.
-- **Re-plan trigger.** If a threat appears where none was tracked, or the closest gap halves against what Jev was shown, Lua pauses on the next frame and Jev is asked again.
+- **Pause-and-step.** Lua pauses on each decision frame; the choice applies from the observed
+  frame. Decisions every **6 game frames**.
+- **Whole object table.** WRAM `0x1000..0x1FC0`, 0x40-byte records, bytes 1..3 a routine address:
+  helicopters `$02:B04A`, bullets `$04:F97F`, weapon power-up `$04:FABA`, screen-clearing power-up
+  `$04:FAD9`, tanks `$02:9274` and `$02:90F0..9203`, turrets `$02:93DD`.
+- **Facts per option**, all computed, none of them tactics: shot geometry and aim error; closest
+  threat and direction; targets ahead/behind; **frames** to fly back past the nearest target
+  behind, and what holding that direction for the whole transit reaches and costs; targets about
+  to slip behind and when; power-up reach and expiry **in frames**, plus what holding a direction
+  closes to; warning room and retreat room in pixels **and frames**; terrain clearance; and a
+  30-frame whole-field forecast.
+- **A screen-clearing power-up leads every option** when one is in play, per Carl's instruction
+  that it should reshape the approach rather than sit at the end of the list.
+- **One question per decision** (movement, five options). Jev returns probabilities and a
+  confidence. There is no separate GOAL/AIM/DODGE question as in the Doom agent - see below.
 
-## Terrain: the open problem
+## Jev Squadron dashboard
 
-Terrain is **not** in the object table and is now the main damage source; most remaining hits have no tracked object within 36 px, always while flying low (Y 174-191).
+`dashboard.bat` serves **http://127.0.0.1:8770**. Leave it open: it follows
+`runs/active_segment.json` and switches runs by itself with no human involvement. Header live
+feed, a radar of what Jev actually sees, Jev's movement probabilities, and an R### history table.
+It reads only the run files - no hook into the controller, no credentials, no emulator access.
+`test_dashboard.py` covers it offline, including torn writes from a run in progress.
 
-- **Level scroll position is WRAM `0x007B`** (16-bit, +0.5 px/frame), exported as `scroll_x`. `level column = player_x + scroll_x`.
-- `build_terrain_map.py` builds `terrain_map.json` from past runs: per 4 px level column, the surface altitude measured from tanks and turrets standing on it (122 columns), the lowest altitude flown without an untracked hit, and the altitude of any untracked hit (13 columns). The request reports that per option. **Rerun it after new runs** to extend coverage: `python build_terrain_map.py`.
-- `build_terrain_profile.py` tried to read the ground surface from screenshots; **it does not work** because colour cannot separate collidable ground from background art (it returns the mountains at Y 103-128). Kept only as a record of the approach.
-- Next: keep growing the measured map, and extend it into the boss section once runs get that far.
+## Open problems, in the order they cost the most
+
+1. **The boss and the rest of the level.** Never reached. Longer runs are now permitted; new
+   object routines past frame 22463 must be surveyed from a replay capture before Jev meets them.
+2. **The grounded helicopter.** It sits on the ground, takes off later, and matches **no**
+   classified routine, so Jev cannot see it at all. Carl flagged it four times. Needs a replay
+   capture of the late window and `survey_objects.py`.
+3. **Aircraft collisions.** The one repeating damage source. R20 died after four consecutive
+   decisions at 20-21 px from a tank; `time_in_the_collision_range` was added for exactly this
+   and has not yet been measured across runs.
+4. **Shooting into terrain.** Jev lines up targets with a structure in between, because terrain
+   blocks shots and nothing models that.
+5. **The tank-behind delay.** It now takes the tank, but 30-60 decisions later than a human would.
 
 ## Running it
 
 ```powershell
-run_jev_segment.bat                # live: stepped, firing prelude, interval 6, max 300 requests, 1800 frames
+dashboard.bat                      # leave open; follows runs by itself
+run_jev_segment.bat                # live: stepped, firing prelude, interval 6, 300 requests, 1800 frames
+python run_segment.py --mode live --stepped --prelude-fire --interval 6 --max-calls 700 --frames 4200
 python run_segment.py --mode dry --stepped --prelude-fire --interval 6 --max-calls 300 --frames 1800
-python run_segment.py --mode baseline --prelude-fire --frames 1800
-python analyze_segment.py runs\<run> --baseline runs\<same-settings baseline>
+python analyze_segment.py runs\<run>
 python build_terrain_map.py        # after runs, to extend the terrain map
-python -m unittest test_bridge test_brain test_combat   # 56 offline tests
+python -m unittest test_bridge test_brain test_combat test_dashboard   # 75 offline tests
 ```
 
-Discovery tools: `probe_hazards.py --modes replay --replay-run runs\<run>` (exact replay with full-WRAM capture), `survey_objects.py <capture>` (object table by routine address), `render_object_types.ps1`, `render_run_track.ps1`, `analyze_aircraft_slot.py`, `replay_brain.py --combat`.
+Discovery: `probe_hazards.py --modes replay --replay-run runs\<run> --frames <n>` (exact replay
+with full-WRAM capture; its overlay says OFFLINE CAPTURE so it is never mistaken for a Jev run),
+then `survey_objects.py <capture>`.
 
 ## Rules that still hold
 
-- **Slot 1 must hash `c1ea750e...`** (game frame 20183). `run_segment.py` refuses to start otherwise. A stray save state overwrote it once; BizHawk's `.bak` held the original. The emulator directory and save states are not in the repository.
-- `typesafe_api_key.txt` stays local and ignored; only `play_segment.py --mode live` reads it. Never print or commit it.
-- Carl approved paid requests (free tier). This session used about 5,700.
-- The runners refuse to start if an emulator is already open and close only their own process. Stop with Ctrl+C or `stop_segment.bat`.
-- Keep the D/L calibration in `bridge.py`/`launch.bat` working; it never sends a freeze.
-- Evidence discipline: adopt an object type only after checking it against screenshots in two recordings, and keep health/damage/death unmapped. The hit marker (`$04:F8A1` in slot `0x1040`) is a candidate used only to count outcomes after a run.
-- Avoid overfitting to this stretch of level 1: stage facts are counted at runtime, thresholds are relative, and tactics belong to Jev rather than to code.
-
-## Next steps
-
-1. Repeat runs to get distributions; single runs still swing between 36 and 42 kills and 1 to 6 hits.
-2. Grow `terrain_map.json` from every run and check whether terrain hits keep falling.
-3. Aircraft collisions are the other damage source; they happen when Jev works the right side.
-4. Extend past frame 22463 toward the boss, surveying new routines from a replay capture before Jev sees them.
-
-## Pasteable restart prompt
-
-```text
-Continue this Windows U.N. Squadron project. Read CLAUDE_HANDOFF.md, the current PROJECT_STATE.md checkpoint, MEMORY_MAP.md, and hazard_observation/OBJECT_TYPES_2026-09-19.md. The controller uses pause-and-step with decisions every 6 game frames, classifies the whole WRAM object table by routine address (helicopters, bullets, both power-up types, tanks, turrets), and gives Jev measured shot geometry, a 30-frame whole-field forecast, squeeze and position facts, and a measured terrain map keyed by scroll position (WRAM 0x007B). run_jev_segment.bat runs 1800 frames with up to 300 requests. Best runs destroy 36-42 units with 3 hits; terrain is the main remaining damage source and level 1 is not finished.
-
-Next: repeat runs for a distribution, rebuild terrain_map.json with build_terrain_map.py after each batch, reduce aircraft collisions on the right side, and extend past frame 22463 toward the boss, surveying new object routines from a replay capture first. Keep slot 1 at hash c1ea750e..., keep health/death unmapped, and do not hard-code tactics.
-```
+- **Slot 1 must hash `c1ea750e...`** (game frame 20183). `run_segment.py` refuses otherwise.
+- `typesafe_api_key.txt` stays local and ignored; only `play_segment.py --mode live` reads it.
+  Never print or commit it.
+- The runners refuse to start if an emulator is already open and close only their own process.
+- Evidence discipline: adopt an object type only after checking it against screenshots in two
+  recordings; keep health, damage and death unmapped. Do not claim level completion.
+- Avoid overfitting: stage facts are counted at runtime, thresholds are relative, and tactics
+  belong to Jev rather than to code. The two violations of this rule both lost kills.
+- **The repository has no remote.** Commits are local. To publish:
+  `winget install GitHub.cli` then `gh repo create jev-un-squadron --private --source . --remote origin --push`.
