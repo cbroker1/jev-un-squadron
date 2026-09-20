@@ -105,5 +105,48 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(live["finished"]["reason"], "game_frame_budget")
 
 
+class BenchmarkTests(unittest.TestCase):
+    """The gameplay regression check itself needs to be right about what it scores."""
+
+    def run_dir(self, folder, label, start, end, kills, hits):
+        run = Path(folder) / f"combat-unit{label}-live"
+        run.mkdir()
+        (run / "manifest.json").write_text(json.dumps({"run_label": label}))
+        (run / "summary.json").write_text(json.dumps({"first_request_frame": start, "final_frame": end}))
+        (run / "decision_trace.json").write_text(json.dumps({"candidate_table_events": {
+            "aircraft_destroyed": [{"frame": f} for f in kills],
+            "hit_marker_frames": list(hits)}}))
+        return run
+
+    def test_a_segment_the_run_never_reached_is_not_scored_as_zero(self):
+        import benchmark
+        with tempfile.TemporaryDirectory() as folder:
+            run = self.run_dir(folder, 1, 20663, 21500, [20700, 20800], [20900])
+            scored = benchmark.score(run)
+            self.assertIn("opening", scored["segments"])
+            self.assertEqual(scored["segments"]["opening"]["kills"], 2)
+            # It died at 21500, so the later segments are absent rather than zero.
+            self.assertNotIn("fortified line", scored["segments"])
+            self.assertNotIn("boss", scored["segments"])
+
+    def test_kills_are_counted_only_inside_the_segment(self):
+        import benchmark
+        with tempfile.TemporaryDirectory() as folder:
+            run = self.run_dir(folder, 2, 20663, 23000, [20700, 21500, 22500], [])
+            segments = benchmark.score(run)["segments"]
+            self.assertEqual(segments["opening"]["kills"], 1)
+            self.assertEqual(segments["middle"]["kills"], 1)
+            self.assertEqual(segments["fortified line"]["kills"], 1)
+            self.assertTrue(segments["opening"]["complete"])
+
+    def test_a_run_that_started_late_does_not_score_earlier_segments(self):
+        import benchmark
+        with tempfile.TemporaryDirectory() as folder:
+            run = self.run_dir(folder, 3, 22200, 23800, [22500, 23500], [])
+            segments = benchmark.score(run)["segments"]
+            self.assertNotIn("opening", segments)      # a practice run from the fortified line
+            self.assertIn("fortified line", segments)
+
+
 if __name__ == "__main__":
     unittest.main()
