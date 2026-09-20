@@ -53,7 +53,10 @@ def main():
     ap.add_argument("--runs", type=Path, default=Path("runs"))
     ap.add_argument("--out", type=Path, default=Path("terrain_map.json"))
     args = ap.parse_args()
-    safe, hits, surface, used = {}, {}, {}, []
+    # A column is not a floor: at level column 1644 a collision was recorded at Y 171 while
+    # Y 189 was flown safely, so these are structures with open air below them. Keep every
+    # measured altitude rather than collapsing them into a floor that was never observed.
+    safe, hits, surface, used, bands = {}, {}, {}, [], {}
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
@@ -64,6 +67,7 @@ def main():
                 surface[column] = min(surface.get(column, 999), y)
             elif was_hit:
                 hits[column] = min(hits.get(column, 999), y)
+                bands.setdefault(column, set()).add(round(y))
             else:
                 safe[column] = max(safe.get(column, 0), y)
         if count:
@@ -73,6 +77,7 @@ def main():
                "bucket_px": BUCKET, "scroll_address": "0x007B", "runs": used,
                "level_column_range": [columns[0]*BUCKET, columns[-1]*BUCKET] if columns else None,
                "columns": {str(c): {"safe_max_y": safe.get(c), "hit_min_y": hits.get(c),
+                                    "collision_altitudes": sorted(bands.get(c, ())) or None,
                                     "ground_object_y": round(surface[c], 1) if c in surface else None} for c in columns}}
     args.out.write_text(json.dumps(payload, separators=(",", ":"))+"\n")
     print(json.dumps({"runs_used": len(used), "columns": len(columns),

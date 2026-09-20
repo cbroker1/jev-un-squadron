@@ -105,7 +105,7 @@ class CombatTests(unittest.TestCase):
         from brain import combat
         columns={200:{"hit_min_y":174,"safe_max_y":174,"ground_object_y":156.0}}
         with patch.object(combat,"_terrain",(columns,4)):
-            self.assertEqual(combat.terrain_at([40,170],760),(174,174,156.0))   # normal scroll
+            self.assertEqual(combat.terrain_at([40,170],760),([174],174,156.0))   # normal scroll
             self.assertEqual(combat.terrain_at([40,170],65529),(None,None,None))
             self.assertEqual(combat.terrain_at([40,170],None),(None,None,None))
 
@@ -396,7 +396,7 @@ class CombatTests(unittest.TestCase):
         columns={200:{"hit_min_y":174,"safe_max_y":174,"ground_object_y":156.0},
                  201:{"hit_min_y":None,"safe_max_y":160,"ground_object_y":None}}
         with patch.object(combat,"_terrain",(columns,4)):
-            self.assertEqual(combat.terrain_at([40,170],760),(174,174,156.0))   # level column 200
+            self.assertEqual(combat.terrain_at([40,170],760),([174],174,156.0))   # level column 200
             self.assertEqual(combat.terrain_at([40,170],9000),(None,None,None))  # nothing measured out there
             tracker=TableTracker(); tracker.observe(self.table_ram(),100,"unit")
             obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":170},
@@ -407,8 +407,8 @@ class CombatTests(unittest.TestCase):
             self.assertIn("Ground targets stand at Y 156 here",text)
             self.assertIn("firing line, not a floor",text)
             # Ending at or below a RECORDED collision altitude is called out as disqualifying.
-            self.assertIn("TERRAIN: this ends at Y 170, only 4 pixels above an altitude where a terrain collision "
-                          "was actually recorded",text)
+            self.assertIn("TERRAIN: this ends at Y 170, level with an altitude where a collision was actually "
+                          "recorded",text)
             # A column where only a ground object stands is not a floor: flying its line stays allowed.
             only_object={202:{"hit_min_y":None,"safe_max_y":187,"ground_object_y":176.0}}
             with patch.object(combat,"_terrain",(only_object,4)):
@@ -419,21 +419,21 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
-    def test_being_too_low_everywhere_keeps_the_warning_and_points_the_way_out(self):
-        """Clearing the flags deleted the warning exactly when the aircraft was already too low."""
+    def test_a_structure_is_an_altitude_band_not_a_floor(self):
+        """At one measured column a collision happened at Y 171 while Y 189 was flown safely."""
         from brain import combat
-        columns={c:{"hit_min_y":60,"safe_max_y":None,"ground_object_y":None} for c in range(150,260)}
+        columns={c:{"hit_min_y":171,"collision_altitudes":[171],"safe_max_y":189,
+                    "ground_object_y":None} for c in range(150,260)}
         with patch.object(combat,"_terrain",(columns,4)):
-            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":170},"tracks":[]}
+            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":171},"tracks":[]}
             digest=combat.combat_digest(obs,6)
-            # Every option is too low, and every one still says so.
-            self.assertTrue(all(o["ends_at_or_below_terrain"] for o in digest["actions"].values()))
-            self.assertIn("every option here ends at or below",digest["terrain_constraint_suspended"])
-            # Climbing has the most clearance, so the way out is visible in the numbers.
-            clearances={a:o["pixels_above_recorded_terrain"] for a,o in digest["actions"].items()}
-            self.assertEqual(max(clearances,key=clearances.get),"up")
-            text=combat.combat_request(digest)["questions"]["movement"]["criteria"]["up"]
-            self.assertIn("climbing is the only way out",text)
+            # Holding at the recorded altitude is flagged; flying under it is not.
+            self.assertTrue(digest["actions"]["hold"]["ends_at_or_below_terrain"])
+            self.assertFalse(digest["actions"]["down"]["ends_at_or_below_terrain"])
+            self.assertFalse(digest["actions"]["up"]["ends_at_or_below_terrain"])
+            text=combat.combat_request(digest)["questions"]["movement"]["criteria"]["hold"]
+            self.assertIn("level with an altitude where a collision was actually recorded",text)
+            self.assertIn("structure to go around or over, not a floor",text)
 
     def test_lua_object_table_matches_python(self):
         source=(Path(player.ROOT) / "lua" / "main.lua").read_text()

@@ -23,8 +23,8 @@ def terrain_columns():
 def terrain_at(position, scroll, spread=2, span_from=None):
     """Terrain known near a position, covering every column the move crosses.
 
-    Returns (recorded collision altitude, lowest altitude flown safely, surface
-    altitude from tanks and turrets standing there).
+    Returns (the altitudes where collisions were actually recorded, the lowest altitude
+    flown safely, surface altitude from tanks and turrets standing there).
     """
     columns, bucket = terrain_columns()
     # The scroll counter wraps once the level stops scrolling at the boss, so a huge value
@@ -32,18 +32,18 @@ def terrain_at(position, scroll, spread=2, span_from=None):
     if not columns or scroll is None or scroll > 60000 or not position:
         return None, None, None
     ends = sorted({int((position[0]+scroll)//bucket), int(((span_from if span_from is not None else position[0])+scroll)//bucket)})
-    hit = safe = ground = None
+    hit, safe, ground = set(), None, None
     for column in range(ends[0]-spread, ends[-1]+spread+1):
         entry = columns.get(column)
         if not entry:
             continue
-        if entry.get("hit_min_y") is not None:
-            hit = entry["hit_min_y"] if hit is None else min(hit, entry["hit_min_y"])
+        hit.update(entry.get("collision_altitudes")
+                   or ([entry["hit_min_y"]] if entry.get("hit_min_y") is not None else []))
         if entry.get("safe_max_y") is not None:
             safe = entry["safe_max_y"] if safe is None else max(safe, entry["safe_max_y"])
         if entry.get("ground_object_y") is not None:
             ground = entry["ground_object_y"] if ground is None else min(ground, entry["ground_object_y"])
-    return hit, safe, ground
+    return (sorted(hit) or None), safe, ground
 
 
 KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret",
@@ -309,15 +309,21 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
                 continue
             fx, fy = t["x"]+t["vx"]*horizon, t["y"]+t["vy"]*horizon
             sides["ahead" if fx > position[0] else "behind"].append(((fx-position[0])**2+(fy-position[1])**2)**0.5)
-        (option["terrain_hit_recorded_y"], option["lowest_safe_y_measured"],
+        (option["collision_altitudes_here"], option["lowest_safe_y_measured"],
          option["ground_object_y_here"]) = terrain_at(position, obs.get("scroll_x"), span_from=px)
+        # Structures are not a floor: at one measured column a collision happened at Y 171
+        # while Y 189 was flown safely. Compare against the altitudes actually recorded.
+        option["terrain_hit_recorded_y"] = (min(option["collision_altitudes_here"])
+                                            if option["collision_altitudes_here"] else None)
         # The altitude at or below which terrain is known to be solid along this path.
         # Only recorded untracked hits measure that. A tank or turret standing here measures
         # where ground targets sit, and the aircraft has flown at or below that altitude
         # without a hit in 74 of the 122 mapped columns, so it is a firing line, not a floor.
         option["terrain_floor_y"] = option["terrain_hit_recorded_y"]
-        option["ends_at_or_below_terrain"] = bool(
-            position and option["terrain_floor_y"] is not None and position[1] >= option["terrain_floor_y"]-4)
+        near = [a for a in (option["collision_altitudes_here"] or ())
+                if position and abs(position[1]-a) <= 6]
+        option["ends_where_a_collision_was_recorded"] = sorted(near) or None
+        option["ends_at_or_below_terrain"] = bool(near)
         # Positive means this option ends that many pixels above the recorded collision altitude.
         option["pixels_above_recorded_terrain"] = (
             round(option["terrain_floor_y"]-position[1], 1)
@@ -486,21 +492,24 @@ def combat_request(digest, model="jev-latest"):
                          f"flying back past them.")
         ground = ""
         if f["ends_at_or_below_terrain"]:
-            clearance = f["pixels_above_recorded_terrain"]
-            where = (f"only {clearance:.0f} pixels above" if clearance >= 0
-                     else f"{abs(clearance):.0f} pixels below")
-            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, {where} an altitude where a "
-                       f"terrain collision was actually recorded on this path (Y {f['terrain_floor_y']:.0f}); "
-                       f"terrain contact is damage every time, and climbing is the only way out of it.")
-        elif f["pixels_above_recorded_terrain"] is not None:
-            ground += (f" Terrain clearance here: {f['pixels_above_recorded_terrain']:.0f} pixels above the "
-                       f"altitude where a collision was recorded (Y {f['terrain_floor_y']:.0f}).")
+            hit_at = ", ".join(f"{a:.0f}" for a in f["ends_where_a_collision_was_recorded"])
+            escape = ("" if f["lowest_safe_y_measured"] is None else
+                      f" Altitudes flown here without a hit go down to Y {f['lowest_safe_y_measured']:.0f}, "
+                      f"so this is a structure to go around or over, not a floor.")
+            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, level with an altitude where a "
+                       f"collision was actually recorded on this path (Y {hit_at}); contact is damage every "
+                       f"time.{escape}")
+        elif f["collision_altitudes_here"]:
+            ground += (" Collisions have been recorded on this path at Y "
+                       + ", ".join(f"{a:.0f}" for a in f["collision_altitudes_here"])
+                       + f"; this option ends {f['pixels_above_recorded_terrain']:.0f} pixels above the highest.")
         if f["ground_object_y_here"] is not None:
             ground += (f" Ground targets stand at Y {f['ground_object_y_here']:.0f} here: that is the altitude the "
                        f"gun has to be at to hit them, and it has been flown without a hit, so it is a firing "
                        f"line, not a floor.")
         if f["terrain_hit_recorded_y"] is not None:
-            ground += f" A terrain collision was recorded here at Y {f['terrain_hit_recorded_y']:.0f} and below."
+            ground += (" A terrain collision was recorded here at Y "
+                       + ", ".join(f"{a:.0f}" for a in f["collision_altitudes_here"]) + ".")
         elif f["lowest_safe_y_measured"] is not None:
             ground += f" The lowest altitude flown here without an untracked hit is Y {f['lowest_safe_y_measured']:.0f}."
         squeeze = ("" if f["gap_ahead_px"] is None and f["gap_behind_px"] is None
@@ -624,9 +633,10 @@ def combat_request(digest, model="jev-latest"):
                 "power-up or kill something coming up behind you is the right move. Weaving between "
                 "bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do "
                 "not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at "
-                "or below measured terrain: the ground and platforms are solid and contact is damage every time. If every "
-                "option ends at or below it, the aircraft is already too low and the only way out is the option "
-                "with the most clearance, climbing until the clearance figure turns positive. Colliding with an aircraft, tank or turret is the main way this "
+                "level with an altitude where a collision was recorded on that path. These are structures, not a floor: "
+                "at one measured column a collision happened at Y 171 while Y 189 was flown safely, so going "
+                "around or under one can be as good as climbing over it, and each option says which altitudes "
+                "have actually been flown there. Colliding with an aircraft, tank or turret is the main way this "
                 "aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. "
                 "time_in_the_collision_range counts how long this has already been going on: staying inside that "
                 "band decision after decision is how the run that died spent its last seconds, and no single option "
