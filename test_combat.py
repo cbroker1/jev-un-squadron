@@ -242,8 +242,12 @@ class CombatTests(unittest.TestCase):
         self.assertLess(left["tightest_gap_if_this_direction_is_held_px"],
                         right["tightest_gap_if_this_direction_is_held_px"])
         text=combat_request(digest)["questions"]["movement"]["criteria"]["left"]
-        self.assertIn("holding this direction for those frames reaches a shot on it",text)
-        self.assertIn("tightest gap to anything along that path",text)
+        self.assertIn("tightest gap of",text)
+        # Getting past it is only half the move: the drop onto its firing line is counted.
+        self.assertIn("getting past it and onto its firing line takes about",text)
+        self.assertEqual(left["frames_to_drop_onto_its_line"],0)      # already level with it
+        self.assertEqual(left["frames_to_get_past_it_and_onto_its_line"],
+                         left["frames_to_get_behind_nearest_target_behind"])
 
     def test_targets_about_to_slip_behind_are_forecast_before_they_do(self):
         """Once something is behind, the gun cannot reach it; the crossing is the moment that matters."""
@@ -296,6 +300,24 @@ class CombatTests(unittest.TestCase):
                        "phase":"observed_moving_signature","on_screen":True,"in_play":True,
                        "slot":"WRAM:0x1840","generation":1}]},6,entry_edges={"right":5}))["questions"]["movement"]["criteria"]["hold"]
         self.assertIn("frames of warning",text)
+
+    def test_going_back_for_a_ground_target_counts_the_drop_as_well(self):
+        """Run 87 was told 'this does not line up a shot' at every decision with a tank
+        behind it, because flying back never changes altitude. The move is back, then down."""
+        from brain.combat import combat_digest, combat_request
+        tank={"kind":"ground_tank","x":60.0,"y":180.0,"vx":-0.5,"vy":0.0,
+              "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+              "slot":"WRAM:0x1840","generation":1}
+        high=combat_digest({"source_frame":101,"player":{"x":140,"y":110},"tracks":[tank]},6)["actions"]["left"]
+        self.assertGreater(high["frames_to_drop_onto_its_line"],20)     # 70 px above its line
+        self.assertEqual(high["frames_to_get_past_it_and_onto_its_line"],
+                         high["frames_to_get_behind_nearest_target_behind"]+high["frames_to_drop_onto_its_line"])
+        level=combat_digest({"source_frame":101,"player":{"x":140,"y":178},"tracks":[tank]},6)["actions"]["left"]
+        self.assertEqual(level["frames_to_drop_onto_its_line"],0)
+        text=combat_request(combat_digest({"source_frame":101,"player":{"x":140,"y":110},
+                                           "tracks":[tank]},6))["questions"]["movement"]["criteria"]["left"]
+        self.assertIn("of which",text)
+        self.assertIn("are the drop onto its altitude",text)
 
     def test_cost_of_going_back_for_a_target_is_reported_in_frames(self):
         """Distance alone cannot say whether a target behind is catchable; speed decides it."""

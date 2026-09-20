@@ -584,6 +584,18 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
             option["nearest_target_behind_kind"] = target["kind"]
             transit = round(gap/closing) if closing > 0.05 else None
             option["frames_to_get_behind_nearest_target_behind"] = transit
+            # Getting past something is only half the manoeuvre: the gun fires along the
+            # aircraft's own line, so it must also be at the target's firing altitude.
+            # Judging a pure sideways hold said 'this does not line up a shot' at every
+            # decision, even with the tank 0.2 px away, because flying back never changes
+            # altitude. The move is back, then down.
+            low, high = FIRING_BANDS.get(target["kind"], DEFAULT_BAND)
+            window = (target["y"]+low, target["y"]+high)
+            drop = 0 if window[0] <= position[1] <= window[1] else min(
+                abs(position[1]-window[0]), abs(position[1]-window[1]))
+            option["frames_to_drop_onto_its_line"] = round(drop/PLAYER_SPEED)
+            option["frames_to_get_past_it_and_onto_its_line"] = (
+                transit + round(drop/PLAYER_SPEED) if transit is not None else None)
             # The transit is several moves long, so judge the whole path, not its first step.
             if transit and transit <= lookahead*2 and position:
                 threats = [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")]
@@ -797,16 +809,20 @@ def combat_request(digest, model="jev-latest"):
             kind = (f["nearest_target_behind_kind"] or "target").replace("_", " ")
             path = ""
             if f["tightest_gap_if_this_direction_is_held_px"] is not None:
-                path = (f"; holding this direction for those frames "
-                        f"{'reaches a shot on it' if f['holding_this_direction_reaches_a_shot_on_it'] else 'does not line up a shot on it'}"
-                        f", and the tightest gap to anything along that path is "
-                        f"{f['tightest_gap_if_this_direction_is_held_px']:.0f} pixels")
+                path = (f", with a tightest gap of {f['tightest_gap_if_this_direction_is_held_px']:.0f} "
+                        f"pixels to anything along the way")
+            whole = ""
+            if f.get("frames_to_get_past_it_and_onto_its_line") is not None:
+                drop = f["frames_to_drop_onto_its_line"]
+                whole = (f"; getting past it and onto its firing line takes about "
+                         f"{f['frames_to_get_past_it_and_onto_its_line']} frames in total"
+                         + (f", of which {drop} are the drop onto its altitude" if drop else
+                            ", and this option is already at its altitude"))
             cost = (f"flying back past it takes about {frames} frames at this aircraft's measured speed"
                     if frames is not None else
                     "it is drifting away about as fast as this aircraft flies, so it cannot be caught from here")
             behind = (f" Targets behind you: {f['targets_behind']} (nearest is a {kind}, "
-                      f"{f['pixels_to_pass_nearest_behind']:.0f} pixels back; {cost}{path}, and the gun can hit "
-                      f"it once past).")
+                      f"{f['pixels_to_pass_nearest_behind']:.0f} pixels back; {cost}{path}{whole}).")
         if f["warning_room_px"] is None:
             room = ""
         else:
