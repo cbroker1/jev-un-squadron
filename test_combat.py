@@ -149,6 +149,23 @@ class CombatTests(unittest.TestCase):
         # Our own shots travel right at 11 px/frame and are not an enemy of anything.
         self.assertEqual(record("afe604",0xC8)[0],"unclassified")
 
+    def test_the_aircraft_is_told_what_it_has_been_doing(self):
+        """Nothing else in the request carries the previous choice, so a multi-move
+        commitment cannot be sustained: run 73 reversed left/right for forty decisions."""
+        from brain.combat import what_you_have_been_doing, combat_digest, combat_request
+        self.assertIsNone(what_you_have_been_doing([]))
+        steady=what_you_have_been_doing(["up","left","left","left","left"])
+        self.assertEqual(steady["decisions_spent_going_the_same_way"],4)
+        self.assertEqual(steady["times_you_reversed_in_those"],0)
+        stutter=what_you_have_been_doing(["left","right","left","right"])
+        self.assertEqual(stutter["times_you_reversed_in_those"],3)
+        self.assertEqual(stutter["decisions_spent_going_the_same_way"],1)
+        # Only the last eight are carried, so the fact stays small.
+        self.assertEqual(len(what_you_have_been_doing(["up"]*20)["last_choices_oldest_first"]),8)
+        body=combat_request(combat_digest({"source_frame":101,"player":{"x":80,"y":112},"tracks":[]},6,
+                                          recent_choices=["left","right","left"]))
+        self.assertEqual(body["state"]["what_you_have_been_doing"]["times_you_reversed_in_those"],2)
+
     def test_lingering_in_the_collision_range_is_counted_across_decisions(self):
         """R20 died after four straight decisions at 20-21 px from a tank; each looked fine alone."""
         from brain.combat import time_in_the_collision_range

@@ -1,0 +1,341 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "experiment": "bounded_experimental_combat_not_level_clear",
+    "goal": "Destroy enemies and collect power-ups. The main gun fires to the right by itself, so steering decides what it hits: put targets in the gun's path and take power-ups. Avoiding damage is the constraint on how you attack, not the objective.",
+    "coverage": "Helicopters, enemy bullets (blue or orange), dropped power-ups and ground tanks anywhere in the game's object table. Tanks and turrets collide with the aircraft. Terrain and the platforms structures sit on are not tracked at all, and a recorded hit came from flying low beside a turret platform, so 'none tracked' is not a guarantee of safety.",
+    "known_tracks": {
+      "aircraft": 0,
+      "bullets": 2,
+      "power_ups": 0,
+      "tanks": 0,
+      "turrets": 3,
+      "screen_clearing_power_ups": 0
+    },
+    "action_horizon_game_frames": 3,
+    "object_entries_counted_this_run": {
+      "bottom": 1,
+      "right": 1,
+      "top": 1
+    },
+    "tracked_threats_by_direction_now": {
+      "below, right": 3,
+      "below, left": 1,
+      "above, right": 1
+    },
+    "every_option_is_blocked": "no",
+    "field_forecast_next_30_frames": [
+      {
+        "xy": [
+          16,
+          48
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 145.7
+      },
+      {
+        "xy": [
+          90,
+          48
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 99.0
+      },
+      {
+        "xy": [
+          165,
+          48
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 61.1
+      },
+      {
+        "xy": [
+          239,
+          48
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 92.8
+      },
+      {
+        "xy": [
+          16,
+          68
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 126.6
+      },
+      {
+        "xy": [
+          90,
+          68
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 84.9
+      },
+      {
+        "xy": [
+          165,
+          68
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 41.1
+      },
+      {
+        "xy": [
+          239,
+          68
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 81.0
+      },
+      {
+        "xy": [
+          16,
+          89
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 106.9
+      },
+      {
+        "xy": [
+          90,
+          89
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 70.0
+      },
+      {
+        "xy": [
+          165,
+          89
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 20.4
+      },
+      {
+        "xy": [
+          239,
+          89
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 72.7
+      },
+      {
+        "xy": [
+          16,
+          109
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 88.7
+      },
+      {
+        "xy": [
+          90,
+          109
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 56.3
+      },
+      {
+        "xy": [
+          165,
+          109
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 2.8
+      },
+      {
+        "xy": [
+          239,
+          109
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 65.7
+      },
+      {
+        "xy": [
+          16,
+          130
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 70.6
+      },
+      {
+        "xy": [
+          90,
+          130
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 46.6
+      },
+      {
+        "xy": [
+          165,
+          130
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 12.0
+      },
+      {
+        "xy": [
+          239,
+          130
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 45.0
+      },
+      {
+        "xy": [
+          16,
+          150
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 55.4
+      },
+      {
+        "xy": [
+          90,
+          150
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 41.6
+      },
+      {
+        "xy": [
+          165,
+          150
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 26.2
+      },
+      {
+        "xy": [
+          239,
+          150
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 25.8
+      },
+      {
+        "xy": [
+          16,
+          171
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 43.8
+      },
+      {
+        "xy": [
+          90,
+          171
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 24.0
+      },
+      {
+        "xy": [
+          165,
+          171
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 41.0
+      },
+      {
+        "xy": [
+          239,
+          171
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 9.8
+      },
+      {
+        "xy": [
+          16,
+          191
+        ],
+        "targets_into_line": 2,
+        "first_in_frames": 0,
+        "nearest_threat_px": 40.4
+      },
+      {
+        "xy": [
+          90,
+          191
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 17.3
+      },
+      {
+        "xy": [
+          165,
+          191
+        ],
+        "targets_into_line": 1,
+        "first_in_frames": 0,
+        "nearest_threat_px": 46.3
+      },
+      {
+        "xy": [
+          239,
+          191
+        ],
+        "targets_into_line": 0,
+        "first_in_frames": null,
+        "nearest_threat_px": 11.0
+      }
+    ],
+    "where_you_have_been_recently": {
+      "frames_sampled": 9,
+      "median_x": 119,
+      "mostly_in": "the middle of the flyable area",
+      "share_of_that_window_in_the_forward_third": 0.0,
+      "share_of_that_window_in_the_back_third": 0.0
+    },
+    "time_in_the_collision_range": "not inside it recently",
+    "terrain": "The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured this stretch, each option says so; a column with no measurement is unknown, not safe. Only a recorded collision measures the solid surface; a tank or turret standing somewhere marks the altitude to shoot it from, and that altitude has been flown safely.",
+    "uncertainty": "Gaps are between reference points, not hitboxes: every collision recorded so far happened at a reference gap of 9 to 22 pixels, so a gap in that range is a hit, not clearance. Constant recent velocity is a short-horizon estimate. Health and death are unknown."
+  },
+  "questions": {
+    "movement": {
+      "type": "choice",
+      "criteria": {
+        "up": "Move up. Closest tracked threat: 29.0 pixels (bullet, below, right). Attack: no hit yet; the nearest reachable target is 80 pixels off the gun line (smaller means lining up). Nearest threat ahead: 34.2 pixels; behind: 90.1 pixels. Targets behind you: 1 (nearest is a turret, 48 pixels back; flying back past it takes about 25 frames at this aircraft's measured speed; holding this direction for those frames does not line up a shot on it, and the tightest gap to anything along that path is 37 pixels, and the gun can hit it once past). Targets ahead of you: 2; room from the bottom side, where objects have been entering: 112 pixels, about 202 frames of warning at the fastest speed anything is closing at right now; room left to fall back away from that side: 64 pixels, about 25 frames of flying. Staying there afterwards, the nearest tracked threat closes to 34 pixels. Past runs flew 51 frames at this exact position and altitude; 0 of those frames came within 60 frames of the aircraft being destroyed, and 2 came within 30 frames of it taking a hit. Collisions have been recorded on this path at Y 174; this option ends 62 pixels above the highest. Ground targets stand at Y 156 here: that is the altitude the gun has to be at to hit them, and it has been flown without a hit, so it is a firing line, not a floor. A terrain collision was recorded here at Y 174. Bullet-reference gap: 29.0 pixels; aircraft/tank/turret-reference gap: 82.9 pixels; no tracked aircraft ahead to align with; turret firing-line error 62.5 pixels. Ends at 119,112, at least one action of room to every movement limit.",
+        "down": "Move down. Closest tracked threat: 23.3 pixels (bullet, below, right). Attack: no hit yet; the nearest reachable target is 66 pixels off the gun line (smaller means lining up). Nearest threat ahead: 23.3 pixels; behind: 77.8 pixels. Targets behind you: 1 (nearest is a turret, 48 pixels back; flying back past it takes about 25 frames at this aircraft's measured speed; holding this direction for those frames does not line up a shot on it, and the tightest gap to anything along that path is 20 pixels, and the gun can hit it once past). Targets ahead of you: 2; room from the bottom side, where objects have been entering: 98 pixels, about 176 frames of warning at the fastest speed anything is closing at right now; room left to fall back away from that side: 78 pixels, about 31 frames of flying. Staying there afterwards, the nearest tracked threat closes to 23 pixels. Past runs flew 38 frames at this exact position and altitude; 0 of those frames came within 60 frames of the aircraft being destroyed, and 3 came within 30 frames of it taking a hit. Collisions have been recorded on this path at Y 174; this option ends 48 pixels above the highest. Ground targets stand at Y 156 here: that is the altitude the gun has to be at to hit them, and it has been flown without a hit, so it is a firing line, not a floor. A terrain collision was recorded here at Y 174. Bullet-reference gap: 23.3 pixels; aircraft/tank/turret-reference gap: 77.8 pixels; no tracked aircraft ahead to align with; turret firing-line error 47.5 pixels. Ends at 119,126, at least one action of room to every movement limit.",
+        "left": "Move left. Closest tracked threat: 29.0 pixels (bullet, below, right). Attack: no hit yet; the nearest reachable target is 73 pixels off the gun line (smaller means lining up). Nearest threat ahead: 33.8 pixels; behind: 79.8 pixels. Targets behind you: 1 (nearest is a turret, 40 pixels back; flying back past it takes about 21 frames at this aircraft's measured speed; holding this direction for those frames does not line up a shot on it, and the tightest gap to anything along that path is 35 pixels, and the gun can hit it once past). Targets ahead of you: 2; room from the bottom side, where objects have been entering: 105 pixels, about 189 frames of warning at the fastest speed anything is closing at right now; room left to fall back away from that side: 71 pixels, about 28 frames of flying. Staying there afterwards, the nearest tracked threat closes to 34 pixels. Collisions have been recorded on this path at Y 174; this option ends 55 pixels above the highest. Ground targets stand at Y 156 here: that is the altitude the gun has to be at to hit them, and it has been flown without a hit, so it is a firing line, not a floor. A terrain collision was recorded here at Y 174. Bullet-reference gap: 29.0 pixels; aircraft/tank/turret-reference gap: 79.8 pixels; no tracked aircraft ahead to align with; turret firing-line error 55.0 pixels. Ends at 112,119, at least one action of room to every movement limit.",
+        "right": "Move right. Closest tracked threat: 23.9 pixels (bullet, below, right). Attack: no hit yet; the nearest reachable target is 73 pixels off the gun line (smaller means lining up). Nearest threat ahead: 23.9 pixels; behind: 88.3 pixels. Targets behind you: 1 (nearest is a turret, 55 pixels back; flying back past it takes about 28 frames at this aircraft's measured speed; holding this direction for those frames does not line up a shot on it, and the tightest gap to anything along that path is 13 pixels, and the gun can hit it once past). Targets ahead of you: 2; room from the bottom side, where objects have been entering: 105 pixels, about 189 frames of warning at the fastest speed anything is closing at right now; room left to fall back away from that side: 71 pixels, about 28 frames of flying. Staying there afterwards, the nearest tracked threat closes to 23 pixels. Past runs flew 59 frames at this exact position and altitude; 0 of those frames came within 60 frames of the aircraft being destroyed, and 8 came within 30 frames of it taking a hit. Collisions have been recorded on this path at Y 160, 161, 174; this option ends 41 pixels above the highest. Ground targets stand at Y 156 here: that is the altitude the gun has to be at to hit them, and it has been flown without a hit, so it is a firing line, not a floor. A terrain collision was recorded here at Y 160, 161, 174. Bullet-reference gap: 23.9 pixels; aircraft/tank/turret-reference gap: 82.9 pixels; no tracked aircraft ahead to align with; turret firing-line error 55.0 pixels. Ends at 126,119, at least one action of room to every movement limit.",
+        "hold": "No directional buttons. Closest tracked threat: 28.3 pixels (bullet, below, right). Attack: no hit yet; the nearest reachable target is 73 pixels off the gun line (smaller means lining up). Nearest threat ahead: 28.3 pixels; behind: 83.9 pixels. Targets behind you: 1 (nearest is a turret, 48 pixels back; flying back past it takes about 25 frames at this aircraft's measured speed; holding this direction for those frames does not line up a shot on it, and the tightest gap to anything along that path is 28 pixels, and the gun can hit it once past). Targets ahead of you: 2; room from the bottom side, where objects have been entering: 105 pixels, about 189 frames of warning at the fastest speed anything is closing at right now; room left to fall back away from that side: 71 pixels, about 28 frames of flying. Staying there afterwards, the nearest tracked threat closes to 28 pixels. Past runs flew 161 frames at this exact position and altitude; 0 of those frames came within 60 frames of the aircraft being destroyed, and 3 came within 30 frames of it taking a hit. Collisions have been recorded on this path at Y 174; this option ends 55 pixels above the highest. Ground targets stand at Y 156 here: that is the altitude the gun has to be at to hit them, and it has been flown without a hit, so it is a firing line, not a floor. A terrain collision was recorded here at Y 174. Bullet-reference gap: 28.3 pixels; aircraft/tank/turret-reference gap: 82.9 pixels; no tracked aircraft ahead to align with; turret firing-line error 55.0 pixels. Ends at 119,119, at least one action of room to every movement limit."
+      },
+      "instructions": "Choose one movement. Enemies close in from any direction - ahead, behind, above and below - so read each option's closest threat and its direction rather than assuming danger comes from one side. Play to destroy targets and collect power-ups: prefer options whose Attack line puts tracked targets in the gun's path. Turrets are the highest-value target: destroying one drops a power-up, and more power-ups mean more firepower for the rest of the level, so take a turret when the closest threat allows. A screen-clearing power-up is worth more than any single kill because it destroys every live target at once. While one is in play every option leads with it: reaching it is the objective that reshapes the rest, because it pays more than any sequence of ordinary kills available in the same frames. Work the approach it offers - hold a direction long enough to close, and take the opening when the path's tightest gap allows - and give it up only when every approach crosses a threat inside the collision range. Ordinary targets will still be there afterwards; the power-up will not. A power-up that can be reached in the time it has left is worth more than an ordinary kill, because the firepower lasts for the rest of the level while a single kill does not; passing one up to keep shooting at what is already in front is the wrong trade. Power-ups drift out of play and are gone for the rest of the level: each option gives the frames of flying needed to reach one and the frames before it leaves, so a detour that fits inside the time left is a real choice, while drifting near one without closing wastes both the frames and the power-up. A target behind you cannot be shot until you get past it, and each option says how many frames that transit actually takes. A slow one, such as a tank, is worth the frames when the way is clear; one drifting away nearly as fast as this aircraft flies cannot be caught at all, and its transit cost says which. Each option also says which targets are about to pass behind you and how soon. cost says which case this is. Decide and carry it through: trading a few pixels back and forth while both sides close is how this aircraft gets boxed in with something behind it that the gun cannot reach. Sitting far forward is what creates that: everything that slips past is then a long transit away, and the room behind is the room to dodge into, measured in frames of flying. field_forecast_next_30_frames covers the whole flyable area, not just this step: for positions across the screen it gives the targets that would cross the gun's line within 30 frames and how close threats would come there. Work toward the areas that pay off over several moves instead of judging only the next one. Targets keep moving, so position is worth as much as an immediate shot: falling back to where targets will drift into your line is normal play, not a retreat, and it beats chasing them from behind where the gun cannot fire. When no option hits yet, prefer the one that most reduces the pixels off the gun line, so a shot lines up within the next few moves; also prefer options that close on a power-up. Keeping distance from the side objects enter from buys reaction time, and staying behind targets lets the gun cover more of the screen. Room to fall back into is about where to wait, not a no-go area: do not idle against the far bound with nothing behind you, but moving into that strip to take a shot, reach a power-up or kill something coming up behind you is the right move. Weaving between bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at marked BLOCKED. Those lead the option because ignoring them is what has cost the most damage past the halfway point of this stage: every one of those hits happened where this map already carried evidence. A blocked band is a structure rather than a floor: at one measured column a collision happened at Y 171 while Y 189 was flown safely, so going around or under one can be as good as climbing over it, and each option says which altitudes have actually been flown there. A STRUCTURE line means our own shots were stopped at that altitude on that path: shots travel in a straight line, so something solid is there even where no collision has been recorded yet, and flying level with it invites one. Colliding with an aircraft, tank or turret is the main way this aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. time_in_the_collision_range counts how long this has already been going on: staying inside that band decision after decision is how the run that died spent its last seconds, and no single option can show it. When threats close from both sides at once, do not drift and let the gap shrink: take the option that opens the squeeze, going over or under if that is the side with room, and take the shot on the way out when one is offered. Watch the number for staying there afterwards too, because a move that is clear for its own few frames can still end where a tank, aircraft or bullet arrives moments later. An option that hits nothing, collects nothing and only keeps distance is a wasted move when a safer-or-equal option attacks. Tanks and turrets can only be hit from their own altitude, so descending to their firing line is ordinary play and not a terrain risk: the altitude a ground target stands at has been flown without a hit. Close onto that line from a horizontal distance rather than dropping onto them, since they collide like any other body. Compare the already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they have come from so far in this run. Each option also carries what actually happened to past runs at that exact position and altitude, counted from every frame ever flown there; a position no run has flown enough is unknown rather than safe. where_you_have_been_recently is this aircraft's own recent station-keeping, which no single option can show: camping at either extreme of the flyable area has scored worst, one because everything that slips past is then a long transit away, the other because there is no room left to fall back into. Health and model confidence must not be used to infer safety."
+    }
+  }
+}
