@@ -1,0 +1,209 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jev Squadron</title>
+<style>
+  :root{color-scheme:dark; --bg:#07100b; --panel:#0b1a12; --line:#1d3a29; --ink:#8ef0b4;
+        --dim:#4e9a6e; --hot:#ffd479; --bad:#ff7a6b; --plane:#7ad7ff;}
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+       font:12px/1.45 "Cascadia Mono","Consolas",ui-monospace,monospace; padding:10px}
+  h1{font-size:15px; margin:0; letter-spacing:.18em; color:var(--hot)}
+  .bar{display:flex; flex-wrap:wrap; gap:8px 18px; align-items:baseline;
+       border:1px solid var(--line); background:var(--panel); padding:8px 10px}
+  .bar b{color:#eafff2; font-weight:600}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+  .live{background:#42ff9e; box-shadow:0 0 8px #42ff9e} .idle{background:#5e6b63}
+  .grid{display:grid; grid-template-columns:minmax(280px,340px) 1fr; gap:10px; margin-top:10px}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  section{border:1px solid var(--line); background:var(--panel); padding:8px 10px; min-width:0}
+  h2{font-size:11px; letter-spacing:.16em; color:var(--hot); margin:0 0 8px; font-weight:600}
+  canvas{width:100%; height:auto; background:#040906; border:1px solid var(--line); display:block}
+  .legend{display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:6px; color:var(--dim)}
+  .row{display:grid; grid-template-columns:58px 1fr 46px; gap:8px; align-items:center; margin:3px 0}
+  .meter{height:9px; background:#0f2418; border:1px solid var(--line); position:relative}
+  .meter i{position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg,#1f8f57,#42ff9e)}
+  .row.pick .meter i{background:linear-gradient(90deg,#b98717,var(--hot))}
+  .row.pick span{color:var(--hot)}
+  .feed{max-height:300px; overflow:auto}
+  .item{border-top:1px solid #12251a; padding:5px 0}
+  .item:first-child{border-top:0}
+  .tag{display:inline-block; border:1px solid var(--line); color:var(--hot); padding:0 5px;
+       margin:2px 4px 0 0; font-size:10px; letter-spacing:.06em}
+  .tag b{color:var(--ink); font-weight:400}
+  table{border-collapse:collapse; width:100%; font-size:11px}
+  th,td{text-align:right; padding:3px 6px; border-bottom:1px solid #12251a; white-space:nowrap}
+  th:first-child,td:first-child{text-align:left} th{color:var(--dim); font-weight:600}
+  td.best{color:var(--hot)} .hurt{color:var(--bad)} .ok{color:#42ff9e}
+  .scroll{overflow-x:auto}
+  .muted{color:var(--dim)}
+</style>
+
+<div class="bar">
+  <h1>JEV SQUADRON</h1>
+  <span><span id="statusDot" class="dot idle"></span><b id="status">waiting</b></span>
+  <span>run <b id="runLabel">–</b></span>
+  <span>frame <b id="frame">–</b></span>
+  <span>elapsed <b id="elapsed">–</b></span>
+  <span>decision <b id="attempt">–</b></span>
+  <span>action <b id="action">–</b></span>
+  <span>conf <b id="conf">–</b></span>
+  <span>latency <b id="latency">–</b></span>
+  <span>plane <b id="plane">–</b></span>
+  <span class="muted" id="station">–</span>
+</div>
+
+<div class="grid">
+  <div>
+    <section>
+      <h2>WHAT JEV SEES</h2>
+      <canvas id="radar" width="512" height="448"></canvas>
+      <div class="legend">
+        <span style="color:var(--plane)">■ you</span>
+        <span style="color:#ff6b6b">■ aircraft</span>
+        <span style="color:#ff9f45">■ bullets</span>
+        <span style="color:#ffd479">■ power-up</span>
+        <span style="color:#d17aff">■ clear-all</span>
+        <span style="color:#8a7355">■ tank</span>
+        <span style="color:#c2b280">■ turret</span>
+      </div>
+      <div class="legend" id="counts"></div>
+    </section>
+    <section style="margin-top:10px">
+      <h2>JUDGMENT</h2>
+      <div class="muted" id="asked" style="margin-bottom:6px"></div>
+      <div id="probs"></div>
+      <div class="muted" id="judgeNote" style="margin-top:6px"></div>
+    </section>
+  </div>
+
+  <div>
+    <section>
+      <h2>LIVE FEED</h2>
+      <div class="feed" id="feed"><div class="muted">no run yet — start one and it appears here</div></div>
+    </section>
+    <section style="margin-top:10px">
+      <h2>RUN HISTORY</h2>
+      <div class="scroll"><table id="history">
+        <thead><tr><th>run</th><th>kills</th><th>air</th><th>tank</th><th>turret</th><th>hits</th>
+        <th>what hit</th><th>pickups</th><th>med X</th><th>reqs</th><th>end</th><th>pass</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const COLOR = {enemy_aircraft:"#ff6b6b", hostile_projectile:"#ff9f45", power_up:"#ffd479",
+               clear_screen_power_up:"#d17aff", ground_tank:"#8a7355", turret:"#c2b280"};
+const LABEL = {enemy_aircraft:"aircraft", hostile_projectile:"bullets", power_up:"power-up",
+               clear_screen_power_up:"clear-all", ground_tank:"tanks", turret:"turrets"};
+const SCREEN_W = 256, SCREEN_H = 224;
+const $ = id => document.getElementById(id);
+const text = (id, value) => { $(id).textContent = (value === null || value === undefined) ? "–" : value; };
+
+function drawRadar(live){
+  const c = $("radar"), g = c.getContext("2d");
+  const sx = c.width / SCREEN_W, sy = c.height / SCREEN_H;
+  g.fillStyle = "#040906"; g.fillRect(0, 0, c.width, c.height);
+  g.strokeStyle = "#12291d"; g.lineWidth = 1;
+  for(let i = 1; i < 4; i++){                      // thirds: the station-keeping bands
+    g.beginPath(); g.moveTo(c.width*i/4, 0); g.lineTo(c.width*i/4, c.height); g.stroke();
+    g.beginPath(); g.moveTo(0, c.height*i/4); g.lineTo(c.width, c.height*i/4); g.stroke();
+  }
+  (live.tracks || []).forEach(t => {
+    const x = t.x * sx, y = t.y * sy;
+    g.fillStyle = COLOR[t.kind] || "#888";
+    const r = t.kind === "hostile_projectile" ? 3 : 5;
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    if(t.vx || t.vy){                              // where it is heading over the next 30 frames
+      g.strokeStyle = g.fillStyle; g.globalAlpha = .45; g.beginPath();
+      g.moveTo(x, y); g.lineTo(x + (t.vx||0)*30*sx, y + (t.vy||0)*30*sy); g.stroke(); g.globalAlpha = 1;
+    }
+  });
+  const p = live.player;
+  if(p){
+    const x = p.x * sx, y = p.y * sy;
+    g.strokeStyle = "#7ad7ff"; g.lineWidth = 2;
+    g.strokeRect(x - 6, y - 5, 12, 10);
+    g.globalAlpha = .5; g.beginPath();              // the gun fires right along its own Y
+    g.moveTo(x + 7, y); g.lineTo(c.width, y); g.stroke(); g.globalAlpha = 1;
+  }
+}
+
+function drawProbs(j){
+  $("asked").textContent = j && j.asked ? "[" + j.question + "] " + j.asked : "";
+  const box = $("probs"), entries = Object.entries(j && j.probabilities || {});
+  if(!entries.length){ box.innerHTML = '<div class="muted">waiting for a decision…</div>'; return; }
+  entries.sort((a, b) => b[1] - a[1]);
+  box.innerHTML = entries.map(([name, value]) =>
+    `<div class="row ${name === j.choice ? "pick" : ""}"><span>${name}</span>
+     <span class="meter"><i style="width:${Math.round(value*100)}%"></i></span>
+     <span>${value.toFixed(2)}</span></div>`).join("");
+  $("judgeNote").textContent = j.confidence != null ? "confidence " + j.confidence.toFixed(2) : "";
+}
+
+function drawFeed(live){
+  const box = $("feed");
+  const items = (live.feed || []).slice().reverse();
+  if(!items.length){ box.innerHTML = '<div class="muted">no decisions yet</div>'; return; }
+  box.innerHTML = items.map(f => {
+    const tags = (f.story || []).map(([k, v]) => `<span class="tag">${k} <b>${v}</b></span>`).join("");
+    const conf = f.confidence != null ? f.confidence.toFixed(2) : "–";
+    const ms = f.latency_ms != null ? Math.round(f.latency_ms) + "ms" : "–";
+    return `<div class="item"><b>d${f.attempt ?? "?"}</b> f${f.frame} ·
+      <span style="color:var(--hot)">${f.choice || "–"}</span> conf ${conf} · ${ms}
+      ${f.source && f.source !== "jev" ? '· <span class="muted">' + f.source + "</span>" : ""}
+      <div>${tags}</div></div>`;
+  }).join("");
+}
+
+async function pollLive(){
+  try{
+    const live = await (await fetch("/api/live", {cache: "no-store"})).json();
+    const on = live.running;
+    $("statusDot").className = "dot " + (on ? "live" : "idle");
+    text("status", on ? "RUNNING" : (live.finished ? "finished" : "waiting"));
+    text("runLabel", live.run_label ? "R" + live.run_label : (live.run_id || "–"));
+    text("frame", live.frame);
+    text("elapsed", live.frame ? (live.frame - live.decision_start_frame) + "f" : "–");
+    text("attempt", live.feed && live.feed.length ? "d" + live.feed[live.feed.length-1].attempt : "–");
+    const last = (live.feed || [])[live.feed.length - 1] || {};
+    text("action", last.choice);
+    text("conf", last.confidence != null ? last.confidence.toFixed(2) : null);
+    text("latency", last.latency_ms != null ? Math.round(last.latency_ms) + "ms" : null);
+    text("plane", live.player ? live.player.x + "," + live.player.y : null);
+    $("station").textContent = live.station ? "mostly in " + live.station.mostly_in
+      + " (median x " + live.station.median_x + " over " + live.station.frames_sampled + "f)" : "";
+    $("counts").innerHTML = Object.entries(live.counts || {})
+      .filter(([, n]) => n > 0)
+      .map(([k, n]) => `<span style="color:${COLOR[k]}">${LABEL[k]} ${n}</span>`).join("") || "";
+    drawRadar(live); drawProbs(live.judgment); drawFeed(live);
+  }catch(e){ $("statusDot").className = "dot idle"; text("status", "dashboard offline"); }
+}
+
+async function pollRuns(){
+  try{
+    const data = await (await fetch("/api/runs", {cache: "no-store"})).json();
+    const best = Math.max(...data.runs.map(r => r.kills || 0), 0);
+    document.querySelector("#history tbody").innerHTML = data.runs.map(r => {
+      const cell = (v, cls) => `<td class="${cls || ""}">${v ?? "–"}</td>`;
+      return `<tr>
+        <td>${r.label ? "R" + r.label : r.run_id.slice(7, 20)}</td>
+        ${cell(r.kills, r.kills === best && best ? "best" : "")}
+        ${cell(r.air)}${cell(r.tank)}${cell(r.turret)}
+        ${cell(r.hits, r.hits ? "hurt" : "ok")}
+        <td style="text-align:left" class="muted">${(r.hit_causes || []).map(c =>
+            c === "unidentified" ? "terrain?" : c.replace(/_/g, " ")).join(", ") || "–"}</td>
+        ${cell(r.pickups)}${cell(r.median_x)}${cell(r.requests)}
+        <td style="text-align:left" class="muted">${(r.reason || "").replace(/_/g, " ")}</td>
+        <td class="${r.passed === false ? "hurt" : "ok"}">${r.passed === null ? "–" : (r.passed ? "yes" : "no")}</td>
+      </tr>`;
+    }).join("");
+  }catch(e){ /* keep the last table rather than blanking it */ }
+}
+
+pollLive(); pollRuns();
+setInterval(pollLive, 500);
+setInterval(pollRuns, 4000);
+</script>
