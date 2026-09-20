@@ -22,6 +22,7 @@ DOOMED_FRAMES = 60     # a death within a second of being here counts against th
 HURT_FRAMES = 30       # a hit taken within half a second counts too, and hits are commoner
 MIN_SAMPLES = 25       # below this a cell stays unknown rather than guessing from noise
 MAX_PLAUSIBLE_SCROLL = 60000
+BOSS_COLUMN_BASE = 100000   # the boss fight is keyed by screen position, not level position
 
 
 def run_track(run):
@@ -46,12 +47,18 @@ def run_track(run):
     for line in (run / "states.jsonl").read_text().splitlines():
         state = json.loads(line).get("state") or {}
         scroll = state.get("scroll_x")
-        if scroll is None or scroll > MAX_PLAUSIBLE_SCROLL:
-            continue
         x, y = state.get("player_x_candidate"), state.get("player_y_candidate")
         if x is None or y is None or not (0 < x < 256 and 0 < y < 224):
             continue
-        samples.append(((x+scroll)//COLUMN_PX, y//ALTITUDE_PX, state["frame"]))
+        if scroll is None:
+            continue
+        if scroll > MAX_PLAUSIBLE_SCROLL:
+            # The boss fight: the stage stops scrolling and the counter wraps, so screen
+            # position is the stable key. Keyed apart so it never mixes with the stage.
+            column = BOSS_COLUMN_BASE + x//COLUMN_PX
+        else:
+            column = (x+scroll)//COLUMN_PX
+        samples.append((column, y//ALTITUDE_PX, state["frame"]))
     return samples, died, hurt
 
 
