@@ -28,6 +28,8 @@ def score(run):
     """Per-segment kills and hits for one run, for the segments it actually flew."""
     try:
         events = json.loads((run / "decision_trace.json").read_text())["candidate_table_events"]
+        if not isinstance(events, dict):          # a run that died before anything was traced
+            return None
         summary = json.loads((run / "summary.json").read_text())
         label = json.loads((run / "manifest.json").read_text()).get("run_label")
     except (OSError, ValueError, KeyError):

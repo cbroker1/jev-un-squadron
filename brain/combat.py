@@ -359,8 +359,14 @@ def clear_targets(position, targets, scroll, found=None):
             and not found_blocked(position, t["x"], scroll, found)]
 
 
-def found_blocked(position, reach_x, scroll, found, band=6, skip=2):
-    """Is a wall this run already found standing between the aircraft and that point?"""
+def found_blocked(position, reach_x, scroll, found, band=6, skip=2, need=2):
+    """Is a wall this run already found standing between the aircraft and that point?
+
+    A single stop can be an enemy this code cannot classify being hit without dying, and a
+    false wall kept for the whole run suppresses good firing lines: the opening segment
+    dropped from 17.3 kills to 15.7 when one stop was enough. Two stops in the same place
+    are required, which a real wall produces within a second at six shots a second.
+    """
     if not found or scroll is None or not position:
         return False
     base = 100000 if scroll > 60000 else 0
@@ -369,7 +375,7 @@ def found_blocked(position, reach_x, scroll, found, band=6, skip=2):
     low, high = sorted((here, there))
     for column in range(low+skip, high+1):
         for (col, y), seen in found.items():
-            if col == column and abs(y-position[1]) <= band:
+            if col == column and abs(y-position[1]) <= band and seen >= need:
                 return True
     return False
 

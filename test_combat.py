@@ -581,6 +581,8 @@ class CombatTests(unittest.TestCase):
         from brain.combat import combat_digest, found_blocked
         found={(int((150+800)//4), 112): 2}        # a wall at level x 950, altitude 112
         self.assertTrue(found_blocked([60,112],200,800,found))
+        # One stop is not a wall: it can be an unclassified enemy that was hit and lived.
+        self.assertFalse(found_blocked([60,112],200,800,{(int((150+800)//4), 112): 1}))
         self.assertFalse(found_blocked([60,60],200,800,found))    # different altitude
         self.assertFalse(found_blocked([60,112],100,800,found))   # stops before the wall
         self.assertFalse(found_blocked([60,112],200,800,None))
