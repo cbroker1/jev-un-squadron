@@ -512,6 +512,26 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
             self.assertIn("60 came within 30 frames of it taking a hit",text)
 
+    def test_the_altitude_a_ground_target_needs_is_stated(self):
+        """Runs have spent a hundred decisions shooting over a tank without being told how
+        low the shot has to be, and some tanks sit below the altitude that can be flown."""
+        from brain.combat import combat_digest, combat_request
+        def ground(y):
+            t={"kind":"ground_tank","x":200.0,"y":float(y),"vx":-0.5,"vy":0.0,
+               "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+               "slot":"WRAM:0x1840","generation":1}
+            d=combat_digest({"source_frame":101,"player":{"x":80,"y":150},"tracks":[t]},6)
+            return d["actions"]["hold"], combat_request(d)["questions"]["movement"]["criteria"]["hold"]
+        option,text=ground(182)
+        self.assertEqual(option["altitude_that_hits_the_nearest_ground_target"],[179,192])
+        self.assertEqual(option["pixels_too_high_for_it"],29)       # sitting at Y 150
+        self.assertIn("hit from Y 179 to 192",text)
+        self.assertIn("29 pixels above that",text)
+        # A tank low enough that the shot altitude cannot be flown at all.
+        option,text=ground(200)
+        self.assertIn("outside the flyable range",text)
+        self.assertIn("lining up on it is wasted",text)
+
     def test_shots_stopping_short_reject_the_firing_line_live(self):
         """Carl watched forty-five decisions spent firing into a wall the map did not know,
         while four killable targets sat on screen. The game was saying so every few frames."""
