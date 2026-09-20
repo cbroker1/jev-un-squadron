@@ -30,7 +30,12 @@ MARKER_NEAR_PX = 20
 # around it, so a structure recorded at Y 176 kept blocking shots that fly freely at 177:
 # 29.6% of shots that actually killed something would have been refused. Clearing over the
 # same band the rule uses keeps the two consistent.
-PASS_CLEARANCE_PX = 4
+# Measured on 203 shots that killed and 172 that hit terrain: clearing over 4 px leaves
+# 19 columns and catches 15.7% of walls for 2.0% false refusals, while clearing over 2 px
+# leaves 24 columns and catches 22.1% for 6.4%. More walls caught matters here - Carl has
+# watched shots go into structures three times - and 6.4% is far from the 30% that made
+# the aircraft stop attacking in R33.
+PASS_CLEARANCE_PX = 2
 # A shot also stops against an enemy this code cannot classify yet, and those appear at any
 # altitude, which made the first version of this map mark 37 altitudes in one column. The
 # level is deterministic, so a real structure stops shots at the same place in run after

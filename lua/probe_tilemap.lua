@@ -20,13 +20,48 @@ local function window(base)
   return table.concat(parts)
 end
 
+-- Holding up dies before the far half of the stage, so the deep columns were never
+-- captured: at level x 1717 the map had nothing and Jev fired into a structure it could
+-- not see. Replaying a run that got there keeps the aircraft alive the whole way.
+local replay = nil
+local replay_path = os.getenv("JEV_REPLAY_INPUTS")
+if replay_path then
+  replay = {}
+  local first = true
+  for line in io.lines(replay_path) do
+    if first then
+      first = false
+    else
+      local frame, mask = line:match("^(%d+),%d+,[^,]*,%d+,[^,]*,(%d+),")
+      if frame then replay[tonumber(frame)] = tonumber(mask) end
+    end
+  end
+end
+
+local KEYS = {"Up", "Down", "Left", "Right", "A", "B", "X", "Y", "L", "R", "Start", "Select"}
+local function pad_from_mask(mask)
+  local pad = {}
+  for index, key in ipairs(KEYS) do
+    pad[key] = (mask % (2^index)) >= 2^(index-1)
+  end
+  return pad
+end
+
+local function apply_input()
+  if replay then
+    joypad.set(pad_from_mask(replay[emu.framecount()] or 0), 1)
+  else
+    joypad.set({Up = true}, 1)
+  end
+end
+
 local function main()
   client.speedmode(400)
   emu.limitframerate(false)
   -- With no input the aircraft dies within a few hundred frames and the stage restarts,
   -- so the probe never reaches the far half of the level. Holding up keeps it clear of
   -- the ground for longer. This is a deterministic capture: no Jev, no decisions.
-  joypad.set({Up = true}, 1)
+  apply_input()
   local out = assert(io.open(ROOT .. (os.getenv("JEV_PROBE_OUT") or "tilemap_samples.jsonl"), "w"))
   for step = 1, FRAMES do
     if step % EVERY == 1 then
@@ -42,7 +77,7 @@ local function main()
         emu.framecount(), scroll, px, py, table.concat(maps, ",")))
       out:flush()
     end
-    joypad.set({Up = true}, 1)
+    apply_input()
     emu.frameadvance()
   end
   out:close()
