@@ -20,7 +20,8 @@ def read_lines(path):
 def table_events(states):
     """Candidate outcome events from the exported object table; not a health or scoring decoder."""
     events = {"hit_marker_frames": [], "power_up_gone_near_player": [], "power_up_gone_elsewhere": [],
-              "tanks_destroyed": [], "aircraft_destroyed": [], "turrets_destroyed": [], "hit_causes": []}
+              "tanks_destroyed": [], "aircraft_destroyed": [], "turrets_destroyed": [],
+              "boss_parts_destroyed": [], "hit_causes": []}
     previous = None
     for frame in sorted(states):
         state = states[frame]["state"]
@@ -55,9 +56,9 @@ def table_events(states):
                     near = ((x-px)**2+(y-py)**2)**0.5 <= 24
                     events["power_up_gone_near_player" if near else "power_up_gone_elsewhere"].append(
                         {"frame": frame, "kind": kind, "power_up_xy": [round(x, 1), round(y, 1)], "player_xy": [px, py]})
-                if kind in ("ground_tank", "enemy_aircraft", "turret") and gated and records[b][1:4] == EXPLODING:
+                if kind in ("ground_tank", "enemy_aircraft", "turret", "boss_part") and gated                         and records[b][1:4] == EXPLODING:
                     field = {"ground_tank": "tanks_destroyed", "enemy_aircraft": "aircraft_destroyed",
-                             "turret": "turrets_destroyed"}[kind]
+                             "turret": "turrets_destroyed", "boss_part": "boss_parts_destroyed"}[kind]
                     events[field].append({"frame": frame, "target_xy": [round(x, 1), round(y, 1)], "player_xy": [px, py]})
         previous = records
     return events
