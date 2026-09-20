@@ -100,6 +100,145 @@ class CombatTests(unittest.TestCase):
             data[base:base+22]=payload
         return data
 
+    def test_a_screen_clearing_power_up_leads_every_option(self):
+        """Carl's instruction: on the board, it changes the approach, so it cannot be buried."""
+        up={"kind":"clear_screen_power_up","x":136.0,"y":81.0,"vx":-0.47,"vy":0.0,
+            "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+            "slot":"WRAM:0x1400","generation":1}
+        text=combat_request(combat_digest({"source_frame":101,"player":{"x":36,"y":81},
+                                           "tracks":[up]},6))["questions"]["movement"]["criteria"]["right"]
+        self.assertIn("SCREEN-CLEARING POWER-UP IN PLAY",text)
+        self.assertLess(text.index("SCREEN-CLEARING"),text.index("Attack:"))
+        self.assertEqual(text.count("SCREEN-CLEARING POWER-UP IN PLAY"),1)
+        # With none in play the lead is absent entirely.
+        plain=combat_request(combat_digest({"source_frame":101,"player":{"x":36,"y":81},
+                                            "tracks":[]},6))["questions"]["movement"]["criteria"]["right"]
+        self.assertNotIn("SCREEN-CLEARING",plain)
+
+    def test_reaching_a_power_up_is_judged_over_the_whole_approach(self):
+        """A screen-clear power-up 100 px away is 8 moves: no single step shows the payoff."""
+        up={"kind":"clear_screen_power_up","x":136.0,"y":81.0,"vx":-0.47,"vy":0.0,
+            "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+            "slot":"WRAM:0x1400","generation":1}
+        digest=combat_digest({"source_frame":101,"player":{"x":36,"y":81},"tracks":[up]},6)
+        toward,away=digest["actions"]["right"],digest["actions"]["left"]
+        self.assertLess(toward["holding_this_direction_closes_to_px_of_clear_screen_power_up"],20)
+        self.assertGreater(away["holding_this_direction_closes_to_px_of_clear_screen_power_up"],
+                           toward["holding_this_direction_closes_to_px_of_clear_screen_power_up"])
+        text=combat_request(digest)["questions"]["movement"]["criteria"]["right"]
+        self.assertIn("holding this direction for those frames closes to",text.lower())
+
+    def test_a_multi_move_transit_is_judged_over_its_whole_path(self):
+        """A commitment that pays off in four moves looks bad at every single step."""
+        tank={"kind":"ground_tank","x":60.0,"y":176.0,"vx":-0.5,"vy":0.0,
+              "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+              "slot":"WRAM:0x1840","generation":1}
+        digest=combat_digest({"source_frame":101,"player":{"x":140,"y":176},"tracks":[tank]},6)
+        left,right=digest["actions"]["left"],digest["actions"]["right"]
+        # Flying back gets past it and lines the gun up; flying away never does.
+        self.assertTrue(left["holding_this_direction_reaches_a_shot_on_it"])
+        self.assertFalse(right["holding_this_direction_reaches_a_shot_on_it"])
+        # The path's tightest gap is reported, and closing on the tank is tighter than fleeing it.
+        self.assertIsNotNone(left["tightest_gap_if_this_direction_is_held_px"])
+        self.assertLess(left["tightest_gap_if_this_direction_is_held_px"],
+                        right["tightest_gap_if_this_direction_is_held_px"])
+        text=combat_request(digest)["questions"]["movement"]["criteria"]["left"]
+        self.assertIn("holding this direction for those frames reaches a shot on it",text)
+        self.assertIn("tightest gap to anything along that path",text)
+
+    def test_targets_about_to_slip_behind_are_forecast_before_they_do(self):
+        """Once something is behind, the gun cannot reach it; the crossing is the moment that matters."""
+        track={"kind":"enemy_aircraft","x":130.0,"y":112.0,"vx":-1.8,"vy":0.0,
+               "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+               "slot":"WRAM:0x1840","generation":1}
+        digest=combat_digest({"source_frame":101,"player":{"x":110,"y":112},"tracks":[track]},6)
+        hold=digest["actions"]["hold"]
+        self.assertEqual(hold["targets_that_will_slip_behind_you"],1)
+        self.assertLess(hold["first_slips_behind_in_frames"],30)
+        # Moving back buys frames before the same target crosses.
+        self.assertGreater(digest["actions"]["left"]["first_slips_behind_in_frames"],
+                           hold["first_slips_behind_in_frames"])
+        # Something already behind is not double-counted as about to cross.
+        past={**track,"x":80.0}
+        behind_digest=combat_digest({"source_frame":101,"player":{"x":110,"y":112},"tracks":[past]},6)
+        self.assertEqual(behind_digest["actions"]["hold"]["targets_that_will_slip_behind_you"],0)
+        self.assertIn("pass behind you",combat_request(digest)["questions"]["movement"]["criteria"]["hold"])
+
+    def test_power_up_reach_and_expiry_are_reported_in_frames(self):
+        """A power-up 24 px away was abandoned because nothing said how little time it had left."""
+        track={"kind":"power_up","x":56.0,"y":145.0,"vx":-0.5,"vy":0.0,"phase":"observed_moving_signature",
+               "on_screen":True,"in_play":True,"slot":"WRAM:0x1400","generation":1}
+        digest=combat_digest({"source_frame":101,"player":{"x":96,"y":145},"tracks":[track]},6)
+        hold=digest["actions"]["hold"]
+        # It leaves play once it passes the tracked margin off the left edge.
+        self.assertAlmostEqual(hold["frames_until_power_up_leaves_play"],round((56+32)/0.5),delta=2)
+        self.assertAlmostEqual(hold["frames_to_reach_power_up"],
+                               round(hold["power_up_closest_px"]/2.5),delta=1)
+        text=combat_request(digest)["questions"]["movement"]["criteria"]["hold"]
+        self.assertIn("frames of flying away",text)
+        self.assertIn("drifts out of play in about",text)
+
+    def test_room_is_reported_as_time_against_what_is_actually_closing(self):
+        """The same pixels of room are a long warning against a tank and none against a helicopter."""
+        def room(vx):
+            track={"kind":"enemy_aircraft","x":240.0,"y":112.0,"vx":vx,"vy":0.0,
+                   "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                   "slot":"WRAM:0x1840","generation":1}
+            obs={"source_frame":101,"player":{"x":180,"y":112},"tracks":[track]}
+            digest=combat_digest(obs,6,entry_edges={"right":5})
+            return digest["actions"]["hold"]
+        slow,fast=room(-0.5),room(-2.0)
+        self.assertEqual(slow["warning_room_px"],fast["warning_room_px"])   # identical pixels
+        self.assertGreater(slow["warning_time_frames"],fast["warning_time_frames"]*3)
+        # Falling back is flying, so the buffer behind is time too.
+        self.assertAlmostEqual(fast["retreat_time_frames"],round(fast["retreat_room_px"]/2.5),delta=1)
+        text=combat_request(combat_digest({"source_frame":101,"player":{"x":180,"y":112},
+            "tracks":[{"kind":"enemy_aircraft","x":240.0,"y":112.0,"vx":-2.0,"vy":0.0,
+                       "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                       "slot":"WRAM:0x1840","generation":1}]},6,entry_edges={"right":5}))["questions"]["movement"]["criteria"]["hold"]
+        self.assertIn("frames of warning",text)
+
+    def test_cost_of_going_back_for_a_target_is_reported_in_frames(self):
+        """Distance alone cannot say whether a target behind is catchable; speed decides it."""
+        def behind(kind,vx):
+            track={"kind":kind,"x":60.0,"y":112.0,"vx":vx,"vy":0.0,"phase":"observed_moving_signature",
+                   "on_screen":True,"in_play":True,"slot":"WRAM:0x1840","generation":1}
+            obs={"source_frame":101,"player":{"x":150,"y":112},"tracks":[track]}
+            digest=combat_digest(obs,6)
+            return digest["actions"]["hold"],combat_request(digest)["questions"]["movement"]["criteria"]["hold"]
+        # A tank drifting with the scroll is caught in well under a second of play.
+        option,text=behind("ground_tank",-0.5)
+        self.assertEqual(option["nearest_target_behind_kind"],"ground_tank")
+        self.assertAlmostEqual(option["frames_to_get_behind_nearest_target_behind"],
+                               round(option["pixels_to_pass_nearest_behind"]/2.0),delta=1)
+        self.assertIn("takes about",text)
+        # A helicopter running left at nearly the aircraft's own speed costs far more frames
+        # than the forecast window, so the cost is visible rather than hidden behind a distance.
+        option,_=behind("enemy_aircraft",-2.4)
+        self.assertGreater(option["frames_to_get_behind_nearest_target_behind"],300)
+        # Matching or beating the aircraft's own speed makes it uncatchable outright.
+        option,text=behind("enemy_aircraft",-2.6)
+        self.assertIsNone(option["frames_to_get_behind_nearest_target_behind"])
+        self.assertIn("cannot be caught",text)
+
+    def test_scroll_drift_is_measured_despite_a_fixed_decision_cadence(self):
+        """An object stationary in the level moves 1 px every other frame with the scroll.
+
+        Sampling a one-frame difference on a fixed cadence always lands on the same parity
+        and reads exactly 0, which told Jev a drifting power-up was parked.
+        """
+        tracker=TableTracker()
+        seen=[]
+        for frame in range(100,160):
+            # Half a pixel per frame, stored as whole pixels: 1 px every other frame.
+            tracks={t["slot"]:t for t in tracker.observe(self.table_ram(shift=256*((frame-100)//2)),frame,"unit")}
+            turret=next(t for t in tracks.values() if t["kind"]=="turret")
+            if frame>=130 and (frame-100)%6==0:      # the decision cadence, always one parity
+                seen.append(turret["vx"])
+        self.assertTrue(seen)
+        for vx in seen:
+            self.assertAlmostEqual(vx,-0.5,delta=0.05)
+
     def test_object_table_types_records_by_routine_address(self):
         tracker=TableTracker()
         tracker.observe(self.table_ram(),100,"unit")
@@ -202,11 +341,29 @@ class CombatTests(unittest.TestCase):
                  "tracks":tracker.observe(self.table_ram(shift=256),101,"unit")}
             text=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]["hold"]
             self.assertIn("A terrain collision was recorded here at Y 174",text)
-            self.assertIn("tanks or turrets stand at Y 156",text)
-            # Ending at or below measured terrain is called out as disqualifying.
-            self.assertIn("TERRAIN: this ends at Y 170, at or below the terrain measured",text)
+            # A ground target's altitude is where the gun must be to hit it, not a floor.
+            self.assertIn("Ground targets stand at Y 156 here",text)
+            self.assertIn("firing line, not a floor",text)
+            # Ending at or below a RECORDED collision altitude is called out as disqualifying.
+            self.assertIn("TERRAIN: this ends at Y 170, at or below an altitude where a terrain collision was actually recorded",text)
+            # A column where only a ground object stands is not a floor: flying its line stays allowed.
+            only_object={202:{"hit_min_y":None,"safe_max_y":187,"ground_object_y":176.0}}
+            with patch.object(combat,"_terrain",(only_object,4)):
+                low={"source_frame":101,"scroll_x":768,"player":{"x":40,"y":176},"tracks":[]}
+                digest=combat.combat_digest(low,6)
+                self.assertIsNone(digest["actions"]["hold"]["terrain_floor_y"])
+                self.assertFalse(any(o["ends_at_or_below_terrain"] for o in digest["actions"].values()))
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
+
+    def test_terrain_constraint_never_forbids_every_option(self):
+        from brain import combat
+        columns={c:{"hit_min_y":60,"safe_max_y":None,"ground_object_y":None} for c in range(150,260)}
+        with patch.object(combat,"_terrain",(columns,4)):
+            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":170},"tracks":[]}
+            digest=combat.combat_digest(obs,6)
+            self.assertFalse(any(o["ends_at_or_below_terrain"] for o in digest["actions"].values()))
+            self.assertIn("every option",digest["terrain_constraint_suspended"])
 
     def test_lua_object_table_matches_python(self):
         source=(Path(player.ROOT) / "lua" / "main.lua").read_text()

@@ -83,13 +83,19 @@ class SlotTracker:
     """
     allowed = PROJECTILE_BASES + ENEMY_BASES
 
-    def __init__(self, max_gap_frames=6, max_speed_px_per_frame=8, base=SLOT):
+    def __init__(self, max_gap_frames=6, max_speed_px_per_frame=8, base=SLOT, velocity_baseline_frames=30):
         if base not in self.allowed:
             raise ValueError("Slot is outside the visually checked research profile")
         self.base = base
         self.max_gap = max_gap_frames
         self.max_speed = max_speed_px_per_frame
+        self.velocity_baseline = velocity_baseline_frames
         self.previous = None
+        # Objects that are stationary in the level slide left with the scroll at 0.5 px per
+        # frame, i.e. one pixel every other frame. A one-frame difference sampled on a fixed
+        # decision cadence always lands on the same parity and reads exactly 0, so velocity is
+        # measured over the longest unbroken run of recent samples instead.
+        self.history = []
         self.generation = 0
 
     def observe(self, raw, frame, session, epoch=0):
@@ -133,9 +139,21 @@ class SlotTracker:
                 vx, vy = (x-old_x)/delta, (y-old_y)/delta
                 reset = math.hypot(vx, vy) > self.max_speed
                 if not reset:
+                    # The same continuous object, measured over as long a baseline as this run
+                    # of samples allows, so a half-pixel-per-frame drift is visible.
+                    base_frame, base_x, base_y = self.history[0][2], self.history[0][3], self.history[0][4]
+                    span = frame - base_frame
+                    if span > 0 and math.hypot((x-base_x)/span, (y-base_y)/span) <= self.max_speed:
+                        vx, vy = (x-base_x)/span, (y-base_y)/span
                     result.update(vx=vx, vy=vy)
         if reset:
             self.generation += 1
+            self.history = []
+        self.history.append(current)
+        # A baseline of about half a second: long enough to resolve the scroll drift,
+        # short enough that a manoeuvring enemy's recent velocity still dominates.
+        while len(self.history) > 1 and frame - self.history[0][2] > self.velocity_baseline:
+            self.history.pop(0)
         self.previous = current
         result["generation"] = self.generation
         return result

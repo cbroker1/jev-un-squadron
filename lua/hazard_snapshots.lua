@@ -131,7 +131,14 @@ local function main()
       local source = emu.framecount()
       poll_mask, poll_count = -1, 0
       joypad.set(pad, 1)
-      gui.text(4, 4, "OFFLINE " .. mode .. " " .. sample .. "/" .. frames .. " | Esc: STOP", "white", "black")
+      -- gui.text's fifth argument is an anchor, not a background colour, so draw the
+      -- label the same way main.lua does and never let drawing break a capture.
+      pcall(function()
+        gui.drawRectangle(2, 2, 150, 23, 0xFF000000, 0xC0101010)
+        gui.drawText(5, 3, "OFFLINE CAPTURE - no Jev", 0xFFFF8040, 0xFF000000, 11)
+        gui.drawText(5, 14, string.format("%s %d/%d  f%d  Esc stops", mode, sample, frames, emu.framecount()),
+          0xFFFFFFFF, 0xFF000000, 11)
+      end)
       emu.frameadvance()
       last_frame = emu.framecount(); last_sample = sample
       inputs:write(string.format("%d,%d,%d,%d,%d,%d,%d,%s\n", sample, source,
