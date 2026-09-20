@@ -19,13 +19,25 @@ from pathlib import Path
 COLUMN_PX = 8          # level position bucket
 ALTITUDE_PX = 8        # altitude bucket
 DOOMED_FRAMES = 60     # a death within a second of being here counts against the cell
+HURT_FRAMES = 30       # a hit taken within half a second counts too, and hits are commoner
 MIN_SAMPLES = 25       # below this a cell stays unknown rather than guessing from noise
 MAX_PLAUSIBLE_SCROLL = 60000
 
 
 def run_track(run):
-    """(level column, altitude, frame) for every frame, and the frame the run died on."""
-    samples, died = [], None
+    """Every frame's cell, the frame the run died on, and the frames it was hit on.
+
+    A run yields one death but several hits, so hits are the denser signal about where
+    the stage hurts; both are counted, separately, because they are different evidence.
+    """
+    samples, died, hurt = [], None, []
+    trace = run / "decision_trace.json"
+    if trace.exists():
+        try:
+            events = json.loads(trace.read_text()).get("candidate_table_events") or {}
+            hurt = sorted(events.get("hit_marker_frames") or [])
+        except ValueError:
+            hurt = []
     summary = run / "summary.json"
     if summary.exists():
         report = json.loads(summary.read_text())
@@ -40,7 +52,7 @@ def run_track(run):
         if x is None or y is None or not (0 < x < 256 and 0 < y < 224):
             continue
         samples.append(((x+scroll)//COLUMN_PX, y//ALTITUDE_PX, state["frame"]))
-    return samples, died
+    return samples, died, hurt
 
 
 def main():
@@ -48,11 +60,11 @@ def main():
     ap.add_argument("--runs", type=Path, default=Path("runs"))
     ap.add_argument("--out", type=Path, default=Path("danger_map.json"))
     args = ap.parse_args()
-    flown, doomed, used = defaultdict(int), defaultdict(int), 0
+    flown, doomed, hurt_soon, used = defaultdict(int), defaultdict(int), defaultdict(int), 0
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
-        samples, died = run_track(run)
+        samples, died, hurt = run_track(run)
         if not samples:
             continue
         used += 1
@@ -60,11 +72,15 @@ def main():
             flown[(column, altitude)] += 1
             if died is not None and 0 <= died-frame <= DOOMED_FRAMES:
                 doomed[(column, altitude)] += 1
+            if any(0 <= at-frame <= HURT_FRAMES for at in hurt):
+                hurt_soon[(column, altitude)] += 1
     cells = {f"{column},{altitude}": {"frames": flown[(column, altitude)],
-                                      "deaths_soon_after": doomed[(column, altitude)]}
+                                      "deaths_soon_after": doomed[(column, altitude)],
+                                      "hits_soon_after": hurt_soon[(column, altitude)]}
              for column, altitude in flown if flown[(column, altitude)] >= MIN_SAMPLES}
-    payload = {"status": "measured: frames flown in each cell, and how many preceded a death within "
-                         f"{DOOMED_FRAMES} frames",
+    payload = {"status": f"measured: frames flown in each cell, how many preceded a death within "
+                         f"{DOOMED_FRAMES} frames, and how many preceded a hit within {HURT_FRAMES}",
+               "hurt_window_frames": HURT_FRAMES,
                "column_px": COLUMN_PX, "altitude_px": ALTITUDE_PX,
                "doomed_window_frames": DOOMED_FRAMES, "minimum_samples": MIN_SAMPLES,
                "runs_used": used, "cells": cells}

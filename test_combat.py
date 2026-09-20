@@ -442,9 +442,9 @@ class CombatTests(unittest.TestCase):
     def test_measured_danger_comes_from_what_happened_to_past_runs(self):
         """Every frame ever flown is evidence, which covers far more than collisions do."""
         from brain import combat
-        cells={"100,22":{"frames":80,"deaths_soon_after":44},   # the deck, where runs die
-               "100,12":{"frames":300,"deaths_soon_after":0}}   # mid screen, never fatal
-        with patch.object(combat,"_danger",(cells,8,8,60)):
+        cells={"100,22":{"frames":80,"deaths_soon_after":44,"hits_soon_after":60},  # the deck
+               "100,12":{"frames":300,"deaths_soon_after":0,"hits_soon_after":0}}   # mid screen
+        with patch.object(combat,"_danger",(cells,8,8,60,30)):
             deadly=combat.danger_at([40,180],760)               # column 100, altitude 22
             self.assertEqual(deadly["frames_flown_here_in_past_runs"],80)
             self.assertEqual(deadly["how_many_were_within_a_second_of_being_destroyed"],44)
@@ -456,6 +456,9 @@ class CombatTests(unittest.TestCase):
             text=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]["hold"]
             self.assertIn("Past runs flew 80 frames at this exact position",text)
             self.assertIn("44 of those frames came within 60 frames",text)
+            # Hits are the denser signal: several per run against one death.
+            self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
+            self.assertIn("60 came within 30 frames of it taking a hit",text)
 
     def test_the_gun_cannot_shoot_through_a_structure(self):
         """Carl: you cannot fire through structures to reach enemies on the other side."""

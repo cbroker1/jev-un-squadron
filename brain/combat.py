@@ -28,9 +28,10 @@ def danger_cells():
     if _danger is None:
         try:
             data = json.loads(DANGER_MAP.read_text())
-            _danger = (data["cells"], data["column_px"], data["altitude_px"], data["doomed_window_frames"])
+            _danger = (data["cells"], data["column_px"], data["altitude_px"],
+                       data["doomed_window_frames"], data.get("hurt_window_frames", 30))
         except (OSError, ValueError, KeyError):
-            _danger = ({}, 8, 8, 60)
+            _danger = ({}, 8, 8, 60, 30)
     return _danger
 
 
@@ -40,7 +41,7 @@ def danger_at(position, scroll):
     Every frame of every run is evidence, so this covers structures, emplacements and
     crossfire alike. A cell nobody has flown enough is unknown, not safe.
     """
-    cells, column_px, altitude_px, window = danger_cells()
+    cells, column_px, altitude_px, window, hurt_window = danger_cells()
     if not cells or scroll is None or scroll > 60000 or not position:
         return None
     key = f"{int((position[0]+scroll)//column_px)},{int(position[1]//altitude_px)}"
@@ -49,7 +50,8 @@ def danger_at(position, scroll):
         return None
     return {"frames_flown_here_in_past_runs": cell["frames"],
             "how_many_were_within_a_second_of_being_destroyed": cell["deaths_soon_after"],
-            "window_frames": window}
+            "how_many_were_just_before_taking_a_hit": cell.get("hits_soon_after", 0),
+            "window_frames": window, "hit_window_frames": hurt_window}
 
 
 def terrain_at(position, scroll, spread=2, span_from=None):
@@ -653,9 +655,11 @@ def combat_request(digest, model="jev-latest"):
         if f["measured_danger_here"]:
             record = f["measured_danger_here"]
             deaths = record["how_many_were_within_a_second_of_being_destroyed"]
+            hits = record.get("how_many_were_just_before_taking_a_hit", 0)
             danger = (f" Past runs flew {record['frames_flown_here_in_past_runs']} frames at this exact "
                       f"position and altitude; {deaths} of those frames came within "
-                      f"{record['window_frames']} frames of the aircraft being destroyed.")
+                      f"{record['window_frames']} frames of the aircraft being destroyed, and {hits} "
+                      f"came within {record['hit_window_frames']} frames of it taking a hit.")
         later = ("" if f["threat_gap_if_you_hold_px"] is None
                  else f" Staying there afterwards, the nearest tracked threat closes to {f['threat_gap_if_you_hold_px']:.0f} pixels.")
         lead = ""
