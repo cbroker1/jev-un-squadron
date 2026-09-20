@@ -238,7 +238,7 @@ def retreat_room(position, entries):
     return round({"right": x-xmin, "left": xmax-x, "top": ymax-y, "bottom": y-ymin}[edge], 1)
 
 
-def field_forecast(targets, threats, window=30):
+def field_forecast(targets, threats, window=30, scroll=None):
     """The whole flyable area, not just the next step: what each area offers and costs.
 
     For a coarse grid of positions the aircraft could work toward, this reports how many
@@ -254,8 +254,14 @@ def field_forecast(targets, threats, window=30):
         for x in columns:
             coming, soonest = future_shots([x, y], targets, window)
             gaps = [nearest_approach(t["x"]-x, t["y"]-y, t["vx"], t["vy"], window)[0] for t in threats]
-            cells.append({"xy": [x, y], "targets_into_line": coming,
-                          "first_in_frames": soonest, "nearest_threat_px": round(min(gaps), 1) if gaps else None})
+            cell = {"xy": [x, y], "targets_into_line": coming,
+                    "first_in_frames": soonest, "nearest_threat_px": round(min(gaps), 1) if gaps else None}
+            record = danger_at([x, y], scroll)
+            if record and record["frames_flown_here_in_past_runs"]:
+                cell["past_runs_died_within_a_second_of_here"] =                     record["how_many_were_within_a_second_of_being_destroyed"]
+                cell["past_runs_were_hit_soon_after_here"] = record["how_many_were_just_before_taking_a_hit"]
+                cell["frames_past_runs_spent_here"] = record["frames_flown_here_in_past_runs"]
+            cells.append(cell)
     return cells
 
 
@@ -413,7 +419,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
     digest["what_you_have_been_doing"] = what_you_have_been_doing(recent_choices)
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
-                                              [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
+                                              [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")],
+                                              scroll=obs.get("scroll_x"))
     # The fastest speed anything is closing at right now, measured from the tracks themselves.
     approach = max((-t["vx"] for t in live if t["kind"] != "power_up" and t["vx"] is not None and t["vx"] < 0),
                    default=None)
@@ -498,6 +505,20 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         # nothing beyond that point can be hit from here, whatever the map knows.
         wall = wall_in_front_of_you(recent_shot_stops, position[1]) if position else None
         option["shots_stopping_short_here"] = wall
+        # The gun fires along the aircraft's own line, so a ground target is only hittable
+        # from the altitudes that have actually killed its kind. The flyable floor is 191,
+        # so a tank sitting at 196 needs an altitude that cannot be flown: runs have spent
+        # a hundred decisions shooting over one without being told the altitude needed.
+        option["altitude_that_hits_the_nearest_ground_target"] = None
+        option["pixels_too_high_for_it"] = None
+        ground_ahead = [t for t in reachable
+                        if t["kind"] in ("ground_tank", "turret") and position and t["x"] > position[0]]
+        if ground_ahead:
+            nearest_ground = min(ground_ahead, key=lambda t: t["x"]-position[0])
+            low, high = FIRING_BANDS.get(nearest_ground["kind"], DEFAULT_BAND)
+            window = (round(nearest_ground["y"]+low), round(nearest_ground["y"]+high))
+            option["altitude_that_hits_the_nearest_ground_target"] = list(window)
+            option["pixels_too_high_for_it"] = max(0, round(window[0]-position[1]))
         if wall:
             reachable = [t for t in reachable if t["x"] < wall["nearest_stop_x"]]
         option["targets_hidden_behind_structure"] = len(all_targets)-len(reachable)
@@ -668,6 +689,19 @@ def combat_request(digest, model="jev-latest"):
                       f", and it drifts out of play in about {f['frames_until_power_up_leaves_play']} frames")
             power_up = (f"; closest approach to the power-up {f['power_up_closest_px']:.1f} pixels{reach_cost}"
                         f"{expiry} (touching collects it; the one observed pickup happened at about 18 pixels)")
+        needed = ""
+        if f["altitude_that_hits_the_nearest_ground_target"]:
+            low, high = f["altitude_that_hits_the_nearest_ground_target"]
+            floor = PLAYER_BOUNDS[3]
+            if high < PLAYER_BOUNDS[2] or low > floor:
+                needed = (f" The nearest ground target ahead is only hit from Y {low} to {high}, which is outside "
+                          f"the flyable range, so it cannot be shot from anywhere and lining up on it is wasted.")
+            else:
+                short = f["pixels_too_high_for_it"]
+                needed = (f" The nearest ground target ahead is hit from Y {low} to {high}"
+                          + (f", and this option ends {short} pixels above that." if short else ", and this option "
+                             "ends inside that.")
+                          + (f" The lowest altitude that can be flown is {floor}." if high > floor else ""))
         tanks = ("" if f["tank_firing_line_error_px"] is None
                  else f"; ground-tank firing-line error {f['tank_firing_line_error_px']:.1f} pixels (smaller lets the gun hit tanks)")
         turrets = ("" if f["turret_firing_line_error_px"] is None
@@ -787,7 +821,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{stopping}{hidden}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
+            f"Attack: {shots}.{stopping}{hidden}{needed}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
