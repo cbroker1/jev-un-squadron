@@ -347,9 +347,31 @@ def time_in_the_collision_range(recent_body_gaps):
             "frames_since_the_first_of_those": samples[-1][0]-inside[0] if run else 0}
 
 
-def clear_targets(position, targets, scroll):
-    """The targets this position can actually shoot, with structures in the way removed."""
-    return [t for t in targets if not shot_is_blocked(position, t["x"], scroll)]
+def clear_targets(position, targets, scroll, found=None):
+    """The targets this position can actually shoot, with structures in the way removed.
+
+    Uses the map built from past runs and, just as importantly, the walls this run has
+    already discovered: a third of the shots fired along a ground target's line in one run
+    stopped short of it, and a wall does not move once found.
+    """
+    return [t for t in targets
+            if not shot_is_blocked(position, t["x"], scroll)
+            and not found_blocked(position, t["x"], scroll, found)]
+
+
+def found_blocked(position, reach_x, scroll, found, band=6, skip=2):
+    """Is a wall this run already found standing between the aircraft and that point?"""
+    if not found or scroll is None or not position:
+        return False
+    base = 100000 if scroll > 60000 else 0
+    here = int(position[0])//4 + base if scroll > 60000 else int((position[0]+scroll)//4)
+    there = int(reach_x)//4 + base if scroll > 60000 else int((reach_x+scroll)//4)
+    low, high = sorted((here, there))
+    for column in range(low+skip, high+1):
+        for (col, y), seen in found.items():
+            if col == column and abs(y-position[1]) <= band:
+                return True
+    return False
 
 
 OPPOSITES = {"left": "right", "right": "left", "up": "down", "down": "up"}
@@ -395,7 +417,8 @@ def wall_in_front_of_you(recent_shot_stops, py, band=10, need=2):
 
 
 def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None,
-                  recent_body_gaps=None, recent_choices=None, recent_shot_stops=None):
+                  recent_body_gaps=None, recent_choices=None, recent_shot_stops=None,
+                  walls_found_this_run=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
@@ -508,7 +531,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         option["turret_firing_line_error_px"] = line_error("turret")
         # A shot cannot pass through a structure, so a target behind one is not reachable.
         all_targets = [t for t in live if t["kind"] in TARGETS]
-        reachable = clear_targets(position, all_targets, obs.get("scroll_x")) if position else all_targets
+        reachable = (clear_targets(position, all_targets, obs.get("scroll_x"), walls_found_this_run)
+                     if position else all_targets)
         # Live evidence beats the map: if shots from this altitude are stopping short,
         # nothing beyond that point can be hit from here, whatever the map knows.
         wall = wall_in_front_of_you(recent_shot_stops, position[1]) if position else None

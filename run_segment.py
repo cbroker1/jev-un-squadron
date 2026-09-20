@@ -83,6 +83,8 @@ def main():
     # between them: measured 407 ms per decision at 50% against 378 ms at 100%, with input
     # readback holding and no game frames elapsing while deciding either way. Continuous
     # mode has no freeze, so it stays at 50% where the controller can keep up.
+    ap.add_argument("--change",default="",help="the change in approach this run tests, for the run table")
+    ap.add_argument("--fire-period",type=int,default=0,help="frames per fire pulse cycle; 0 keeps the default 8")
     ap.add_argument("--speed",type=int,default=0,choices=(0,50,100),
                     help="emulator speed between decisions; default 100 when stepped, else 50")
     ap.add_argument("--expected-start-frame",type=int,default=0,help="frame the loaded slot resumes at (slot 2)")
@@ -139,7 +141,7 @@ def main():
         "frame_budget":args.frames,"decision_timing":"pause_and_step" if args.stepped else "continuous",
         "prelude":"Y firing, no movement" if args.prelude_fire else "neutral, gun off","decision_interval_frames":args.interval,"run_label":label,
         "lua_sha256":sha256(ROOT / "lua/main.lua"),"controller_sha256":sha256(ROOT / "play_segment.py"),
-        "speed_percent":args.speed}
+        "speed_percent":args.speed,"change_under_test":args.change}
     save_json(run / "manifest.json",manifest)
     env=os.environ.copy(); env.pop("TYPESAFE_API_KEY",None)
     env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1",JEV_RUN_LABEL=str(label))
@@ -147,6 +149,8 @@ def main():
         env["JEV_SAVE_AT_FRAME"]=str(args.save_at_frame)
         env["JEV_SAVE_SLOT"]=str(args.save_slot)
     env["JEV_SPEED_PERCENT"]=str(args.speed)
+    if args.fire_period:
+        env["JEV_FIRE_PERIOD"]=str(args.fire_period)
     emu=worker=None
     started=time.monotonic()
     print(f"RUN {label} ({run.name}): {args.mode.upper()}, maximum Jev attempts {manifest['max_jev_attempts']}. Ctrl+C or stop_segment.bat stops.",flush=True)
