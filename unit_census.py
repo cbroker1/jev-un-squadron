@@ -5,8 +5,12 @@ excellent or half the job depending on what came past. Every target the object t
 ever showed is counted here, by kind and by where in the level it appeared, against the
 ones destroyed, so the gap is visible and has a position.
 
-A unit is one continuous tracked lifetime - a slot plus the tracker's generation for it -
-which is the same identity the controller uses. Offline only: no emulator, no API.
+A unit is one occupancy of an object-table slot. Counting tracker generations instead
+overcounted badly: a ground tank has eight routine addresses for its animation states, and
+every change reset its track, so one dry run "met 59 tanks" in 400 frames. A slot that
+holds a target, stops for a while and holds one again is two units; an animation is one.
+
+Offline only: no emulator, no API.
 """
 import argparse
 import json
@@ -19,12 +23,14 @@ TARGETS = ("enemy_aircraft", "ground_tank", "turret", "boss_part")
 DESTROYED_EVENTS = {"enemy_aircraft": "aircraft_destroyed", "ground_tank": "tanks_destroyed",
                     "turret": "turrets_destroyed"}
 SEGMENT_PX = 256        # report the level in screen-widths, so a gap can be found
+SLOT_REUSE_FRAMES = 10  # a slot quiet this long before holding a target again is a new unit
 
 
 def census(run, from_frame=0):
     """(units met by kind, units met by level segment, kills by kind) for one run."""
     tracker = TableTracker()
-    met, where, seen = Counter(), defaultdict(Counter), set()
+    met, where = Counter(), defaultdict(Counter)
+    holding = {}          # slot -> (kind, last frame it held a target)
     for line in (run / "states.jsonl").read_text().splitlines():
         state = json.loads(line).get("state") or {}
         table = (state.get("observation_profile") or {}).get("object_table")
@@ -37,10 +43,11 @@ def census(run, from_frame=0):
                                              state.get("reload_epoch", 0)):
             if track["kind"] not in TARGETS or not track.get("in_play"):
                 continue
-            identity = (track["slot"], track["generation"])
-            if identity in seen:
+            held = holding.get(track["slot"])
+            fresh = held is None or state["frame"]-held[1] > SLOT_REUSE_FRAMES or held[0] != track["kind"]
+            holding[track["slot"]] = (track["kind"], state["frame"])
+            if not fresh:
                 continue
-            seen.add(identity)
             met[track["kind"]] += 1
             if scroll is not None and scroll <= 60000:
                 where[int((track["x"]+scroll)//SEGMENT_PX)][track["kind"]] += 1

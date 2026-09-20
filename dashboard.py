@@ -146,6 +146,26 @@ def live_state():
     }
 
 
+# Counting the units a run met needs every state it recorded, so it is done for the most
+# recent runs only and cached on the run's own mtime: the goal is every unit destroyed,
+# and kills without a denominator cannot say how far away that is.
+CENSUS_RUNS = 12
+
+
+@lru_cache(maxsize=64)
+def _census_row(name, stamp):
+    try:
+        from unit_census import census
+        met, _, kills = census(RUNS / name, DECISION_START)
+    except Exception:
+        return None
+    total = sum(met.values())
+    if not total:
+        return None
+    return {"met": total, "killed": sum(kills.values()),
+            "by_kind": {kind: [kills.get(kind, 0), met.get(kind, 0)] for kind in met}}
+
+
 @lru_cache(maxsize=256)
 def _run_row(name, stamp):
     """One history row. Cached on the run's own mtime, so finished runs parse once."""
@@ -195,7 +215,10 @@ def history(limit=40):
             stamp = max((run / name).stat().st_mtime
                         for name in ("summary.json", "decision_trace.json")
                         if (run / name).exists())
-            rows.append(_run_row(run.name, stamp))
+            row = _run_row(run.name, stamp)
+            if len(rows) < CENSUS_RUNS and (run / "states.jsonl").exists():
+                row = dict(row, census=_census_row(run.name, stamp))
+            rows.append(row)
         except (OSError, ValueError, KeyError):
             continue
     return rows

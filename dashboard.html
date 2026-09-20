@@ -86,7 +86,7 @@
     <section style="margin-top:10px">
       <h2>RUN HISTORY</h2>
       <div class="scroll"><table id="history">
-        <thead><tr><th>run</th><th>kills</th><th>air</th><th>tank</th><th>turret</th><th>hits</th>
+        <thead><tr><th>run</th><th>kills</th><th>of units met</th><th>air</th><th>tank</th><th>turret</th><th>hits</th>
         <th>what hit</th><th>pickups</th><th>med X</th><th>reqs</th><th>end</th><th>pass</th></tr></thead>
         <tbody></tbody>
       </table></div>
@@ -194,6 +194,8 @@ async function pollRuns(){
       return `<tr>
         <td>${r.label ? "R" + r.label : r.run_id.slice(7, 20)}</td>
         ${cell(r.kills, r.kills === best && best ? "best" : "")}
+        <td>${r.census ? r.census.killed + "/" + r.census.met +
+             " (" + Math.round(r.census.killed / r.census.met * 100) + "%)" : "–"}</td>
         ${cell(r.air)}${cell(r.tank)}${cell(r.turret)}
         ${cell(r.hits, r.hits ? "hurt" : "ok")}
         <td style="text-align:left" class="muted">${(r.hit_causes || []).map(c =>
