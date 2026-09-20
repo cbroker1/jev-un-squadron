@@ -138,6 +138,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                   f"{'pause-and-step' if stepping else 'continuous'}; Jev limit {limit if mode=='live' else 0}. Ctrl+C stops.",flush=True)
             next_step = decision_start
             recent_positions = []
+            recent_body_gaps = []
             while True:
                 if (ROOT / "STOP").exists() or (output / "STOP").exists():
                     reason="user_stop"; break
@@ -180,7 +181,13 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 while recent_positions and state["frame"]-recent_positions[0][0] > 300:
                     recent_positions.pop(0)
                 digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges,
-                                       recent_positions=recent_positions)
+                                       recent_positions=recent_positions, recent_body_gaps=recent_body_gaps)
+                # Lingering inside the range where collisions have happened is only visible
+                # over several decisions: R20 sat at 20-21 px from a tank for four in a row.
+                staying = (digest["actions"].get("hold") or {}).get("enemy_body_anchor_gap_px")
+                recent_body_gaps.append((state["frame"], staying))
+                while recent_body_gaps and state["frame"]-recent_body_gaps[0][0] > 300:
+                    recent_body_gaps.pop(0)
                 digest["recent_entry_edges"] = dict(entry_edges)
                 states.write(json.dumps({"state":state,"observation":obs})+"\n"); states.flush()
                 if not digest["player_position_supported"]:
@@ -350,7 +357,7 @@ def main():
     ap.add_argument("--stepped",action="store_true",help="pause the emulator on each decision frame (pause-and-step)")
     ap.add_argument("--prelude-fire",action="store_true",help="Y firing during the prelude instead of gun off")
     args=ap.parse_args()
-    if not 1 <= args.max_calls <= 400 or not 0 <= args.warmup <= 900 or not 1 <= args.frames <= 1800:
+    if not 1 <= args.max_calls <= 1600 or not 0 <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
         ap.error("Run budgets out of range")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")

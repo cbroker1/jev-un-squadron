@@ -100,6 +100,22 @@ class CombatTests(unittest.TestCase):
             data[base:base+22]=payload
         return data
 
+    def test_lingering_in_the_collision_range_is_counted_across_decisions(self):
+        """R20 died after four straight decisions at 20-21 px from a tank; each looked fine alone."""
+        from brain.combat import time_in_the_collision_range
+        self.assertIsNone(time_in_the_collision_range([]))
+        self.assertIsNone(time_in_the_collision_range([(f,80.0) for f in range(100,200,6)]))
+        lingering=[(21299,20.4),(21305,31.2),(21311,21.6),(21317,21.2),(21323,20.1)]
+        report=time_in_the_collision_range(lingering)
+        self.assertEqual(report["decisions_inside_the_collision_range"],4)
+        self.assertEqual(report["consecutive_decisions_inside_it_now"],3)   # since the 31 px break
+        # Leaving the band resets the streak but keeps the history.
+        left=time_in_the_collision_range(lingering+[(21329,60.0)])
+        self.assertEqual(left["consecutive_decisions_inside_it_now"],0)
+        self.assertEqual(left["decisions_inside_the_collision_range"],4)
+        # None gaps (nothing tracked) are not counted as safety or as danger.
+        self.assertIsNone(time_in_the_collision_range([(100,None),(106,None)]))
+
     def test_recent_station_keeping_is_reported_from_measured_positions(self):
         """Runs that camped at either extreme scored worst, and no single decision can show it."""
         from brain.combat import where_you_have_been

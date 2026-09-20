@@ -207,7 +207,34 @@ def where_you_have_been(recent_positions, bounds=PLAYER_BOUNDS):
             "share_of_that_window_in_the_back_third": round(sum(x < third for x in xs)/len(xs), 2)}
 
 
-def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None):
+# Every collision recorded in this project happened at a reference gap of 9 to 22 px.
+COLLISION_RANGE_PX = 22
+
+
+def time_in_the_collision_range(recent_body_gaps):
+    """How long the aircraft has been sitting inside the range where collisions happen.
+
+    One decision at a time this is invisible: each says only 'inside the range'. The
+    run that died had spent four consecutive decisions at 20-21 px from a tank.
+    """
+    samples = [(frame, gap) for frame, gap in (recent_body_gaps or []) if gap is not None]
+    if not samples:
+        return None
+    inside = [frame for frame, gap in samples if gap <= COLLISION_RANGE_PX]
+    if not inside:
+        return None
+    run = 0
+    for _, gap in reversed(samples):
+        if gap > COLLISION_RANGE_PX:
+            break
+        run += 1
+    return {"decisions_sampled": len(samples), "decisions_inside_the_collision_range": len(inside),
+            "consecutive_decisions_inside_it_now": run,
+            "frames_since_the_first_of_those": samples[-1][0]-inside[0] if run else 0}
+
+
+def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None,
+                  recent_body_gaps=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
@@ -235,6 +262,7 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         census[direction_words(t["x"]-px, t["y"]-py)] = census.get(direction_words(t["x"]-px, t["y"]-py), 0)+1
     digest["tracked_threats_by_direction"] = census
     digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
+    digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
                                               [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
     # The fastest speed anything is closing at right now, measured from the tracks themselves.
@@ -540,6 +568,9 @@ def combat_request(digest, model="jev-latest"):
         "field_forecast_next_30_frames": digest.get("field_forecast"),
         # Measured from this run: where the aircraft has actually been sitting.
         "where_you_have_been_recently": digest.get("where_you_have_been_recently") or "not enough samples yet",
+        # Measured from this run: how long it has been sitting where collisions happen.
+        "time_in_the_collision_range": digest.get("time_in_the_collision_range")
+                                       or "not inside it recently",
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
@@ -591,6 +622,9 @@ def combat_request(digest, model="jev-latest"):
                 "option ends at or below it, the aircraft is already too low and the only way out is the option "
                 "with the most clearance, climbing until the clearance figure turns positive. Colliding with an aircraft, tank or turret is the main way this "
                 "aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. "
+                "time_in_the_collision_range counts how long this has already been going on: staying inside that "
+                "band decision after decision is how the run that died spent its last seconds, and no single option "
+                "can show it. "
 "When threats close from both sides at once, do not drift and let the gap shrink: take the option that "
                 "opens the squeeze, going over or under if that is the side with room, and take the shot on the way out "
                 "when one is offered. Watch the number for staying there afterwards too, because a "
