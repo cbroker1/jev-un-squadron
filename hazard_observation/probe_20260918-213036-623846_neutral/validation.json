@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "lua_completed": false,
+    "frame_budget": false,
+    "consecutive_frames": true,
+    "speed_is_50": true,
+    "input_readback": true,
+    "snapshot_length": true,
+    "snapshot_indices": true,
+    "screenshots_exist": true,
+    "controls_released": true
+  },
+  "pass": false,
+  "input_frames": 408,
+  "polled_frames": 408,
+  "snapshots": 31,
+  "jev_requests": 0,
+  "start_frame": "20183",
+  "end_frame": "20591"
+}

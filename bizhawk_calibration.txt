@@ -1,0 +1,14 @@
+BizHawk API calibration; zero Jev calls
+probe_frames=20; domain=WRAM; type=u8
+address,neutral,up,down,left,right
+0x0022,104,60,164,112,112
+0x002C,112,64,159,112,112
+0x0900,96,96,96,49,144
+0x0904,80,80,80,33,128
+0x1011,96,96,96,46,146
+0x1014,112,62,162,112,112
+0x1022,62,65,59,62,62
+0x1024,64,67,61,64,64
+0x1039,2,0,4,2,2
+0x103A,2,0,4,2,2
+candidates=10

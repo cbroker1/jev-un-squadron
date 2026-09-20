@@ -1,0 +1,7 @@
+status=complete
+start_frame=20183
+end_frame=20243
+samples=60
+snapshots=31
+controls_released=true
+jev_requests=0

@@ -1,0 +1,12 @@
+bizhawk=2.11.1
+system=SNES
+display=NTSC
+start_frame=20183
+speed_percent=50
+domain=WRAM
+domain_size=131072
+mode=pulse6
+player_x_address=0x1011
+player_y_address=0x1014
+legacy_y_scratch_address=0x002C
+input_mask_keys=Up,Down,Left,Right,A,B,X,Y,L,R,Start,Select

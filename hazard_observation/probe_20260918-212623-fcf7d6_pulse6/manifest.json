@@ -1,0 +1,22 @@
+{
+  "run_id": "probe_20260918-212623-fcf7d6_pulse6",
+  "local_started": "2026-09-18T21:26:23.668113-05:00",
+  "mode": "pulse6",
+  "frames": 60,
+  "capture_from": 500,
+  "capture_to": 640,
+  "fire_from": 24,
+  "fire_until": 24,
+  "movement": "Down",
+  "move_until": 20,
+  "requested_speed_percent": 50,
+  "rom_sha256": "0b155a54b6134601fc0791252a63ca73efd522667c3d6fd7a44f5b3c500039d7",
+  "state_sha256": "c1ea750e24cdb17e2050eb4f490c82b3e7544c11441f736f60df7c014fde0f3d",
+  "slot": 1,
+  "core_configured": "Snes9x",
+  "script_sha256": "11526b8349c2814496e38bea7cfe5c1c9f6eb4004fb29029c20192a595b897a4",
+  "jev_requests": 0,
+  "wall_seconds": 4.212,
+  "exit_code": 0,
+  "state_unchanged": true
+}

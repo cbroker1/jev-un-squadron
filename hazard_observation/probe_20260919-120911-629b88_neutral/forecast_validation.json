@@ -1,0 +1,336 @@
+{
+  "reference_capture": "probe_20260919-114543-d95c1f_neutral",
+  "intervention_capture": "probe_20260919-120911-629b88_neutral",
+  "action": "left",
+  "source_sample": 600,
+  "source_frame": 20783,
+  "horizon_frames": 20,
+  "decision_source": "deterministic_test",
+  "jev_requests": 0,
+  "forecast_uses_future_data": false,
+  "checks": {
+    "same_save_and_rom": true,
+    "pre_intervention_ram_identical": true,
+    "actual_inputs_match_exact_window": true,
+    "at_least_three_positions": true,
+    "frame_alignment": true,
+    "player_within_half_pixel": true,
+    "projectile_within_half_pixel": true,
+    "projectile_phase_continuous": true,
+    "horizon_completed": true
+  },
+  "pass": true,
+  "identical_prefix_snapshots": 37,
+  "projected_action": {
+    "projected_position": [
+      46.0,
+      112.0
+    ],
+    "boundary_margin_px": 30.0,
+    "room_description": "less than one action of room to the nearest movement limit",
+    "tracked_projectiles": [
+      {
+        "slot": "WRAM:0x1AC0",
+        "track_generation": 1,
+        "relative_direction": "above, right",
+        "closest_anchor_distance_px": 60.873,
+        "closest_at_frame_offset": 0,
+        "initial_anchor_distance_px": 60.873,
+        "initially_closing": false
+      }
+    ],
+    "closest_anchor_distance_px": 60.873,
+    "description": "Move left. Among the widest projected separations from the tracked projectiles. Ends less than one action of room to the nearest movement limit."
+  },
+  "observed_path": [
+    {
+      "sample": 600,
+      "source_frame": 20783,
+      "elapsed_game_frames": 0,
+      "expected_player": [
+        96.0,
+        112.0
+      ],
+      "observed_player": [
+        96,
+        112
+      ],
+      "expected_projectile": [
+        156.765625,
+        108.390625
+      ],
+      "observed_projectile": [
+        156.765625,
+        108.390625
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 60.87272599063763,
+      "phase_matches": true,
+      "screenshot": "frame_0600.png"
+    },
+    {
+      "sample": 602,
+      "source_frame": 20785,
+      "elapsed_game_frames": 2,
+      "expected_player": [
+        91.0,
+        112.0
+      ],
+      "observed_player": [
+        91,
+        112
+      ],
+      "expected_projectile": [
+        153.5859375,
+        109.0234375
+      ],
+      "observed_projectile": [
+        153.5859375,
+        109.0234375
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 62.656679588614594,
+      "phase_matches": true,
+      "screenshot": "frame_0602.png"
+    },
+    {
+      "sample": 604,
+      "source_frame": 20787,
+      "elapsed_game_frames": 4,
+      "expected_player": [
+        86.0,
+        112.0
+      ],
+      "observed_player": [
+        86,
+        112
+      ],
+      "expected_projectile": [
+        150.40625,
+        109.65625
+      ],
+      "observed_projectile": [
+        150.40625,
+        109.65625
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 64.44888054206217,
+      "phase_matches": true,
+      "screenshot": "frame_0604.png"
+    },
+    {
+      "sample": 606,
+      "source_frame": 20789,
+      "elapsed_game_frames": 6,
+      "expected_player": [
+        81.0,
+        112.0
+      ],
+      "observed_player": [
+        81,
+        112
+      ],
+      "expected_projectile": [
+        147.2265625,
+        110.2890625
+      ],
+      "observed_projectile": [
+        147.2265625,
+        110.2890625
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 66.24865951621446,
+      "phase_matches": true,
+      "screenshot": "frame_0606.png"
+    },
+    {
+      "sample": 608,
+      "source_frame": 20791,
+      "elapsed_game_frames": 8,
+      "expected_player": [
+        76.0,
+        112.0
+      ],
+      "observed_player": [
+        76,
+        112
+      ],
+      "expected_projectile": [
+        144.046875,
+        110.921875
+      ],
+      "observed_projectile": [
+        144.046875,
+        110.921875
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 68.05541529357711,
+      "phase_matches": true,
+      "screenshot": "frame_0608.png"
+    },
+    {
+      "sample": 610,
+      "source_frame": 20793,
+      "elapsed_game_frames": 10,
+      "expected_player": [
+        71.0,
+        112.0
+      ],
+      "observed_player": [
+        71,
+        112
+      ],
+      "expected_projectile": [
+        140.8671875,
+        111.5546875
+      ],
+      "observed_projectile": [
+        140.8671875,
+        111.5546875
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 69.86860662975047,
+      "phase_matches": true,
+      "screenshot": "frame_0610.png"
+    },
+    {
+      "sample": 612,
+      "source_frame": 20795,
+      "elapsed_game_frames": 12,
+      "expected_player": [
+        66.0,
+        112.0
+      ],
+      "observed_player": [
+        66,
+        112
+      ],
+      "expected_projectile": [
+        137.6875,
+        112.1875
+      ],
+      "observed_projectile": [
+        137.6875,
+        112.1875
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 71.68774520446294,
+      "phase_matches": true,
+      "screenshot": "frame_0612.png"
+    },
+    {
+      "sample": 614,
+      "source_frame": 20797,
+      "elapsed_game_frames": 14,
+      "expected_player": [
+        61.0,
+        112.0
+      ],
+      "observed_player": [
+        61,
+        112
+      ],
+      "expected_projectile": [
+        134.5078125,
+        112.8203125
+      ],
+      "observed_projectile": [
+        134.5078125,
+        112.8203125
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 73.51238950770689,
+      "phase_matches": true,
+      "screenshot": "frame_0614.png"
+    },
+    {
+      "sample": 616,
+      "source_frame": 20799,
+      "elapsed_game_frames": 16,
+      "expected_player": [
+        56.0,
+        112.0
+      ],
+      "observed_player": [
+        56,
+        112
+      ],
+      "expected_projectile": [
+        131.328125,
+        113.453125
+      ],
+      "observed_projectile": [
+        131.328125,
+        113.453125
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 75.3421395255089,
+      "phase_matches": true,
+      "screenshot": "frame_0616.png"
+    },
+    {
+      "sample": 618,
+      "source_frame": 20801,
+      "elapsed_game_frames": 18,
+      "expected_player": [
+        51.0,
+        112.0
+      ],
+      "observed_player": [
+        51,
+        112
+      ],
+      "expected_projectile": [
+        128.1484375,
+        114.0859375
+      ],
+      "observed_projectile": [
+        128.1484375,
+        114.0859375
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 77.1766321106675,
+      "phase_matches": true,
+      "screenshot": "frame_0618.png"
+    },
+    {
+      "sample": 620,
+      "source_frame": 20803,
+      "elapsed_game_frames": 20,
+      "expected_player": [
+        46.0,
+        112.0
+      ],
+      "observed_player": [
+        46,
+        112
+      ],
+      "expected_projectile": [
+        124.96875,
+        114.71875
+      ],
+      "observed_projectile": [
+        124.96875,
+        114.71875
+      ],
+      "player_error_px": 0.0,
+      "projectile_error_px": 0.0,
+      "observed_anchor_gap_px": 79.01553694131933,
+      "phase_matches": true,
+      "screenshot": "frame_0620.png"
+    }
+  ],
+  "max_player_error_px": 0.0,
+  "max_projectile_error_px": 0.0,
+  "scope": "Reference-point trajectory validation only; no inferred damage, collision box, or survival score."
+}

@@ -1,0 +1,371 @@
+{
+  "status": "discovery; routine addresses are candidate types until visually checked",
+  "table": "0x1000..0x1FC0 step 0x40",
+  "types": {
+    "$02:B04A": {
+      "samples": 279,
+      "on_screen": 248,
+      "slots": [
+        "0x1780",
+        "0x17C0",
+        "0x1840",
+        "0x1880",
+        "0x18C0"
+      ],
+      "flags": [
+        "88",
+        "C8"
+      ],
+      "byte8": [
+        3
+      ],
+      "first_sample": 1150,
+      "last_sample": 1380,
+      "x_range": [
+        24.24609375,
+        255.75390625
+      ],
+      "y_range": [
+        64.0,
+        175.9609375
+      ]
+    },
+    "$04:F97F": {
+      "samples": 265,
+      "on_screen": 239,
+      "slots": [
+        "0x1AC0",
+        "0x1B00",
+        "0x1B40"
+      ],
+      "flags": [
+        "CC"
+      ],
+      "byte8": [
+        1
+      ],
+      "first_sample": 1150,
+      "last_sample": 1380,
+      "x_range": [
+        1.2890625,
+        250.9296875
+      ],
+      "y_range": [
+        1.2109375,
+        156.0
+      ]
+    },
+    "$02:93DD": {
+      "samples": 122,
+      "on_screen": 122,
+      "slots": [
+        "0x1700",
+        "0x1800"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        2,
+        6
+      ],
+      "first_sample": 1162,
+      "last_sample": 1380,
+      "x_range": [
+        189.0,
+        252.0
+      ],
+      "y_range": [
+        156.0,
+        188.0
+      ]
+    },
+    "$04:DF96": {
+      "samples": 116,
+      "on_screen": 116,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        8
+      ],
+      "first_sample": 1150,
+      "last_sample": 1380,
+      "x_range": [
+        36.5,
+        201.5
+      ],
+      "y_range": [
+        67.0,
+        157.0
+      ]
+    },
+    "$02:9274": {
+      "samples": 116,
+      "on_screen": 116,
+      "slots": [
+        "0x1740"
+      ],
+      "flags": [
+        "E0"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 1150,
+      "last_sample": 1380,
+      "x_range": [
+        96.0,
+        146.0
+      ],
+      "y_range": [
+        176.0,
+        176.0
+      ]
+    },
+    "$04:FCC0": {
+      "samples": 114,
+      "on_screen": 114,
+      "slots": [
+        "0x1700",
+        "0x1780",
+        "0x17C0",
+        "0x1800",
+        "0x1840",
+        "0x18C0"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        254,
+        255
+      ],
+      "first_sample": 1150,
+      "last_sample": 1380,
+      "x_range": [
+        132.94921875,
+        239.65625
+      ],
+      "y_range": [
+        64.0,
+        156.0
+      ]
+    },
+    "$04:E6AF": {
+      "samples": 109,
+      "on_screen": 109,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1156,
+      "last_sample": 1380,
+      "x_range": [
+        42.0,
+        251.0
+      ],
+      "y_range": [
+        67.0,
+        157.0
+      ]
+    },
+    "$04:FAD9": {
+      "samples": 88,
+      "on_screen": 88,
+      "slots": [
+        "0x1400"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1206,
+      "last_sample": 1380,
+      "x_range": [
+        144.25,
+        231.25
+      ],
+      "y_range": [
+        80.171875,
+        80.171875
+      ]
+    },
+    "$02:9166": {
+      "samples": 81,
+      "on_screen": 81,
+      "slots": [
+        "0x16C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 1150,
+      "last_sample": 1310,
+      "x_range": [
+        96.1875,
+        146.1875
+      ],
+      "y_range": [
+        184.0,
+        184.0
+      ]
+    },
+    "$02:93CD": {
+      "samples": 46,
+      "on_screen": 9,
+      "slots": [
+        "0x1700",
+        "0x1800"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        6
+      ],
+      "first_sample": 1150,
+      "last_sample": 1376,
+      "x_range": [
+        253.0,
+        255.0
+      ],
+      "y_range": [
+        156.0,
+        188.0
+      ]
+    },
+    "$02:9203": {
+      "samples": 35,
+      "on_screen": 35,
+      "slots": [
+        "0x16C0"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 1312,
+      "last_sample": 1380,
+      "x_range": [
+        112.1875,
+        146.1875
+      ],
+      "y_range": [
+        184.0,
+        184.0
+      ]
+    },
+    "$02:AFA5": {
+      "samples": 34,
+      "on_screen": 34,
+      "slots": [
+        "0x1780"
+      ],
+      "flags": [
+        "80"
+      ],
+      "byte8": [
+        255
+      ],
+      "first_sample": 1250,
+      "last_sample": 1316,
+      "x_range": [
+        131.94921875,
+        131.94921875
+      ],
+      "y_range": [
+        88.63671875,
+        88.63671875
+      ]
+    },
+    "$04:FABA": {
+      "samples": 34,
+      "on_screen": 34,
+      "slots": [
+        "0x1440"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1314,
+      "last_sample": 1380,
+      "x_range": [
+        175.375,
+        196.0
+      ],
+      "y_range": [
+        156.0,
+        170.296875
+      ]
+    },
+    "$02:A78D": {
+      "samples": 18,
+      "on_screen": 18,
+      "slots": [
+        "0x17C0"
+      ],
+      "flags": [
+        "9A"
+      ],
+      "byte8": [
+        2,
+        6,
+        10
+      ],
+      "first_sample": 1170,
+      "last_sample": 1204,
+      "x_range": [
+        231.671875,
+        248.671875
+      ],
+      "y_range": [
+        80.75390625,
+        80.75390625
+      ]
+    },
+    "$04:E6E1": {
+      "samples": 6,
+      "on_screen": 6,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1176,
+      "last_sample": 1356,
+      "x_range": [
+        149.0,
+        232.0
+      ],
+      "y_range": [
+        82.0,
+        157.0
+      ]
+    }
+  }
+}

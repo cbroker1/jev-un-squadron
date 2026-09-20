@@ -1,0 +1,80 @@
+Using SDL2 for host input (keyboard + gamepads)
+MemoryBlock created for address 36f00000000:36f01ad5000 with mirror 225e1170000:225e2c45000
+Mouting `snes9x.wbx` @36f00000000
+  Sections:
+    @0:0     `` 0 bytes
+    @36f00000318:36f0000035c R   `.interp` 68 bytes
+    @36f0000035c:36f00000374 R   `.note.gnu.build-id` 24 bytes
+    @36f00001000:36f00001003 R X `.init` 3 bytes
+    @36f00001010:36f00002504 R X `.text` 5364 bytes
+    @36f00002510:36f002a5101 R X `.ltext` 2763761 bytes
+    @36f002a5101:36f002a5104 R X `.fini` 3 bytes
+    @36f002a5110:36f002a520a R X `__lcxx_override` 250 bytes
+    @36f002a6000:36f002b6fc0 R   `.rodata` 69568 bytes
+    @36f002b6fc0:36f002c3004 R   `.eh_frame_hdr` 49220 bytes
+    @36f002c3008:36f0031084c R   `.eh_frame` 317508 bytes
+    @36f0031084c:36f00315a5c R   `.gcc_except_table` 21008 bytes
+    @36f00316000:36f00316030 RW  `.init_array` 48 bytes
+    @36f00316030:36f00316030 RW  `.fini_array` 0 bytes
+    @36f00316030:36f00317000 RW  `.relro_padding` 4048 bytes
+    @36f00317000:36f00317080 RW  `.invis` 128 bytes
+    @36f00318000:36f00318000 RW  `.bss` 0 bytes
+    @36f00318000:36f00495088 RW  `.lbss` 1560712 bytes
+    @36f004960c0:36f004bd058 R   `.lrodata` 159640 bytes
+    @36f004be060:36f004d43d0 RW  `.ldata` 90992 bytes
+    @0:41     `.comment` 65 bytes
+    @0:33948     `.symtab` 211272 bytes
+    @0:e3     `.shstrtab` 227 bytes
+    @0:5cf76     `.strtab` 380790 bytes
+  Segments:
+    %36f00000040:36f00000318 R   728 bytes
+    %36f00000318:36f0000035c R   68 bytes
+    %36f00000000:36f00000374 R   884 bytes
+    %36f00001000:36f002a520a R X 2769418 bytes
+    %36f002a6000:36f00315a5c R   457308 bytes
+    %36f00316000:36f00317000 RW  4096 bytes
+    %36f00317000:36f00495088 RW  1564808 bytes
+    %36f004960c0:36f004bd058 R   159640 bytes
+    %36f004be060:36f004d43d0 RW  90992 bytes
+    %36f00316000:36f00317000 R   4096 bytes
+    %36f002b6fc0:36f002c3004 R   49220 bytes
+    %36f0000035c:36f00000374 R   24 bytes
+Calling _start()
+Initializing heap sbrk at 36f006d5000:36f007d5000
+Initializing heap invisible at 0x36f007d5000:0x36f00cd5000
+Allocated 262144 bytes on invisible heap, usage 262144/5242880
+Allocated 131072 bytes on invisible heap, usage 393216/5242880
+Allocated 65536 bytes on invisible heap, usage 458752/5242880
+Allocated 262144 bytes on invisible heap, usage 720896/5242880
+Allocated 262144 bytes on invisible heap, usage 983040/5242880
+Allocated 131072 bytes on invisible heap, usage 1114112/5242880
+Allocated 131072 bytes on invisible heap, usage 1245184/5242880
+Allocated 4096 bytes on invisible heap, usage 1249280/5242880
+Allocated 2048 bytes on invisible heap, usage 1251328/5242880
+Allocated 1024 bytes on invisible heap, usage 1252352/5242880
+Allocated 4096 bytes on invisible heap, usage 1256448/5242880
+Allocated 4096 bytes on invisible heap, usage 1260544/5242880
+Allocated 2048 bytes on invisible heap, usage 1262592/5242880
+Allocated 2048 bytes on invisible heap, usage 1264640/5242880
+Initializing heap plain at 0x36f00cd5000:0x36f019d5000
+Allocated 12616192 bytes on plain heap, usage 12616192/13631488
+Allocated 524288 bytes on plain heap, usage 13140480/13631488
+Allocated 555008 bytes on invisible heap, usage 1819648/5242880
+Allocated 131072 bytes on invisible heap, usage 1950720/5242880
+Allocated 489472 bytes on invisible heap, usage 2440192/5242880
+Allocated 244736 bytes on invisible heap, usage 2684928/5242880
+Allocated 244736 bytes on invisible heap, usage 2929664/5242880
+Map_LoROMMap
+Allocated 555008 bytes on invisible heap, usage 3484672/5242880
+Allocated 131072 bytes on invisible heap, usage 3615744/5242880
+Allocated 489472 bytes on invisible heap, usage 4105216/5242880
+Allocated 244736 bytes on invisible heap, usage 4349952/5242880
+Allocated 244736 bytes on invisible heap, usage 4594688/5242880
+Calling ecl_seal()
+WaterboxHost Sealed!
+NTSC rom loaded
+Read a zipstate of version 1.0.3
+Elapsed time for Load Core: 2 ms
+Elapsed time for Blit: 0 ms
+Elapsed time for Load Framebuffer: 1 ms
+[Lua Console] loaded script C:\Users\Carl-MainRig\Projects\jev-un-squadron\lua\hazard_snapshots.lua

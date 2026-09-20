@@ -1,0 +1,8 @@
+"sample","emu_frame","snapshot_index","component","pixels","min_x","max_x","min_y","max_y","center_x","center_y","screenshot","interpretation"
+"8","20191","4","0","12","115","120","111","113","117.5","112","frame_0008.png","unclassified shot sprite pixels"
+"10","20193","5","0","16","133","142","111","113","137.5","112","frame_0010.png","unclassified shot sprite pixels"
+"12","20195","6","0","16","155","164","111","113","159.5","112","frame_0012.png","unclassified shot sprite pixels"
+"14","20197","7","0","16","177","186","111","113","181.5","112","frame_0014.png","unclassified shot sprite pixels"
+"16","20199","8","0","16","199","208","111","113","203.5","112","frame_0016.png","unclassified shot sprite pixels"
+"18","20201","9","0","16","221","230","111","113","225.5","112","frame_0018.png","unclassified shot sprite pixels"
+"20","20203","10","0","16","243","252","111","113","247.5","112","frame_0020.png","unclassified shot sprite pixels"

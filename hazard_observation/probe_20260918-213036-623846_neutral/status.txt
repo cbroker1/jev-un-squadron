@@ -1,0 +1,7 @@
+status=stopped
+start_frame=20183
+end_frame=20591
+samples=408
+snapshots=31
+controls_released=true
+jev_requests=0

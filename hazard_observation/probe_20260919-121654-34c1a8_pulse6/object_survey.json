@@ -1,0 +1,495 @@
+{
+  "status": "discovery; routine addresses are candidate types until visually checked",
+  "table": "0x1000..0x1FC0 step 0x40",
+  "types": {
+    "$02:9274": {
+      "samples": 634,
+      "on_screen": 581,
+      "slots": [
+        "0x1700",
+        "0x1780",
+        "0x1840",
+        "0x18C0",
+        "0x1900"
+      ],
+      "flags": [
+        "E0"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 550,
+      "last_sample": 900,
+      "x_range": [
+        0.0,
+        254.0
+      ],
+      "y_range": [
+        176.0,
+        188.0
+      ]
+    },
+    "$02:90F0": {
+      "samples": 214,
+      "on_screen": 187,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 550,
+      "last_sample": 832,
+      "x_range": [
+        146.0,
+        254.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:E6AF": {
+      "samples": 205,
+      "on_screen": 205,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 550,
+      "last_sample": 900,
+      "x_range": [
+        102.0,
+        234.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$02:9119": {
+      "samples": 184,
+      "on_screen": 184,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 694,
+      "last_sample": 900,
+      "x_range": [
+        135.0,
+        172.67578125
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:F97F": {
+      "samples": 182,
+      "on_screen": 168,
+      "slots": [
+        "0x1AC0",
+        "0x1B00",
+        "0x1B40",
+        "0x1B80"
+      ],
+      "flags": [
+        "CC"
+      ],
+      "byte8": [
+        1
+      ],
+      "first_sample": 694,
+      "last_sample": 900,
+      "x_range": [
+        0.859375,
+        147.0
+      ],
+      "y_range": [
+        46.859375,
+        176.0
+      ]
+    },
+    "$04:DF96": {
+      "samples": 175,
+      "on_screen": 175,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "80",
+        "C0",
+        "C8"
+      ],
+      "byte8": [
+        7,
+        8
+      ],
+      "first_sample": 550,
+      "last_sample": 898,
+      "x_range": [
+        96.5,
+        96.5
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:FABA": {
+      "samples": 96,
+      "on_screen": 96,
+      "slots": [
+        "0x1400"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 550,
+      "last_sample": 740,
+      "x_range": [
+        113.9375,
+        182.6875
+      ],
+      "y_range": [
+        87.171875,
+        115.21875
+      ]
+    },
+    "$02:91DB": {
+      "samples": 90,
+      "on_screen": 90,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 634,
+      "last_sample": 852,
+      "x_range": [
+        136.0,
+        165.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:9131": {
+      "samples": 82,
+      "on_screen": 56,
+      "slots": [
+        "0x17C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 738,
+      "last_sample": 900,
+      "x_range": [
+        0.25,
+        34.625
+      ],
+      "y_range": [
+        184.0,
+        184.0
+      ]
+    },
+    "$04:FCC0": {
+      "samples": 48,
+      "on_screen": 48,
+      "slots": [
+        "0x17C0",
+        "0x1800",
+        "0x1980"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        255
+      ],
+      "first_sample": 620,
+      "last_sample": 900,
+      "x_range": [
+        231.25,
+        255.828125
+      ],
+      "y_range": [
+        104.0,
+        123.0078125
+      ]
+    },
+    "$04:F8BC": {
+      "samples": 46,
+      "on_screen": 46,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 808,
+      "last_sample": 898,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$02:9166": {
+      "samples": 44,
+      "on_screen": 44,
+      "slots": [
+        "0x16C0",
+        "0x1740"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 842,
+      "last_sample": 900,
+      "x_range": [
+        104.87109375,
+        162.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:B04A": {
+      "samples": 35,
+      "on_screen": 10,
+      "slots": [
+        "0x17C0",
+        "0x1800",
+        "0x1980",
+        "0x19C0"
+      ],
+      "flags": [
+        "88",
+        "C8"
+      ],
+      "byte8": [
+        3
+      ],
+      "first_sample": 610,
+      "last_sample": 900,
+      "x_range": [
+        243.25,
+        255.75390625
+      ],
+      "y_range": [
+        95.16796875,
+        127.16796875
+      ]
+    },
+    "$02:91FF": {
+      "samples": 20,
+      "on_screen": 20,
+      "slots": [
+        "0x16C0",
+        "0x1740"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 822,
+      "last_sample": 872,
+      "x_range": [
+        163.87109375,
+        172.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:AFA5": {
+      "samples": 18,
+      "on_screen": 18,
+      "slots": [
+        "0x1940"
+      ],
+      "flags": [
+        "80"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 866,
+      "last_sample": 900,
+      "x_range": [
+        0.0,
+        0.0
+      ],
+      "y_range": [
+        0.0,
+        0.0
+      ]
+    },
+    "$04:F8A1": {
+      "samples": 12,
+      "on_screen": 12,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 784,
+      "last_sample": 806,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:E6E1": {
+      "samples": 3,
+      "on_screen": 3,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 620,
+      "last_sample": 884,
+      "x_range": [
+        245.0,
+        245.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:F9C3": {
+      "samples": 3,
+      "on_screen": 3,
+      "slots": [
+        "0x1B00"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        247
+      ],
+      "first_sample": 784,
+      "last_sample": 900,
+      "x_range": [
+        85.0859375,
+        85.9140625
+      ],
+      "y_range": [
+        116.9140625,
+        116.9140625
+      ]
+    },
+    "$04:E0D3": {
+      "samples": 1,
+      "on_screen": 1,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 900,
+      "last_sample": 900,
+      "x_range": [
+        96.5,
+        96.5
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:F94A": {
+      "samples": 1,
+      "on_screen": 1,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 900,
+      "last_sample": 900,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    }
+  }
+}
