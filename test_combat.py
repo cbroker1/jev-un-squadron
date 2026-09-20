@@ -442,19 +442,20 @@ class CombatTests(unittest.TestCase):
     def test_the_firing_band_matches_what_has_actually_killed_each_kind(self):
         """Run 73 held Y 180 for 40 decisions while its shots sailed over tanks at Y 188."""
         from brain.combat import combat_digest, on_the_gun_line
-        # Measured bands: ground targets die from -10 to +7, aircraft from -8 to +12.
-        self.assertTrue(on_the_gun_line(183,188,"ground_tank"))    # 5 px above: kills
+        # Measured: ground targets are hit from level to about 10 px below, and the rate
+        # at 8 px above is 5.8%, where the old symmetric band claimed a hit.
         self.assertFalse(on_the_gun_line(180,188,"ground_tank"))   # 8 px above: the stutter
-        self.assertTrue(on_the_gun_line(180,188,"enemy_aircraft")) # same gap, different kind
-        self.assertTrue(on_the_gun_line(198,188,"ground_tank"))    # 10 px below still kills
-        self.assertFalse(on_the_gun_line(200,188,"ground_tank"))
+        self.assertTrue(on_the_gun_line(188,188,"ground_tank"))    # level: 54%
+        self.assertTrue(on_the_gun_line(194,188,"ground_tank"))    # 6 px below: 96%
+        self.assertFalse(on_the_gun_line(200,188,"ground_tank"))   # too far below
+        self.assertTrue(on_the_gun_line(180,188,"enemy_aircraft")) # aircraft tolerate it
         tank={"kind":"ground_tank","x":200.0,"y":188.0,"vx":-0.5,"vy":0.0,
               "phase":"observed_moving_signature","on_screen":True,"in_play":True,
               "slot":"WRAM:0x1840","generation":1}
         high=combat_digest({"source_frame":101,"player":{"x":80,"y":180},"tracks":[tank]},6)
         self.assertEqual(high["actions"]["hold"]["targets_the_gun_would_hit"],0)
-        low=combat_digest({"source_frame":101,"player":{"x":80,"y":186},"tracks":[tank]},6)
-        self.assertEqual(low["actions"]["hold"]["targets_the_gun_would_hit"],1)
+        level=combat_digest({"source_frame":101,"player":{"x":80,"y":190},"tracks":[tank]},6)
+        self.assertEqual(level["actions"]["hold"]["targets_the_gun_would_hit"],1)
 
     def test_a_target_about_to_be_lost_is_reported_with_its_clock(self):
         """Runs destroy about 40% of the units they meet; the rest leave alive."""

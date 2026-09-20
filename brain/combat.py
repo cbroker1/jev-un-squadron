@@ -112,13 +112,18 @@ PLAYER_SPEED = 2.5
 # Structure evidence is recorded and cleared over this band; see build_terrain_map.py.
 STRUCTURE_BAND = 4
 SHOT_BAND = 10          # the widest band any kind uses; kept for callers that ask generally
-# Measured from 101 kills recorded across runs, as aircraft altitude minus target altitude
-# at the moment the target was destroyed. The bands are asymmetric and differ by kind:
-# tanks p10 -10 p90 +7, turrets p10 -10 p90 +6, aircraft p10 -7.4 p90 +12. A symmetric
-# 10 px band claimed hits on ground targets from 8 px too high, and one run held that
-# altitude for 40 decisions while every shot sailed over the tanks and off the screen.
-FIRING_BANDS = {"ground_tank": (-10, 7), "turret": (-10, 6), "enemy_aircraft": (-8, 12)}
-DEFAULT_BAND = (-10, 12)
+# Measured as the share of frames at each offset that were followed by a kill within 20
+# frames, over 24 runs. Offset is aircraft altitude minus target altitude, so positive
+# means flying below the target's reference point.
+#
+#   ground targets:  -8..-7  5.8%   -4..-3  32%   -2..-1  68%   2..3  74%   6..7  96%
+#   aircraft:        -8..-7   84%    0..1    96%   8..9    89%  16..17  79%  20..21 52%
+#
+# Ground targets are only reliably hit from level with them or below; an earlier symmetric
+# 10 px band claimed hits from 8 px above, where the real rate is 5.8%, and one run held
+# that altitude for forty decisions while every shot sailed over the tanks.
+FIRING_BANDS = {"ground_tank": (-3, 10), "turret": (-3, 10), "enemy_aircraft": (-8, 17)}
+DEFAULT_BAND = (-8, 17)
 
 
 def on_the_gun_line(shooter_y, target_y, kind):
