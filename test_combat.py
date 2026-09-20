@@ -446,10 +446,27 @@ class CombatTests(unittest.TestCase):
         with patch.object(combat,"_terrain",(columns,4)):
             obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":174},"tracks":[]}
             criteria=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]
-            self.assertTrue(criteria["hold"].startswith("No directional buttons. BLOCKED:"),criteria["hold"][:90])
+            self.assertTrue(criteria["hold"].startswith("No directional buttons. BLOCKED ("),criteria["hold"][:90])
             self.assertIn("Y 174 on this path, where a collision was recorded",criteria["hold"])
+            # The warning always carries a gradient, so a blocked option can still be compared.
+            self.assertIn("BLOCKED (0 px clear)",criteria["hold"])
             # An option that climbs clear of the band is not labelled blocked.
             self.assertNotIn("BLOCKED",criteria["up"])
+
+    def test_when_every_option_is_blocked_the_least_bad_one_is_named(self):
+        """In 11% of decisions four or five options were blocked, with no way to choose."""
+        from brain import combat
+        columns={c:{"hit_min_y":None,"collision_altitudes":None,"safe_max_y":191,
+                    "ground_object_y":None,"shots_stopped_at":[159,174,189]} for c in range(150,260)}
+        with patch.object(combat,"_terrain",(columns,4)):
+            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":174},"tracks":[]}
+            digest=combat.combat_digest(obs,6)
+            self.assertTrue(all(o["ends_level_with_something_that_stopped_a_shot"]
+                                for o in digest["actions"].values()))
+            self.assertIn("the most clearance is",digest["every_option_is_blocked"])
+            gaps={a:o["distance_to_nearest_blocked_altitude_px"] for a,o in digest["actions"].items()}
+            self.assertEqual(min(gaps.values()),0)          # holding sits on one
+            self.assertGreater(max(gaps.values()),0)        # something is further from the band
 
     def test_a_stopped_shot_maps_structure_where_no_collision_was_ever_taken(self):
         """Shots fly straight at 11 px/frame; one that stops short has hit something solid."""

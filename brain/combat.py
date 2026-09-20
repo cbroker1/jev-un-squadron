@@ -334,6 +334,12 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         option["terrain_hit_recorded_y"] = (min(option["collision_altitudes_here"])
                                             if option["collision_altitudes_here"] else None)
         option["shots_stopped_here_at"] = blocked_altitudes(position, obs.get("scroll_x"), span_from=px)
+        # A warning that fires on every option is no warning at all, so always carry the
+        # gradient with it: how far this option ends from the nearest solid altitude.
+        solid = sorted({*(option["collision_altitudes_here"] or ()),
+                        *(option["shots_stopped_here_at"] or ())})
+        option["distance_to_nearest_blocked_altitude_px"] = (
+            round(min(abs(position[1]-a) for a in solid), 1) if solid and position else None)
         option["ends_level_with_something_that_stopped_a_shot"] = bool(
             position and any(abs(position[1]-a) <= 6 for a in (option["shots_stopped_here_at"] or ())))
         # The altitude at or below which terrain is known to be solid along this path.
@@ -420,6 +426,15 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     # deleted the warning exactly when the aircraft was already too low and told it
     # nothing (three hits at Y 174 in one run). Keep every warning; say it applies to
     # all of them, and let the clearance figure pick the way out.
+    blocked_now = [a for a, o in digest["actions"].items()
+                   if o["ends_at_or_below_terrain"] or o["ends_level_with_something_that_stopped_a_shot"]]
+    if len(blocked_now) == len(digest["actions"]):
+        clearances = {a: o["distance_to_nearest_blocked_altitude_px"] or 0
+                      for a, o in digest["actions"].items()}
+        best = max(clearances, key=clearances.get)
+        digest["every_option_is_blocked"] = (
+            f"every option here ends level with something solid; the most clearance is '{best}' at "
+            f"{clearances[best]:.0f} px, and climbing or dropping clear of the band is the way out")
     if all(o["ends_at_or_below_terrain"] for o in digest["actions"].values()):
         digest["terrain_constraint_suspended"] = (
             "every option here ends at or below the altitude where a collision was recorded, so the "
@@ -579,7 +594,8 @@ def combat_request(digest, model="jev-latest"):
                         else "our own shots have been stopped")
             clear_air = ("" if f["lowest_safe_y_measured"] is None else
                          f" Altitudes flown here without a hit reach Y {f['lowest_safe_y_measured']:.0f}.")
-            lead = (f"BLOCKED: this ends at Y {f['projected_position'][1]:.0f}, level with Y "
+            gap = f["distance_to_nearest_blocked_altitude_px"]
+            lead = (f"BLOCKED ({gap:.0f} px clear): this ends at Y {f['projected_position'][1]:.0f}, level with Y "
                     + ", ".join(f"{a:.0f}" for a in blocking)
                     + f" on this path, where {evidence}. Something solid is there and contact is "
                       f"damage every time.{clear_air} ")
@@ -618,6 +634,7 @@ def combat_request(digest, model="jev-latest"):
         # Counted in this run, not a rule: where tracked objects have appeared so far.
         "object_entries_counted_this_run": digest.get("recent_entry_edges") or "none counted yet",
         "tracked_threats_by_direction_now": digest.get("tracked_threats_by_direction") or "none tracked",
+        "every_option_is_blocked": digest.get("every_option_is_blocked") or "no",
         "field_forecast_next_30_frames": digest.get("field_forecast"),
         # Measured from this run: where the aircraft has actually been sitting.
         "where_you_have_been_recently": digest.get("where_you_have_been_recently") or "not enough samples yet",
