@@ -209,9 +209,11 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                         # of the run, not just for the two seconds the shot was in flight.
                         scroll_now = state.get("scroll_x")
                         if scroll_now is not None:
-                            key = (int((x+scroll_now)//4) if scroll_now <= 60000
-                                   else BOSS_COLUMN_BASE+int(x)//4, round(y))
-                            walls_found[key] = walls_found.get(key, 0)+1
+                            # Not named `key`: that is the API key parameter, and shadowing
+                            # it sent a tuple to the Authorization header three runs running.
+                            wall_at = (int((x+scroll_now)//4) if scroll_now <= 60000
+                                       else BOSS_COLUMN_BASE+int(x)//4, round(y))
+                            walls_found[wall_at] = walls_found.get(wall_at, 0)+1
                     previous_shots = live_shots
                     while recent_shot_stops and state["frame"]-recent_shot_stops[0][0] > SHOT_STOP_MEMORY_FRAMES:
                         recent_shot_stops.pop(0)
