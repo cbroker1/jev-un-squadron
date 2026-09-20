@@ -363,8 +363,25 @@ def what_you_have_been_doing(recent_choices):
             "times_you_reversed_in_those": reversals}
 
 
+def wall_in_front_of_you(recent_shot_stops, py, band=10, need=2):
+    """Where our own shots have just been stopping at this altitude, if they have.
+
+    The map only knows columns some past run probed. This is the same evidence gathered
+    live: shots travel right at a measured 11 px per frame, so several stopping at the
+    same place with nothing dying there means something solid is in front of the aircraft
+    right now, whatever the map knows. A run once spent forty-five decisions firing into
+    a structure that was not in the map while killable targets sat on screen.
+    """
+    at_this_altitude = [x for _, x, y in (recent_shot_stops or []) if abs(y-py) <= band]
+    if len(at_this_altitude) < need:
+        return None
+    return {"shots_stopped_recently": len(at_this_altitude),
+            "nearest_stop_x": min(at_this_altitude),
+            "reading": "shots from this altitude are being stopped before they reach that far"}
+
+
 def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None,
-                  recent_body_gaps=None, recent_choices=None):
+                  recent_body_gaps=None, recent_choices=None, recent_shot_stops=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
@@ -477,6 +494,12 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         # A shot cannot pass through a structure, so a target behind one is not reachable.
         all_targets = [t for t in live if t["kind"] in TARGETS]
         reachable = clear_targets(position, all_targets, obs.get("scroll_x")) if position else all_targets
+        # Live evidence beats the map: if shots from this altitude are stopping short,
+        # nothing beyond that point can be hit from here, whatever the map knows.
+        wall = wall_in_front_of_you(recent_shot_stops, position[1]) if position else None
+        option["shots_stopping_short_here"] = wall
+        if wall:
+            reachable = [t for t in reachable if t["x"] < wall["nearest_stop_x"]]
         option["targets_hidden_behind_structure"] = len(all_targets)-len(reachable)
         landings = shot_intersections(position, reachable, horizon)
         aim = aim_error(position, reachable, horizon)
@@ -602,6 +625,11 @@ def combat_request(digest, model="jev-latest"):
             shots = f"no hit yet; the nearest reachable target is {f['aim_error_px']:.0f} pixels off the gun line (smaller means lining up)"
         else:
             shots = "no tracked target the gun can reach"
+        stopping = ("" if not f.get("shots_stopping_short_here") else
+                    f" Your own shots from this altitude have stopped short "
+                    f"{f['shots_stopping_short_here']['shots_stopped_recently']} times in the last two seconds, "
+                    f"the nearest at x {f['shots_stopping_short_here']['nearest_stop_x']}, so something solid is "
+                    f"there now and nothing beyond it can be hit from this line.")
         hidden = ("" if not f.get("targets_hidden_behind_structure") else
                   f" {f['targets_hidden_behind_structure']} target(s) sit behind a structure from here, where "
                   f"shots have been stopped before, so the gun cannot reach them from this altitude.")
@@ -759,7 +787,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{hidden}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
+            f"Attack: {shots}.{stopping}{hidden}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
@@ -864,10 +892,8 @@ def combat_request(digest, model="jev-latest"):
                 "collide like any other body. Compare the "
                 "already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe "
                 "fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they "
-                "have come from so far in this run. what_you_have_been_doing is the aircraft's own last few choices: a "
-                "transit past a target behind, or a crossing to a power-up, takes several moves in the same "
-                "direction, and reversing partway spends the frames without finishing either. Each option also "
-                "carries what actually happened to past runs at that "
+                "have come from so far in this run. what_you_have_been_doing is the aircraft's own last few choices. "
+                "Each option also carries what actually happened to past runs at that "
                 "exact position and altitude, counted from every frame ever flown there; a position no run has "
                 "flown enough is unknown rather than safe. where_you_have_been_recently is this aircraft's own recent "
                 "station-keeping, which no single option can show: camping at either extreme of the flyable area "
