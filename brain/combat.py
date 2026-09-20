@@ -46,7 +46,7 @@ def terrain_at(position, scroll, spread=2, span_from=None):
     return (sorted(hit) or None), safe, ground
 
 
-def blocked_altitudes(position, scroll, spread=2, span_from=None):
+def blocked_altitudes(position, scroll, spread=1, span_from=None):
     """Altitudes where our own shots stopped against something solid on this path.
 
     Shots travel right at a measured 11 px per frame; one that stops short of the screen
