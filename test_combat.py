@@ -543,14 +543,15 @@ class CombatTests(unittest.TestCase):
             d=combat_digest({"source_frame":101,"player":{"x":80,"y":150},"tracks":[t]},6)
             return d["actions"]["hold"], combat_request(d)["questions"]["movement"]["criteria"]["hold"]
         option,text=ground(182)
-        self.assertEqual(option["altitude_that_hits_the_nearest_ground_target"],[179,192])
-        self.assertEqual(option["pixels_too_high_for_it"],29)       # sitting at Y 150
-        self.assertIn("hit from Y 179 to 192",text)
-        self.assertIn("29 pixels above that",text)
-        # A tank low enough that the shot altitude cannot be flown at all.
-        option,text=ground(200)
-        self.assertIn("outside the flyable range",text)
-        self.assertIn("lining up on it is wasted",text)
+        self.assertEqual(option["altitude_that_hits_the_nearest_ground_target"],[176,192])
+        self.assertEqual(option["pixels_too_high_for_it"],26)       # sitting at Y 150
+        self.assertIn("hit from Y 176 to 192",text)
+        self.assertIn("26 pixels above that: dropping that far lines it up",text)
+        # Carl: a ground target is always reachable, you just drop a little. A tank on the
+        # deck is hit from inside the flyable range, so nothing is written off.
+        option,_=ground(196)
+        low,high=option["altitude_that_hits_the_nearest_ground_target"]
+        self.assertLessEqual(low,191)
 
     def test_shots_stopping_short_reject_the_firing_line_live(self):
         """Carl watched forty-five decisions spent firing into a wall the map did not know,
