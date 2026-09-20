@@ -51,7 +51,8 @@ def validate(run, limit):
             "offline_has_no_api":report["mode"]=="live" or report["jev_requests"]==0,
             "input_readback":bool(polled) and all(r["requested_mask"]==r["poll_mask"] for r in polled)
                 and all(a.get("core_polled_frames",0)>0 for a in actions),
-            "speed_50":bool(rows) and all(r["speed_percent"]=="50" for r in rows),
+            "speed_as_configured":bool(rows) and all(r["speed_percent"]==str(manifest.get("speed_percent",50))
+                                                     for r in rows),
             "no_long_control_lease":all(0 < a["applied_frames"] <= 30 for a in actions),
             "stop_ack":bool(final) and final.get("bridge_run_id")==run.name and final["requested_mask"]==0 and final["applied_action"]=="stop",
             "save_unchanged":manifest["state_unchanged"],"owned_emulator_closed":manifest["emulator_exit_code"]==0}
@@ -77,6 +78,12 @@ def main():
     ap.add_argument("--max-calls",type=int,default=5)
     ap.add_argument("--save-at-frame",type=int,default=0,help="write slot 2 once at this frame, to practise from")
     ap.add_argument("--load-slot",type=int,default=1,choices=(1,2),help="2 practises from the saved boss entry")
+    # Pause-and-step freezes the game for every decision, so speed only governs the frames
+    # between them: measured 407 ms per decision at 50% against 378 ms at 100%, with input
+    # readback holding and no game frames elapsing while deciding either way. Continuous
+    # mode has no freeze, so it stays at 50% where the controller can keep up.
+    ap.add_argument("--speed",type=int,default=0,choices=(0,50,100),
+                    help="emulator speed between decisions; default 100 when stepped, else 50")
     ap.add_argument("--expected-start-frame",type=int,default=0,help="frame the loaded slot resumes at (slot 2)")
     ap.add_argument("--mock-delay-ms",type=int,default=250)
     ap.add_argument("--expect-stop",choices=("stale_reply_rejected",))
@@ -101,6 +108,8 @@ def main():
         ap.error("Decision interval must be 1..30 game frames")
     if not (1 if args.stepped else 0) <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
         ap.error("Warmup must be 0..900 (1.. when stepped) and frames 1..7200")
+    if not args.speed:
+        args.speed=100 if args.stepped else 50
     if args.expect_stop and args.mode!="dry":
         ap.error("Expected-error tests are offline only")
     listing=subprocess.run(["tasklist","/FI","IMAGENAME eq EmuHawk.exe","/FO","CSV","/NH"],capture_output=True,text=True,check=True)
@@ -128,12 +137,14 @@ def main():
         "expected_stop":args.expect_stop,"requested_speed":50,"core":"Snes9x","warmup_frames":args.warmup,
         "frame_budget":args.frames,"decision_timing":"pause_and_step" if args.stepped else "continuous",
         "prelude":"Y firing, no movement" if args.prelude_fire else "neutral, gun off","decision_interval_frames":args.interval,"run_label":label,
-        "lua_sha256":sha256(ROOT / "lua/main.lua"),"controller_sha256":sha256(ROOT / "play_segment.py")}
+        "lua_sha256":sha256(ROOT / "lua/main.lua"),"controller_sha256":sha256(ROOT / "play_segment.py"),
+        "speed_percent":args.speed}
     save_json(run / "manifest.json",manifest)
     env=os.environ.copy(); env.pop("TYPESAFE_API_KEY",None)
     env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1",JEV_RUN_LABEL=str(label))
     if args.save_at_frame:
         env["JEV_SAVE_AT_FRAME"]=str(args.save_at_frame)
+    env["JEV_SPEED_PERCENT"]=str(args.speed)
     emu=worker=None
     started=time.monotonic()
     print(f"RUN {label} ({run.name}): {args.mode.upper()}, maximum Jev attempts {manifest['max_jev_attempts']}. Ctrl+C or stop_segment.bat stops.",flush=True)

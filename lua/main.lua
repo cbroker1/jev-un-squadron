@@ -116,7 +116,8 @@ local preview_trace = os.getenv("JEV_BRAIN_PREVIEW") == "1"
 local trace_start_frame = emu.framecount()
 if trace then
   trace:write("source_frame,result_frame,run_id,call,action,requested_mask,poll_mask,input_polls,player_x,player_y,speed_percent,epoch\n")
-  client.speedmode(50); emu.limitframerate(true); client.frameskip(0)
+  client.speedmode(tonumber(os.getenv("JEV_SPEED_PERCENT") or "") or 50)
+  emu.limitframerate(true); client.frameskip(0)
   client.setscreenshotosd(false)
 end
 event.onexit(function() if trace then trace:close(); trace = nil end end, "bridge_close_trace")
