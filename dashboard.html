@@ -66,6 +66,7 @@
         <span style="color:#d17aff">■ clear-all</span>
         <span style="color:#8a7355">■ tank</span>
         <span style="color:#c2b280">■ turret</span>
+        <span style="color:#ff3b6b">■ boss</span>
       </div>
       <div class="legend" id="counts"></div>
     </section>
@@ -95,9 +96,11 @@
 
 <script>
 const COLOR = {enemy_aircraft:"#ff6b6b", hostile_projectile:"#ff9f45", power_up:"#ffd479",
-               clear_screen_power_up:"#d17aff", ground_tank:"#8a7355", turret:"#c2b280"};
+               clear_screen_power_up:"#d17aff", ground_tank:"#8a7355", turret:"#c2b280",
+               boss_part:"#ff3b6b"};
 const LABEL = {enemy_aircraft:"aircraft", hostile_projectile:"bullets", power_up:"power-up",
-               clear_screen_power_up:"clear-all", ground_tank:"tanks", turret:"turrets"};
+               clear_screen_power_up:"clear-all", ground_tank:"tanks", turret:"turrets",
+               boss_part:"BOSS"};
 const SCREEN_W = 256, SCREEN_H = 224;
 const $ = id => document.getElementById(id);
 const text = (id, value) => { $(id).textContent = (value === null || value === undefined) ? "–" : value; };

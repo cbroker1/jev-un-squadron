@@ -14,6 +14,10 @@ from pathlib import Path
 from brain.observations import RECORD_BYTES, TABLE_BASES, classify_record, fixed24
 
 BUCKET = 4
+# WRAM 0x007B counts the level scroll, but it wraps once the level stops scrolling at the
+# boss (0..65529 observed in the run that reached it), so it is not a level position there.
+# Those samples would land in columns of their own and be measured as if they were terrain.
+MAX_PLAUSIBLE_SCROLL = 60000
 
 
 def run_samples(run):
@@ -28,6 +32,8 @@ def run_samples(run):
         scroll = state.get("scroll_x")
         if scroll is None:
             return
+        if scroll > MAX_PLAUSIBLE_SCROLL:      # the scroll wrapped; level position is unknown
+            continue
         yield ("player", (state["player_x_candidate"]+scroll)//BUCKET,
                state["player_y_candidate"], state["frame"] in terrain_hits)
         # Tanks and turrets stand on the terrain, so they measure its surface wherever they appear.
