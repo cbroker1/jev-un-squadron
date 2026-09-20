@@ -534,6 +534,23 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
             self.assertIn("60 came within 30 frames of it taking a hit",text)
 
+    def test_the_quietest_altitude_is_reported(self):
+        """Boss fire sits between Y 120 and 144 in about a thousand frames per band and is
+        almost absent above Y 112, while attempts kept dying at Y 176 to 183."""
+        from brain.combat import quietest_altitude, combat_request, combat_digest
+        fire=[{"kind":"hostile_projectile","x":180.0,"y":float(y),"vx":-3.5,"vy":0.0,
+               "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+               "slot":"WRAM:0x1B00","generation":1} for y in (120,128,136,144)]
+        quiet=quietest_altitude([100,140],fire)
+        self.assertLess(quiet["altitude"],112)            # above the band the fire occupies
+        self.assertGreater(quiet["clearance_px"],20)
+        self.assertGreater(quiet["frames_to_reach_it"],0)
+        self.assertIsNone(quietest_altitude(None,fire))
+        self.assertIsNone(quietest_altitude([100,140],[]))
+        body=combat_request(combat_digest({"source_frame":101,"player":{"x":100,"y":140},
+                                           "tracks":fire},6))
+        self.assertLess(body["state"]["quietest_altitude_right_now"]["altitude"],112)
+
     def test_the_gap_to_slip_west_through_is_measured(self):
         """Carl: when they come at you above and below, there is a thread in the middle to
         traverse west and get behind them, and it has never been taken."""
