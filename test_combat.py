@@ -203,6 +203,10 @@ class CombatTests(unittest.TestCase):
             text=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]["hold"]
             self.assertIn("A terrain collision was recorded here at Y 174",text)
             self.assertIn("tanks or turrets stand at Y 156",text)
+            # Ending at or below measured terrain is called out as disqualifying.
+            self.assertIn("TERRAIN: this ends at Y 170, at or below the terrain measured",text)
+            high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
+            self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
     def test_lua_object_table_matches_python(self):
         source=(Path(player.ROOT) / "lua" / "main.lua").read_text()

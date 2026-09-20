@@ -280,3 +280,20 @@ The terrain map only covered columns the aircraft had already flown, which is wh
 | `215629` (combined text) | **42** (30/4/8) | **2** (bullet, terrain) | 2 | full |
 
 Terrain hits per run fell from 3-4 to 0-2 on five runs, which is still thin evidence, and the best run now destroys 42 units with two hits over the full 1800-frame window.
+
+## Terrain collisions to zero (late evening, tenth pass)
+
+Carl asked for zero terrain collisions. Checking each terrain hit against the map showed the cause was not missing data: the hits clustered on a few level columns (854, 873, 889, 897, 907, 1142, 1160, 1190) and the map **already carried a recorded collision altitude for almost every one**. Jev was told "a terrain collision was recorded here at Y 174 and below" and flew there at Y 174 anyway. Two defects:
+
+- Terrain was one sentence among fifteen, with no weight behind it.
+- The lookup only covered the column where a move ends, not the columns it crosses.
+
+Now `terrain_at` spans every column between the current and projected position, each option carries `terrain_floor_y` (the altitude at or below which terrain is known solid on that path) and `ends_at_or_below_terrain`, and such an option is flagged `TERRAIN:` and called disqualifying in the instructions, since contact is damage every time and a higher option always exists.
+
+| Run | Kills (air/tank/turret) | Hits | Terrain hits | Power-ups |
+|---|---|---:|---:|---:|
+| `220250-9ea86?` | 39 (30/1/8) | 1 (bullet) | **0** | 3 |
+| `220532-a4fff?` | 31 (30/0/1) | **0** | **0** | 1 |
+| `220807-ae2de?` | 37 (30/1/6) | 2 (aircraft) | **0** | 3 |
+
+Terrain hits went from 1-4 per run to none in three runs, and the rebuilt map recorded no new hit columns, which confirms it independently. **Trade-off:** tank kills fell from 4-5 per run to 0-1, because tanks sit on the terrain Jev now stays above; turret kills held at 6-8. Aircraft collisions are now the only repeating damage source.

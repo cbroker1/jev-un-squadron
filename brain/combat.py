@@ -20,14 +20,18 @@ def terrain_columns():
     return _terrain
 
 
-def terrain_at(position, scroll, spread=2):
-    """(altitude of a recorded terrain hit, lowest altitude flown safely) near a position."""
+def terrain_at(position, scroll, spread=2, span_from=None):
+    """Terrain known near a position, covering every column the move crosses.
+
+    Returns (recorded collision altitude, lowest altitude flown safely, surface
+    altitude from tanks and turrets standing there).
+    """
     columns, bucket = terrain_columns()
     if not columns or scroll is None or not position:
         return None, None, None
-    centre = int((position[0]+scroll)//bucket)
+    ends = sorted({int((position[0]+scroll)//bucket), int(((span_from if span_from is not None else position[0])+scroll)//bucket)})
     hit = safe = ground = None
-    for column in range(centre-spread, centre+spread+1):
+    for column in range(ends[0]-spread, ends[-1]+spread+1):
         entry = columns.get(column)
         if not entry:
             continue
@@ -197,7 +201,12 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
             fx, fy = t["x"]+t["vx"]*horizon, t["y"]+t["vy"]*horizon
             sides["ahead" if fx > position[0] else "behind"].append(((fx-position[0])**2+(fy-position[1])**2)**0.5)
         (option["terrain_hit_recorded_y"], option["lowest_safe_y_measured"],
-         option["ground_object_y_here"]) = terrain_at(position, obs.get("scroll_x"))
+         option["ground_object_y_here"]) = terrain_at(position, obs.get("scroll_x"), span_from=px)
+        # The altitude at or below which terrain is known to be solid along this path.
+        known = [v for v in (option["terrain_hit_recorded_y"], option["ground_object_y_here"]) if v is not None]
+        option["terrain_floor_y"] = min(known) if known else None
+        option["ends_at_or_below_terrain"] = bool(
+            position and option["terrain_floor_y"] is not None and position[1] >= option["terrain_floor_y"]-4)
         option["gap_ahead_px"] = round(min(sides["ahead"]), 1) if sides["ahead"] else None
         option["gap_behind_px"] = round(min(sides["behind"]), 1) if sides["behind"] else None
         # The main gun fires right along the aircraft's Y; only targets still ahead can be hit.
@@ -287,6 +296,9 @@ def combat_request(digest, model="jev-latest"):
                   else f" Holding this position, {f['targets_entering_your_line_soon']} target(s) drift into the gun's line "
                        f"within the next minute of play, the first in about {f['first_such_target_in_frames']} frames.")
         ground = ""
+        if f["ends_at_or_below_terrain"]:
+            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, at or below the terrain measured on "
+                       f"this path (Y {f['terrain_floor_y']:.0f}); terrain contact is damage every time.")
         if f["ground_object_y_here"] is not None:
             ground += (f" Terrain: tanks or turrets stand at Y {f['ground_object_y_here']:.0f} here, so the solid "
                        f"surface is about that altitude.")
@@ -356,7 +368,9 @@ def combat_request(digest, model="jev-latest"):
                 "idle against the far bound with nothing behind you, but moving into that strip to take a shot, reach a "
                 "power-up or kill something coming up behind you is the right move. Weaving between "
                 "bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do "
-                "not take an option whose closest threat is tight. Colliding with an aircraft, tank or turret is the main way this "
+                "not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at "
+                "or below measured terrain: the ground and platforms are solid, contact is damage every time, and a higher "
+                "option is always available. Colliding with an aircraft, tank or turret is the main way this "
                 "aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. "
 "When threats close from both sides at once, do not drift and let the gap shrink: take the option that "
                 "opens the squeeze, going over or under if that is the side with room, and take the shot on the way out "
