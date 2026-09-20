@@ -21,7 +21,7 @@ from brain.observations import RECORD_BYTES, TABLE_BASES, TableTracker
 
 TARGETS = ("enemy_aircraft", "ground_tank", "turret", "boss_part")
 DESTROYED_EVENTS = {"enemy_aircraft": "aircraft_destroyed", "ground_tank": "tanks_destroyed",
-                    "turret": "turrets_destroyed"}
+                    "turret": "turrets_destroyed", "boss_part": "boss_parts_destroyed"}
 SEGMENT_PX = 256        # report the level in screen-widths, so a gap can be found
 SLOT_REUSE_FRAMES = 10  # a slot quiet this long before holding a target again is a new unit
 
