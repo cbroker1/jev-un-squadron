@@ -5,6 +5,8 @@ from pathlib import Path
 from .digest import ACTIONS, PLAYER_BOUNDS, direction_words, nearest_approach, summarize
 
 TERRAIN_MAP = Path(__file__).resolve().parent.parent / "terrain_map.json"
+DANGER_MAP = Path(__file__).resolve().parent.parent / "danger_map.json"
+_danger = None
 _terrain = None
 
 
@@ -18,6 +20,36 @@ def terrain_columns():
         except (OSError, ValueError, KeyError):
             _terrain = ({}, 4)
     return _terrain
+
+
+def danger_cells():
+    """Measured record of what happened to past runs at each position and altitude."""
+    global _danger
+    if _danger is None:
+        try:
+            data = json.loads(DANGER_MAP.read_text())
+            _danger = (data["cells"], data["column_px"], data["altitude_px"], data["doomed_window_frames"])
+        except (OSError, ValueError, KeyError):
+            _danger = ({}, 8, 8, 60)
+    return _danger
+
+
+def danger_at(position, scroll):
+    """How past runs fared at this exact position: frames flown, and deaths soon after.
+
+    Every frame of every run is evidence, so this covers structures, emplacements and
+    crossfire alike. A cell nobody has flown enough is unknown, not safe.
+    """
+    cells, column_px, altitude_px, window = danger_cells()
+    if not cells or scroll is None or scroll > 60000 or not position:
+        return None
+    key = f"{int((position[0]+scroll)//column_px)},{int(position[1]//altitude_px)}"
+    cell = cells.get(key)
+    if not cell:
+        return None
+    return {"frames_flown_here_in_past_runs": cell["frames"],
+            "how_many_were_within_a_second_of_being_destroyed": cell["deaths_soon_after"],
+            "window_frames": window}
 
 
 def terrain_at(position, scroll, spread=2, span_from=None):
@@ -361,6 +393,7 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         option["terrain_hit_recorded_y"] = (min(option["collision_altitudes_here"])
                                             if option["collision_altitudes_here"] else None)
         option["shots_stopped_here_at"] = blocked_altitudes(position, obs.get("scroll_x"), span_from=px)
+        option["measured_danger_here"] = danger_at(position, obs.get("scroll_x"))
         # A warning that fires on every option is no warning at all, so always carry the
         # gradient with it: how far this option ends from the nearest solid altitude.
         solid = sorted({*(option["collision_altitudes_here"] or ()),
@@ -616,6 +649,13 @@ def combat_request(digest, model="jev-latest"):
             room = (f" Targets ahead of you: {f['targets_ahead']}; room from the {f['warning_room_edge']} side, "
                     f"where objects have been entering: {f['warning_room_px']:.0f} pixels{warning}; room left to "
                     f"fall back away from that side: {f['retreat_room_px']:.0f} pixels{retreat}.")
+        danger = ""
+        if f["measured_danger_here"]:
+            record = f["measured_danger_here"]
+            deaths = record["how_many_were_within_a_second_of_being_destroyed"]
+            danger = (f" Past runs flew {record['frames_flown_here_in_past_runs']} frames at this exact "
+                      f"position and altitude; {deaths} of those frames came within "
+                      f"{record['window_frames']} frames of the aircraft being destroyed.")
         later = ("" if f["threat_gap_if_you_hold_px"] is None
                  else f" Staying there afterwards, the nearest tracked threat closes to {f['threat_gap_if_you_hold_px']:.0f} pixels.")
         lead = ""
@@ -647,7 +687,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{hidden}{coming}{slipping}{squeeze}{behind}{room}{later}{ground} "
+            f"Attack: {shots}.{hidden}{coming}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
@@ -745,7 +785,9 @@ def combat_request(digest, model="jev-latest"):
                 "collide like any other body. Compare the "
                 "already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe "
                 "fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they "
-                "have come from so far in this run. where_you_have_been_recently is this aircraft's own recent "
+                "have come from so far in this run. Each option also carries what actually happened to past runs at that "
+                "exact position and altitude, counted from every frame ever flown there; a position no run has "
+                "flown enough is unknown rather than safe. where_you_have_been_recently is this aircraft's own recent "
                 "station-keeping, which no single option can show: camping at either extreme of the flyable area "
                 "has scored worst, one because everything that slips past is then a long transit away, the other "
                 "because there is no room left to fall back into. Health and model confidence must not be used to infer safety.")}}}

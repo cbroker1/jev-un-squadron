@@ -81,11 +81,17 @@ local run_label = os.getenv("JEV_RUN_LABEL") or "-"
 -- Slot 1, the evidence baseline, is never written.
 local save_at_frame = tonumber(os.getenv("JEV_SAVE_AT_FRAME") or "")
 local saved_boss_entry = false
+-- Saving the first frame past the mark caught the aircraft at Y 179, already inside the
+-- fortified line's fire with no room to climb: every practice run from it died within 70
+-- frames. Wait for a survivable altitude so the practice entry is fair rather than doomed.
+local SAVE_ABOVE_Y = 120
 local function maybe_save_entry(frame)
-  if save_at_frame and not saved_boss_entry and frame >= save_at_frame then
+  if save_at_frame and not saved_boss_entry and frame >= save_at_frame
+      and memory.read_u8(PLAYER_Y) < SAVE_ABOVE_Y then
     saved_boss_entry = true
     local ok = pcall(savestate.saveslot, 2)
-    console.log(string.format("boss entry slot 2 %s at frame %d", ok and "saved" or "FAILED", frame))
+    console.log(string.format("practice slot 2 %s at frame %d, Y %d",
+      ok and "saved" or "FAILED", frame, memory.read_u8(PLAYER_Y)))
   end
 end
 -- Narration overlay: the run label and frame are what Carl calls out by voice.
