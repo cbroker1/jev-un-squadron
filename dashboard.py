@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 DECISION_START = 20663          # the frame Jev takes over, from the save state
 KINDS = ("enemy_aircraft", "hostile_projectile", "power_up", "clear_screen_power_up",
-         "ground_tank", "turret")
+         "ground_tank", "turret", "boss_part")
 
 
 def tail_events(path, wanted, limit):

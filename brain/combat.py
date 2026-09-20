@@ -27,7 +27,9 @@ def terrain_at(position, scroll, spread=2, span_from=None):
     altitude from tanks and turrets standing there).
     """
     columns, bucket = terrain_columns()
-    if not columns or scroll is None or not position:
+    # The scroll counter wraps once the level stops scrolling at the boss, so a huge value
+    # means the level position is unknown, not that the aircraft is 65000 pixels along.
+    if not columns or scroll is None or scroll > 60000 or not position:
         return None, None, None
     ends = sorted({int((position[0]+scroll)//bucket), int(((span_from if span_from is not None else position[0])+scroll)//bucket)})
     hit = safe = ground = None
@@ -44,7 +46,10 @@ def terrain_at(position, scroll, spread=2, span_from=None):
     return hit, safe, ground
 
 
-KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret", "clear_screen_power_up")
+KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret",
+         "clear_screen_power_up", "boss_part")
+# A boss part is solid and collides, but nothing yet shows it can be destroyed, so it is
+# not a target: aiming at one would be a guess dressed up as a fact.
 TARGETS = ("enemy_aircraft", "ground_tank", "turret")
 # Player shots travel right at exactly 11 px per game frame at the aircraft's own Y
 # (420 measured steps). The vertical tolerance is estimated from two observed kills.
@@ -238,7 +243,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
-    bodies = summarize(dict(obs, tracks=tracks["enemy_aircraft"]+tracks["ground_tank"]+tracks["turret"]), horizon)
+    bodies = summarize(dict(obs, tracks=tracks["enemy_aircraft"]+tracks["ground_tank"]
+                            + tracks["turret"]+tracks["boss_part"]), horizon)
     # Closest approach to a power-up uses the same geometry; smaller means collecting it.
     reach = summarize(dict(obs, tracks=tracks["power_up"]), horizon)
     clear_reach = summarize(dict(obs, tracks=tracks["clear_screen_power_up"]), horizon)

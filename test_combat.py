@@ -100,6 +100,15 @@ class CombatTests(unittest.TestCase):
             data[base:base+22]=payload
         return data
 
+    def test_a_wrapped_scroll_counter_is_not_a_level_position(self):
+        """The level stops scrolling at the boss and 0x007B wraps; 0..65529 was observed there."""
+        from brain import combat
+        columns={200:{"hit_min_y":174,"safe_max_y":174,"ground_object_y":156.0}}
+        with patch.object(combat,"_terrain",(columns,4)):
+            self.assertEqual(combat.terrain_at([40,170],760),(174,174,156.0))   # normal scroll
+            self.assertEqual(combat.terrain_at([40,170],65529),(None,None,None))
+            self.assertEqual(combat.terrain_at([40,170],None),(None,None,None))
+
     def test_the_fortified_line_past_frame_22400_is_classified(self):
         """Routines confirmed in two long recordings by measured motion and screenshots."""
         from brain.observations import classify_record
