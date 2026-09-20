@@ -571,6 +571,18 @@ def combat_request(digest, model="jev-latest"):
         later = ("" if f["threat_gap_if_you_hold_px"] is None
                  else f" Staying there afterwards, the nearest tracked threat closes to {f['threat_gap_if_you_hold_px']:.0f} pixels.")
         lead = ""
+        if f["ends_at_or_below_terrain"] or f["ends_level_with_something_that_stopped_a_shot"]:
+            blocking = sorted({*(f["ends_where_a_collision_was_recorded"] or ()),
+                               *[a for a in (f["shots_stopped_here_at"] or ())
+                                 if abs(f["projected_position"][1]-a) <= 6]})
+            evidence = ("a collision was recorded" if f["ends_at_or_below_terrain"]
+                        else "our own shots have been stopped")
+            clear_air = ("" if f["lowest_safe_y_measured"] is None else
+                         f" Altitudes flown here without a hit reach Y {f['lowest_safe_y_measured']:.0f}.")
+            lead = (f"BLOCKED: this ends at Y {f['projected_position'][1]:.0f}, level with Y "
+                    + ", ".join(f"{a:.0f}" for a in blocking)
+                    + f" on this path, where {evidence}. Something solid is there and contact is "
+                      f"damage every time.{clear_air} ")
         if f["clear_screen_power_up_closest_px"] is not None:
             closing = ("" if f["holding_this_direction_closes_to_px_of_clear_screen_power_up"] is None else
                        f" Holding this direction for those frames closes to "
@@ -581,7 +593,7 @@ def combat_request(digest, model="jev-latest"):
             expiry = ("" if f["frames_until_clear_screen_power_up_leaves_play"] is None else
                       f" It drifts out of play in about {f['frames_until_clear_screen_power_up_leaves_play']} "
                       f"frames and is then gone for good.")
-            lead = ("SCREEN-CLEARING POWER-UP IN PLAY - touching it destroyed every live target in both observed "
+            lead += ("SCREEN-CLEARING POWER-UP IN PLAY - touching it destroyed every live target in both observed "
                     f"pickups. Closest approach {f['clear_screen_power_up_closest_px']:.0f} pixels, about "
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
@@ -659,7 +671,9 @@ def combat_request(digest, model="jev-latest"):
                 "power-up or kill something coming up behind you is the right move. Weaving between "
                 "bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do "
                 "not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at "
-                "level with an altitude where a collision was recorded on that path. These are structures, not a floor: "
+                "marked BLOCKED. Those lead the option because ignoring them is what has cost the most damage past the "
+                "halfway point of this stage: every one of those hits happened where this map already carried "
+                "evidence. A blocked band is a structure rather than a floor: "
                 "at one measured column a collision happened at Y 171 while Y 189 was flown safely, so going "
                 "around or under one can be as good as climbing over it, and each option says which altitudes "
                 "have actually been flown there. A STRUCTURE line means our own shots were stopped at that "

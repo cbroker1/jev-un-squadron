@@ -438,6 +438,19 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
+    def test_a_blocked_option_says_so_before_anything_else(self):
+        """Every untracked hit past frame 22400 happened where the map already had evidence."""
+        from brain import combat
+        columns={c:{"hit_min_y":174,"collision_altitudes":[174],"safe_max_y":191,
+                    "ground_object_y":None,"shots_stopped_at":[174]} for c in range(150,260)}
+        with patch.object(combat,"_terrain",(columns,4)):
+            obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":174},"tracks":[]}
+            criteria=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]
+            self.assertTrue(criteria["hold"].startswith("No directional buttons. BLOCKED:"),criteria["hold"][:90])
+            self.assertIn("Y 174 on this path, where a collision was recorded",criteria["hold"])
+            # An option that climbs clear of the band is not labelled blocked.
+            self.assertNotIn("BLOCKED",criteria["up"])
+
     def test_a_stopped_shot_maps_structure_where_no_collision_was_ever_taken(self):
         """Shots fly straight at 11 px/frame; one that stops short has hit something solid."""
         from brain import combat
