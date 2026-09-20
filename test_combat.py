@@ -534,6 +534,40 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
             self.assertIn("60 came within 30 frames of it taking a hit",text)
 
+    def test_the_boss_hull_is_reported_separately_from_its_fire(self):
+        """Carl's method needs both: its fire wants you low, its hull wants you off the deck."""
+        from brain.combat import boss_body, combat_request, combat_digest
+        parts=[{"kind":"boss_part","x":float(x),"y":float(y),"vx":-1.0,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":f"WRAM:0x15{x:02X}","generation":1}
+               for x,y in ((160,128),(180,144),(200,192))]
+        body=boss_body([120,180],parts)
+        self.assertEqual(body["top_of_the_hull_y"],128)
+        self.assertEqual(body["its_front_edge_x"],160)
+        self.assertTrue(body["you_are_level_with_the_hull"])        # on the deck, it can crush
+        self.assertFalse(boss_body([120,100],parts)["you_are_level_with_the_hull"])
+        self.assertIsNone(boss_body([120,180],[]))
+        state=combat_request(combat_digest({"source_frame":101,"player":{"x":120,"y":180},
+                                            "tracks":parts},6))["state"]
+        self.assertEqual(state["boss_body"]["top_of_the_hull_y"],128)
+
+    def test_the_boss_hull_is_reported_separately_from_its_fire(self):
+        """Carl's method needs both: the fire wants the aircraft low, the hull can crush it there."""
+        from brain.combat import boss_body, combat_request, combat_digest
+        parts=[{"kind":"boss_part","x":float(x),"y":float(y),"vx":-1.0,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":f"WRAM:0x15{x:02X}","generation":1}
+               for x,y in ((160,128),(180,144),(200,192))]
+        body=boss_body([120,180],parts)
+        self.assertEqual(body["top_of_the_hull_y"],128)
+        self.assertEqual(body["its_front_edge_x"],160)
+        self.assertTrue(body["you_are_level_with_the_hull"])
+        self.assertFalse(boss_body([120,100],parts)["you_are_level_with_the_hull"])
+        self.assertIsNone(boss_body([120,180],[]))
+        state=combat_request(combat_digest({"source_frame":101,"player":{"x":120,"y":180},
+                                            "tracks":parts},6))["state"]
+        self.assertEqual(state["boss_body"]["top_of_the_hull_y"],128)
+
     def test_the_quietest_altitude_is_reported(self):
         """Boss fire sits between Y 120 and 144 in about a thousand frames per band and is
         almost absent above Y 112, while attempts kept dying at Y 176 to 183."""

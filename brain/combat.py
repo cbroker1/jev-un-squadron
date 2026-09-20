@@ -455,6 +455,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
     digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
     digest["what_you_have_been_doing"] = what_you_have_been_doing(recent_choices)
+    digest["boss_body"] = boss_body([obs["player"]["x"], obs["player"]["y"]], tracks["boss_part"])
+    digest["boss_body"] = boss_body([obs["player"]["x"], obs["player"]["y"]], tracks["boss_part"])
     digest["quietest_altitude_right_now"] = quietest_altitude(
         [obs["player"]["x"], obs["player"]["y"]],
         [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
@@ -727,6 +729,48 @@ def quietest_altitude(position, threats, window=30, step=8):
             "frames_to_reach_it": round(abs(altitude-position[1])/PLAYER_SPEED)}
 
 
+def boss_body(position, parts):
+    """The boss's bulk: how close it is, how high its top sits, and whether it can squish.
+
+    Its main gun throws fast missiles along Y 120 to 144 in every recorded fight, while the
+    hull itself stands from Y 128 down to the ground, so the two dangers want opposite
+    altitudes and the difference has to be visible.
+    """
+    if not position or not parts:
+        return None
+    ahead = [p for p in parts if p["x"] >= position[0]-24]
+    if not ahead:
+        return None
+    nearest = min(ahead, key=lambda p: abs(p["x"]-position[0]))
+    top = min(p["y"] for p in ahead)
+    return {"nearest_part_px": round(((nearest["x"]-position[0])**2
+                                      + (nearest["y"]-position[1])**2)**0.5, 1),
+            "its_front_edge_x": round(min(p["x"] for p in ahead)),
+            "top_of_the_hull_y": round(top),
+            "you_are_level_with_the_hull": bool(top-8 <= position[1])}
+
+
+def boss_body(position, parts):
+    """The boss's bulk: how close it is, how high its top sits, and whether it can crush.
+
+    Its main gun throws missiles along Y 120 to 144 in every recorded fight while the hull
+    stands from Y 128 down to the ground, so the fire and the bulk want opposite altitudes
+    and the difference has to be visible.
+    """
+    if not position or not parts:
+        return None
+    ahead = [p for p in parts if p["x"] >= position[0]-24]
+    if not ahead:
+        return None
+    nearest = min(ahead, key=lambda p: abs(p["x"]-position[0]))
+    top = min(p["y"] for p in ahead)
+    return {"nearest_part_px": round(((nearest["x"]-position[0])**2
+                                      + (nearest["y"]-position[1])**2)**0.5, 1),
+            "its_front_edge_x": round(min(p["x"] for p in ahead)),
+            "top_of_the_hull_y": round(top),
+            "you_are_level_with_the_hull": bool(top-8 <= position[1])}
+
+
 def closest_threat(option):
     """The one number that matters first: smallest projected gap to any tracked bullet, aircraft or tank."""
     gaps = [(g, name) for g, name in ((option["closest_anchor_distance_px"], "bullet"),
@@ -968,6 +1012,8 @@ def combat_request(digest, model="jev-latest"):
         "what_you_have_been_doing": digest.get("what_you_have_been_doing") or "no choices yet",
         # Measured now: which altitude's next second is clearest of everything tracked.
         "quietest_altitude_right_now": digest.get("quietest_altitude_right_now") or "nothing tracked",
+        "boss_body": digest.get("boss_body") or "no boss on screen",
+        "boss_body": digest.get("boss_body") or "no boss on screen",
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
@@ -1019,7 +1065,17 @@ def combat_request(digest, model="jev-latest"):
                 "power-up or kill something coming up behind you is the right move. Weaving between "
                 "bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do "
                 "not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at "
-                "marked BLOCKED. Those lead the option because ignoring them is what has cost the most damage past the "
+                "marked BLOCKED. Carl, who has beaten this boss: keep well away from its hull and hold the bottom left "
+                "corner, under the big missiles its main gun throws in a group - those cannot be destroyed, they "
+                "travel in a straight line, measured at 4% of frames turning, and every recorded fight has them "
+                "along Y 120 to 144. From down there the work is dodging the small ones, which come singly and turn, "
+                "92% of frames, and can be shot down. Stay there as long as it holds. Only when the hull closes far "
+                "enough to crush the aircraft, dodge the missiles and go around it to its front, then take the "
+                "bottom left again once there is room. Running into the hull is how attempts have been opening. Carl, who has beaten this boss: hug the ground, under the big missiles its main gun "
+                "throws, which cannot be destroyed - every recorded fight has that fire between Y 120 and 144 while "
+                "the ground is below it. The small slow ones that reach the pocket down there can be dodged or shot "
+                "down with the gun. When the hull itself comes close enough to crush the aircraft, climb over its "
+                "top and out in front of it, then drop back in front once there is room again. Those lead the option because ignoring them is what has cost the most damage past the "
                 "halfway point of this stage: every one of those hits happened where this map already carried "
                 "evidence. A blocked band is a structure rather than a floor: "
                 "at one measured column a collision happened at Y 171 while Y 189 was flown safely, so going "
