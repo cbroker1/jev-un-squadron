@@ -77,7 +77,8 @@ def main():
     ap.add_argument("--mode",choices=("dry","live","baseline"),default="dry")
     ap.add_argument("--max-calls",type=int,default=5)
     ap.add_argument("--save-at-frame",type=int,default=0,help="write slot 2 once at this frame, to practise from")
-    ap.add_argument("--load-slot",type=int,default=1,choices=(1,2),help="2 practises from the saved boss entry")
+    ap.add_argument("--load-slot",type=int,default=1,choices=(1,2,3,4),help="2+ practise from a saved entry")
+    ap.add_argument("--save-slot",type=int,default=2,choices=(2,3,4),help="slot --save-at-frame writes; never 1")
     # Pause-and-step freezes the game for every decision, so speed only governs the frames
     # between them: measured 407 ms per decision at 50% against 378 ms at 100%, with input
     # readback holding and no game frames elapsing while deciding either way. Continuous
@@ -116,8 +117,8 @@ def main():
     if '"EmuHawk.exe"' in listing.stdout or (ROOT / "STOP").exists():
         raise SystemExit("An emulator or project STOP exists; preserving it, no run started.")
     save_now=ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave1.State"
-    if args.load_slot==2 and not (ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave2.State").is_file():
-        raise SystemExit("No slot 2 yet: make one with --save-at-frame during a run that reaches the boss.")
+    if args.load_slot != 1 and not (ROOT / f"bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave{args.load_slot}.State").is_file():
+        raise SystemExit(f"No slot {args.load_slot} yet: make one with --save-at-frame --save-slot during a run that reaches it.")
     if sha256(save_now) != SLOT1_SHA256:
         raise SystemExit("Slot 1 does not match the evidence baseline (a save state was overwritten); no run started. "
                          "BizHawk keeps the previous state in the matching .bak file.")
@@ -144,6 +145,7 @@ def main():
     env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1",JEV_RUN_LABEL=str(label))
     if args.save_at_frame:
         env["JEV_SAVE_AT_FRAME"]=str(args.save_at_frame)
+        env["JEV_SAVE_SLOT"]=str(args.save_slot)
     env["JEV_SPEED_PERCENT"]=str(args.speed)
     emu=worker=None
     started=time.monotonic()
