@@ -109,6 +109,8 @@ SHOT_SPEED = 11
 # The aircraft moves 2.5 px per game frame in every direction (median of 242 measured
 # decisions). Getting past something is travel, so it costs frames, not just pixels.
 PLAYER_SPEED = 2.5
+# Structure evidence is recorded and cleared over this band; see build_terrain_map.py.
+STRUCTURE_BAND = 4
 SHOT_BAND = 10
 SHOT_MAX_X = 251
 
@@ -130,7 +132,8 @@ def shot_is_blocked(position, reach_x, scroll, spread=1):
         if not entry:
             continue
         for altitude in (entry.get("shots_stopped_at") or ()):
-            if abs(altitude-py) <= SHOT_BAND and column > start+spread:
+            # The same band the map clears over, so evidence and rule agree.
+            if abs(altitude-py) <= STRUCTURE_BAND and column > start+spread:
                 return True          # measured solid on the way, past the muzzle
     return False
 
