@@ -512,6 +512,26 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
             self.assertIn("60 came within 30 frames of it taking a hit",text)
 
+    def test_the_gap_to_slip_west_through_is_measured(self):
+        """Carl: when they come at you above and below, there is a thread in the middle to
+        traverse west and get behind them, and it has never been taken."""
+        from brain.combat import lane_going_back, combat_digest, combat_request
+        def threat(y):
+            return {"kind":"enemy_aircraft","x":150.0,"y":float(y),"vx":-1.5,"vy":0.0,
+                    "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                    "slot":"WRAM:0x1840","generation":1}
+        pair=[threat(70),threat(170)]
+        lane=lane_going_back([100,120],pair)
+        self.assertEqual(lane["altitude"],120)          # the gap between them
+        self.assertGreater(lane["width_px"],50)
+        self.assertEqual(lane["how_far_you_are_from_it_px"],0)
+        self.assertIsNone(lane_going_back([100,120],[]))         # nothing coming
+        self.assertIsNone(lane_going_back(None,pair))
+        text=combat_request(combat_digest({"source_frame":101,"player":{"x":100,"y":120},
+                                           "tracks":pair},6))["questions"]["movement"]["criteria"]["hold"]
+        self.assertIn("widest gap through what is coming",text)
+        self.assertIn("ends up west of them",text)
+
     def test_the_altitude_a_ground_target_needs_is_stated(self):
         """Runs have spent a hundred decisions shooting over a tank without being told how
         low the shot has to be, and some tanks sit below the altitude that can be flown."""

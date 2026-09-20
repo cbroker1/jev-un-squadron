@@ -6,6 +6,7 @@ from .digest import ACTIONS, PLAYER_BOUNDS, direction_words, nearest_approach, s
 
 TERRAIN_MAP = Path(__file__).resolve().parent.parent / "terrain_map.json"
 DANGER_MAP = Path(__file__).resolve().parent.parent / "danger_map.json"
+BOSS_COLUMN_BASE = 100000   # matches build_danger_map.py: the boss is keyed by screen position
 _danger = None
 _terrain = None
 
@@ -42,9 +43,12 @@ def danger_at(position, scroll):
     crossfire alike. A cell nobody has flown enough is unknown, not safe.
     """
     cells, column_px, altitude_px, window, hurt_window = danger_cells()
-    if not cells or scroll is None or scroll > 60000 or not position:
+    if not cells or scroll is None or not position:
         return None
-    key = f"{int((position[0]+scroll)//column_px)},{int(position[1]//altitude_px)}"
+    # At the boss the scroll counter wraps; screen position is the stable key there.
+    column = (BOSS_COLUMN_BASE + int(position[0])//column_px if scroll > 60000
+              else int((position[0]+scroll)//column_px))
+    key = f"{column},{int(position[1]//altitude_px)}"
     cell = cells.get(key)
     if not cell:
         return None
@@ -505,6 +509,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         # nothing beyond that point can be hit from here, whatever the map knows.
         wall = wall_in_front_of_you(recent_shot_stops, position[1]) if position else None
         option["shots_stopping_short_here"] = wall
+        option["lane_west_through_what_is_coming"] = lane_going_back(
+            position, [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
         # The gun fires along the aircraft's own line, so a ground target is only hittable
         # from the altitudes that have actually killed its kind. The flyable floor is 191,
         # so a tank sitting at 196 needs an altitude that cannot be flown: runs have spent
@@ -615,6 +621,34 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     return digest
 
 
+def lane_going_back(position, threats, look_ahead_px=120, clearance=24):
+    """The widest altitude a run could pass through to get west of what is coming at it.
+
+    Threats arriving from ahead occupy bands of altitude; between them there is usually a
+    gap wide enough to fly through and end up behind them. This reports the middle of the
+    widest such gap and how wide it is, measured, with no claim that taking it is right.
+    """
+    if not position:
+        return None
+    xmin, xmax, ymin, ymax = PLAYER_BOUNDS
+    ahead = [t for t in threats if position[0] < t["x"] <= position[0]+look_ahead_px]
+    if not ahead:
+        return None
+    blocked = sorted((t["y"]-clearance, t["y"]+clearance) for t in ahead)
+    free, edge = [], ymin
+    for low, high in blocked:
+        if low > edge:
+            free.append((edge, low))
+        edge = max(edge, high)
+    if edge < ymax:
+        free.append((edge, ymax))
+    if not free:
+        return None
+    low, high = max(free, key=lambda span: span[1]-span[0])
+    return {"altitude": round((low+high)/2), "width_px": round(high-low),
+            "how_far_you_are_from_it_px": round(abs((low+high)/2 - position[1]))}
+
+
 def closest_threat(option):
     """The one number that matters first: smallest projected gap to any tracked bullet, aircraft or tank."""
     gaps = [(g, name) for g, name in ((option["closest_anchor_distance_px"], "bullet"),
@@ -646,6 +680,11 @@ def combat_request(digest, model="jev-latest"):
             shots = f"no hit yet; the nearest reachable target is {f['aim_error_px']:.0f} pixels off the gun line (smaller means lining up)"
         else:
             shots = "no tracked target the gun can reach"
+        lane = f.get("lane_west_through_what_is_coming")
+        lane_text = ("" if not lane or lane["width_px"] < 32 else
+                     f" The widest gap through what is coming at you is {lane['width_px']} pixels of altitude "
+                     f"centred on Y {lane['altitude']}, {lane['how_far_you_are_from_it_px']} pixels from this "
+                     f"option's line; passing through it ends up west of them.")
         stopping = ("" if not f.get("shots_stopping_short_here") else
                     f" Your own shots from this altitude have stopped short "
                     f"{f['shots_stopping_short_here']['shots_stopped_recently']} times in the last two seconds, "
@@ -821,7 +860,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{stopping}{hidden}{needed}{coming}{losing}{slipping}{squeeze}{behind}{room}{later}{danger}{ground} "
+            f"Attack: {shots}.{stopping}{hidden}{needed}{coming}{losing}{slipping}{lane_text}{squeeze}{behind}{room}{later}{danger}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
