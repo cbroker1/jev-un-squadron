@@ -38,6 +38,19 @@ OBJECT_TYPES = {
     **{bytes.fromhex(r): _TANK for r in ("749202", "f09002", "199102", "319102",
                                          "669102", "db9102", "ff9102", "039202")},  # $02:9274, $02:90F0..9203
     bytes.fromhex("dd9302"): ("turret", {0xD8, 0xC8, 0xE0}, None),  # $02:93DD ground gun emplacement
+    # Past frame 22400, confirmed in two long recordings by measured motion and screenshots.
+    # $02:9649 flies at 3.4-3.9 px/frame diagonally: the shells the fortified line throws,
+    # a whole class of fire the aircraft could not see, and it died there in both runs.
+    bytes.fromhex("499602"): ("hostile_projectile", {0xDC}, None),
+    # Gun emplacements of the fortified line, each stationary or drifting with the scroll
+    # at turret altitudes (Y 174-192) in both recordings.
+    bytes.fromhex("1b9502"): ("turret", {0xD8}, None),      # $02:951B
+    bytes.fromhex("cd9302"): ("turret", {0xD0}, None),      # $02:93CD
+    bytes.fromhex("089502"): ("turret", {0xD0}, None),      # $02:9508
+    bytes.fromhex("8fb002"): ("turret", {0xD8}, None),      # $02:B08F
+    # $02:B05A: the helicopter that sits on the ground and climbs away, one byte from the
+    # flying routine $02:B04A. Carl flagged it four times as a target Jev never engages.
+    bytes.fromhex("5ab002"): ("enemy_aircraft", {0xC8}, None),
 }
 ROM_SHA256 = "0b155a54b6134601fc0791252a63ca73efd522667c3d6fd7a44f5b3c500039d7"
 SLOT1_SHA256 = "c1ea750e24cdb17e2050eb4f490c82b3e7544c11441f736f60df7c014fde0f3d"
