@@ -24,9 +24,9 @@ def terrain_at(position, scroll, spread=2):
     """(altitude of a recorded terrain hit, lowest altitude flown safely) near a position."""
     columns, bucket = terrain_columns()
     if not columns or scroll is None or not position:
-        return None, None
+        return None, None, None
     centre = int((position[0]+scroll)//bucket)
-    hit = safe = None
+    hit = safe = ground = None
     for column in range(centre-spread, centre+spread+1):
         entry = columns.get(column)
         if not entry:
@@ -35,7 +35,9 @@ def terrain_at(position, scroll, spread=2):
             hit = entry["hit_min_y"] if hit is None else min(hit, entry["hit_min_y"])
         if entry.get("safe_max_y") is not None:
             safe = entry["safe_max_y"] if safe is None else max(safe, entry["safe_max_y"])
-    return hit, safe
+        if entry.get("ground_object_y") is not None:
+            ground = entry["ground_object_y"] if ground is None else min(ground, entry["ground_object_y"])
+    return hit, safe, ground
 
 
 KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret", "clear_screen_power_up")
@@ -194,7 +196,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
                 continue
             fx, fy = t["x"]+t["vx"]*horizon, t["y"]+t["vy"]*horizon
             sides["ahead" if fx > position[0] else "behind"].append(((fx-position[0])**2+(fy-position[1])**2)**0.5)
-        option["terrain_hit_recorded_y"], option["lowest_safe_y_measured"] = terrain_at(position, obs.get("scroll_x"))
+        (option["terrain_hit_recorded_y"], option["lowest_safe_y_measured"],
+         option["ground_object_y_here"]) = terrain_at(position, obs.get("scroll_x"))
         option["gap_ahead_px"] = round(min(sides["ahead"]), 1) if sides["ahead"] else None
         option["gap_behind_px"] = round(min(sides["behind"]), 1) if sides["behind"] else None
         # The main gun fires right along the aircraft's Y; only targets still ahead can be hit.
@@ -284,10 +287,13 @@ def combat_request(digest, model="jev-latest"):
                   else f" Holding this position, {f['targets_entering_your_line_soon']} target(s) drift into the gun's line "
                        f"within the next minute of play, the first in about {f['first_such_target_in_frames']} frames.")
         ground = ""
+        if f["ground_object_y_here"] is not None:
+            ground += (f" Terrain: tanks or turrets stand at Y {f['ground_object_y_here']:.0f} here, so the solid "
+                       f"surface is about that altitude.")
         if f["terrain_hit_recorded_y"] is not None:
-            ground = f" Terrain: a collision was recorded here at Y {f['terrain_hit_recorded_y']:.0f} and below."
+            ground += f" A terrain collision was recorded here at Y {f['terrain_hit_recorded_y']:.0f} and below."
         elif f["lowest_safe_y_measured"] is not None:
-            ground = f" Terrain: the lowest altitude flown here without an untracked hit is Y {f['lowest_safe_y_measured']:.0f}."
+            ground += f" The lowest altitude flown here without an untracked hit is Y {f['lowest_safe_y_measured']:.0f}."
         squeeze = ("" if f["gap_ahead_px"] is None and f["gap_behind_px"] is None
                    else f" Nearest threat ahead: {describe_gap(f['gap_ahead_px'])}; behind: {describe_gap(f['gap_behind_px'])}.")
         behind = ("" if not f["targets_behind"]

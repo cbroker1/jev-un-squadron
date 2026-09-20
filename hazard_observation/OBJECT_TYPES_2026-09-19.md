@@ -264,3 +264,19 @@ Carl's refinement: skip cones, consider the entire player field, and forecast ab
 | `192417` (terrain map) | 36 (30/0/6) | 3 | 2 | 96 |
 
 Untracked terrain hits fell from 4-6 per run to 1-2 once the measured floor was reported, on two runs each, which is thin evidence.
+
+## Terrain measured from ground objects (late evening, ninth pass)
+
+The terrain map only covered columns the aircraft had already flown, which is why terrain kept causing hits in unvisited stretches. Tanks and turrets **stand on** that terrain, so their positions measure its surface wherever they appear, whether or not we have flown there.
+
+`build_terrain_map.py` now records `ground_object_y` per level column from every gated tank and turret in every run's exported object table. Coverage went from 13 columns with hit data to **122 columns with a measured surface**, over level x 0-1416. Each option reports the surface altitude where it would end, plus any recorded collision or the lowest altitude flown safely there.
+
+| Run | Kills (air/tank/turret) | Hits | Power-ups | End |
+|---|---|---:|---:|---|
+| `214509` (before) | 38 (28/5/5) | 4, all terrain | 2 | full |
+| `214749` (before) | 30 (23/5/2) | 3, all terrain | 2 | died 22060 |
+| `215106` (surface map) | 32 (27/2/3) | 2 (turret, aircraft) | 1 | full |
+| `215340` (surface map) | 41 (30/5/6) | 2, both terrain | 3 | full |
+| `215629` (combined text) | **42** (30/4/8) | **2** (bullet, terrain) | 2 | full |
+
+Terrain hits per run fell from 3-4 to 0-2 on five runs, which is still thin evidence, and the best run now destroys 42 units with two hits over the full 1800-frame window.
