@@ -1,6 +1,10 @@
 # Jev U.N. Squadron experiment
 
-BizHawk/Lua handles the SNES game; Python reads observations and sends controller actions. **Level 1 completion is not demonstrated**: the best runs end on their frame budget, not at a level end, and the boss has never been reached. The original D/L launcher is target-70 calibration. The experimental combat runner destroys 43 units in an 1800-frame segment with 1 to 2 hits taken.
+BizHawk/Lua handles the SNES game; Python reads observations and sends controller actions. **Level 1 completion is not demonstrated**: the boss is reached but has never been killed, and no boss part has ever been destroyed. The best full-level run destroyed 82 of the 108 units it met, taking 4 hits. The original D/L launcher is target-70 calibration.
+
+Before changing how Jev is asked anything, read [docs/typesafe/README.md](docs/typesafe/README.md):
+the vendor documentation is saved locally and this project currently breaks several of its
+rules, including asking a model that cannot do arithmetic to weigh numbers.
 
 For the next agent: read [CLAUDE_HANDOFF.md](CLAUDE_HANDOFF.md) first.
 
@@ -18,6 +22,19 @@ python run_segment.py --mode live --stepped --prelude-fire --interval 6 --max-ca
 ```
 
 Dry/baseline modes make zero API calls and never read the key. `--max-calls` changes this runner's limit (1..1600); it does not use the old launcher's config limit. Its pending-result logging was amended after the live test; see the handoff's verification caveat.
+
+## Measuring a change
+
+Gameplay regressions do not show up in unit tests, so every change is judged by running it:
+
+```powershell
+python runs_table.py --last 12 --full-level-only   # units destroyed, share, hits, change under test
+python benchmark.py --recent 3 --baseline 12       # per level segment, against the previous band
+python replay_run.py --best-boss                   # watch a run back on screen
+```
+
+`run_segment.py --change "what this run tests"` records the change in the run's manifest so
+the table can attribute it.
 
 ## Jev Squadron dashboard
 
