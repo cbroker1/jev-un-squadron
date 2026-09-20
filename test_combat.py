@@ -575,6 +575,23 @@ class CombatTests(unittest.TestCase):
         low,high=option["altitude_that_hits_the_nearest_ground_target"]
         self.assertLessEqual(low,191)
 
+    def test_a_wall_found_this_run_is_remembered_by_position(self):
+        """A third of the shots fired along a ground target's line in R89 stopped short of
+        it. A wall does not move, so finding it once should be enough for the whole run."""
+        from brain.combat import combat_digest, found_blocked
+        found={(int((150+800)//4), 112): 2}        # a wall at level x 950, altitude 112
+        self.assertTrue(found_blocked([60,112],200,800,found))
+        self.assertFalse(found_blocked([60,60],200,800,found))    # different altitude
+        self.assertFalse(found_blocked([60,112],100,800,found))   # stops before the wall
+        self.assertFalse(found_blocked([60,112],200,800,None))
+        target={"kind":"enemy_aircraft","x":200.0,"y":112.0,"vx":-1.0,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":"WRAM:0x1840","generation":1}
+        obs={"source_frame":101,"scroll_x":800,"player":{"x":60,"y":112},"tracks":[target]}
+        self.assertEqual(combat_digest(obs,6)["actions"]["hold"]["targets_the_gun_would_hit"],1)
+        blocked=combat_digest(obs,6,walls_found_this_run=found)
+        self.assertEqual(blocked["actions"]["hold"]["targets_the_gun_would_hit"],0)
+
     def test_shots_stopping_short_reject_the_firing_line_live(self):
         """Carl watched forty-five decisions spent firing into a wall the map did not know,
         while four killable targets sat on screen. The game was saying so every few frames."""

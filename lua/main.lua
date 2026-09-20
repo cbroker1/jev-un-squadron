@@ -260,7 +260,12 @@ while running do
   local player_x = memory.read_u8(PLAYER_X)
   local player_y = memory.read_u8(PLAYER_Y)
   local p = neutral()
-  if a.fire and (not a.fire_pulse or (frame % 8) < 4) then p[a.fire_button] = true end
+  -- The pulse was a fixed 4-on-4-off cycle, which measured 6 shots a second with a median
+  -- of one shot in flight. If the game fires on the press, a shorter cycle fires more.
+  local fire_period = tonumber(os.getenv("JEV_FIRE_PERIOD") or "") or 8
+  if a.fire and (not a.fire_pulse or (frame % fire_period) < (fire_period / 2)) then
+    p[a.fire_button] = true
+  end
   if a.action == "up" then p.Up = true elseif a.action == "down" then p.Down = true elseif a.action == "left" then p.Left = true elseif a.action == "right" then p.Right = true end
   -- STOP releases injection once, then leaves the physical controller alone.
   if a.action ~= "stop" or was_injecting then joypad.set(p, 1) end

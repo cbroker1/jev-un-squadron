@@ -36,6 +36,7 @@ PLAYER_SHOT_ROUTINE = bytes.fromhex("afe604")   # $04:E6AF
 DESTROYED_MARKER = bytes.fromhex("c0fc04")      # $04:FCC0, spawned where something died
 SHOT_EDGE_X = 235
 SHOT_STOP_MEMORY_FRAMES = 120
+BOSS_COLUMN_BASE = 100000       # matches the danger map: the boss is keyed by screen position
 DESTROYED_FRAMES_BEFORE_STOPPING = 3
 
 
@@ -163,6 +164,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             recent_body_gaps = []
             recent_choices = []
             recent_shot_stops = []
+            walls_found = {}
             previous_shots = {}
             destroyed = 0
             while True:
@@ -203,6 +205,13 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                         if any(abs(x-mx) < 20 and abs(y-my) < 20 for mx, my in markers):
                             continue                      # it destroyed something
                         recent_shot_stops.append((state["frame"], round(x), round(y)))
+                        # A wall does not move: remember it by level position for the rest
+                        # of the run, not just for the two seconds the shot was in flight.
+                        scroll_now = state.get("scroll_x")
+                        if scroll_now is not None:
+                            key = (int((x+scroll_now)//4) if scroll_now <= 60000
+                                   else BOSS_COLUMN_BASE+int(x)//4, round(y))
+                            walls_found[key] = walls_found.get(key, 0)+1
                     previous_shots = live_shots
                     while recent_shot_stops and state["frame"]-recent_shot_stops[0][0] > SHOT_STOP_MEMORY_FRAMES:
                         recent_shot_stops.pop(0)
@@ -236,7 +245,8 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges,
                                        recent_positions=recent_positions, recent_body_gaps=recent_body_gaps,
                                        recent_choices=recent_choices,
-                                       recent_shot_stops=recent_shot_stops)
+                                       recent_shot_stops=recent_shot_stops,
+                                       walls_found_this_run=walls_found)
                 # Lingering inside the range where collisions have happened is only visible
                 # over several decisions: R20 sat at 20-21 px from a tank for four in a row.
                 staying = (digest["actions"].get("hold") or {}).get("enemy_body_anchor_gap_px")
