@@ -20,7 +20,10 @@ COLUMN_PX = 8          # level position bucket
 ALTITUDE_PX = 8        # altitude bucket
 DOOMED_FRAMES = 60     # a death within a second of being here counts against the cell
 HURT_FRAMES = 30       # a hit taken within half a second counts too, and hits are commoner
-MIN_SAMPLES = 25       # below this a cell stays unknown rather than guessing from noise
+MIN_SAMPLES = 10       # below this a cell stays unknown rather than guessing from noise
+# 25 was too strict where it matters most: only 27 of 280 options during a boss fight had
+# any record, while the one cell that did carried 61 deaths in 66 frames. The boss is
+# reached rarely, so its cells accumulate slowly and a lower bar is worth the noise.
 MAX_PLAUSIBLE_SCROLL = 60000
 BOSS_COLUMN_BASE = 100000   # the boss fight is keyed by screen position, not level position
 

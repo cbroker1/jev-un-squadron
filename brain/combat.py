@@ -455,6 +455,9 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
     digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
     digest["what_you_have_been_doing"] = what_you_have_been_doing(recent_choices)
+    digest["quietest_altitude_right_now"] = quietest_altitude(
+        [obs["player"]["x"], obs["player"]["y"]],
+        [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
                                               [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")],
                                               scroll=obs.get("scroll_x"))
@@ -693,6 +696,35 @@ def lane_going_back(position, threats, look_ahead_px=120, clearance=24):
     low, high = max(free, key=lambda span: span[1]-span[0])
     return {"altitude": round((low+high)/2), "width_px": round(high-low),
             "how_far_you_are_from_it_px": round(abs((low+high)/2 - position[1]))}
+
+
+def quietest_altitude(position, threats, window=30, step=8):
+    """The altitude whose next few seconds are clearest of everything tracked.
+
+    Measured across the flyable range against constant-velocity paths. At the boss the fire
+    sits between Y 120 and 144 in about a thousand frames per band and is almost absent
+    above Y 112, while attempts kept dying at Y 176 to 183; nothing in the request said
+    where the quiet air was.
+    """
+    if not position:
+        return None
+    xmin, xmax, ymin, ymax = PLAYER_BOUNDS
+    best = None
+    for altitude in range(int(ymin), int(ymax)+1, step):
+        clearance = None
+        for threat in threats:
+            gap = nearest_approach(threat["x"]-position[0], threat["y"]-altitude,
+                                   threat["vx"], threat["vy"], window)[0]
+            clearance = gap if clearance is None else min(clearance, gap)
+        if clearance is None:
+            continue
+        if best is None or clearance > best[0]:
+            best = (clearance, altitude)
+    if not best:
+        return None
+    clearance, altitude = best
+    return {"altitude": altitude, "clearance_px": round(clearance, 1),
+            "frames_to_reach_it": round(abs(altitude-position[1])/PLAYER_SPEED)}
 
 
 def closest_threat(option):
@@ -934,6 +966,8 @@ def combat_request(digest, model="jev-latest"):
         # Measured from this run: the aircraft's own recent choices. Nothing else in the
         # request carries them, so a multi-move commitment cannot otherwise be sustained.
         "what_you_have_been_doing": digest.get("what_you_have_been_doing") or "no choices yet",
+        # Measured now: which altitude's next second is clearest of everything tracked.
+        "quietest_altitude_right_now": digest.get("quietest_altitude_right_now") or "nothing tracked",
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
