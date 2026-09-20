@@ -15,7 +15,7 @@ import traceback
 import urllib.request
 
 import bridge
-from brain.observations import TableTracker, bridge_observation
+from brain.observations import TableTracker, bridge_observation, fixed24
 from brain.combat import combat_digest, combat_request
 from brain.digest import ACTIONS
 
@@ -27,6 +27,15 @@ SAVE_FRAME = 20183  # slot 1 resumes here; a later start means the emulator ran 
 # were paid for and counted. This ends the run instead; it is not a health or damage map,
 # and nothing about it is shown to Jev.
 DESTROYED_ROUTINE = bytes.fromhex("9be104")     # $04:E19B in slot 0x1000
+# Our own shots travel right at 11 px per frame. One that stops short of the screen edge
+# with nothing dying beside it has hit something solid - and that is live evidence of a
+# wall at this altitude, needing no map coverage. Carl watched a run spend forty-five
+# decisions firing into a structure the map did not know about while four killable
+# targets sat on screen.
+PLAYER_SHOT_ROUTINE = bytes.fromhex("afe604")   # $04:E6AF
+DESTROYED_MARKER = bytes.fromhex("c0fc04")      # $04:FCC0, spawned where something died
+SHOT_EDGE_X = 235
+SHOT_STOP_MEMORY_FRAMES = 120
 DESTROYED_FRAMES_BEFORE_STOPPING = 3
 
 
@@ -153,6 +162,8 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             recent_positions = []
             recent_body_gaps = []
             recent_choices = []
+            recent_shot_stops = []
+            previous_shots = {}
             destroyed = 0
             while True:
                 if (ROOT / "STOP").exists() or (output / "STOP").exists():
@@ -177,7 +188,25 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 progress = time.monotonic()
                 table = (state.get("observation_profile") or {}).get("object_table")
                 if table:
-                    first_record = bytes.fromhex(table["bytes_hex"])[:22]
+                    records = bytes.fromhex(table["bytes_hex"])
+                    live_shots, markers = {}, []
+                    for index in range(len(records)//22):
+                        record = records[index*22:(index+1)*22]
+                        routine = bytes(record[1:4])
+                        if routine == PLAYER_SHOT_ROUTINE and record[0] & 0x40:
+                            live_shots[index] = (fixed24(record, 16), fixed24(record, 19))
+                        elif routine == DESTROYED_MARKER:
+                            markers.append((fixed24(record, 16), fixed24(record, 19)))
+                    for index, (x, y) in previous_shots.items():
+                        if index in live_shots or x >= SHOT_EDGE_X:
+                            continue
+                        if any(abs(x-mx) < 20 and abs(y-my) < 20 for mx, my in markers):
+                            continue                      # it destroyed something
+                        recent_shot_stops.append((state["frame"], round(x), round(y)))
+                    previous_shots = live_shots
+                    while recent_shot_stops and state["frame"]-recent_shot_stops[0][0] > SHOT_STOP_MEMORY_FRAMES:
+                        recent_shot_stops.pop(0)
+                    first_record = records[:22]
                     destroyed = destroyed+1 if bytes(first_record[1:4]) == DESTROYED_ROUTINE else 0
                     if destroyed >= DESTROYED_FRAMES_BEFORE_STOPPING:
                         reason="player_object_destroyed"
@@ -206,7 +235,8 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                     recent_positions.pop(0)
                 digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges,
                                        recent_positions=recent_positions, recent_body_gaps=recent_body_gaps,
-                                       recent_choices=recent_choices)
+                                       recent_choices=recent_choices,
+                                       recent_shot_stops=recent_shot_stops)
                 # Lingering inside the range where collisions have happened is only visible
                 # over several decisions: R20 sat at 20-21 px from a tank for four in a row.
                 staying = (digest["actions"].get("hold") or {}).get("enemy_body_anchor_gap_px")

@@ -512,6 +512,28 @@ class CombatTests(unittest.TestCase):
             self.assertEqual(deadly["how_many_were_just_before_taking_a_hit"],60)
             self.assertIn("60 came within 30 frames of it taking a hit",text)
 
+    def test_shots_stopping_short_reject_the_firing_line_live(self):
+        """Carl watched forty-five decisions spent firing into a wall the map did not know,
+        while four killable targets sat on screen. The game was saying so every few frames."""
+        from brain.combat import combat_digest, combat_request, wall_in_front_of_you
+        stops=[(100,150,112),(103,151,112),(106,149,113)]
+        self.assertIsNone(wall_in_front_of_you(stops,60))         # a different altitude
+        self.assertIsNone(wall_in_front_of_you(stops[:1],112))    # one stop is not a wall
+        wall=wall_in_front_of_you(stops,112)
+        self.assertEqual(wall["shots_stopped_recently"],3)
+        self.assertEqual(wall["nearest_stop_x"],149)
+        target={"kind":"enemy_aircraft","x":200.0,"y":112.0,"vx":-1.0,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":"WRAM:0x1840","generation":1}
+        obs={"source_frame":101,"player":{"x":60,"y":112},"tracks":[target]}
+        # Without the evidence the target reads as hittable; with it, it does not.
+        self.assertEqual(combat_digest(obs,6)["actions"]["hold"]["targets_the_gun_would_hit"],1)
+        blocked=combat_digest(obs,6,recent_shot_stops=stops)
+        self.assertEqual(blocked["actions"]["hold"]["targets_the_gun_would_hit"],0)
+        text=combat_request(blocked)["questions"]["movement"]["criteria"]["hold"]
+        self.assertIn("stopped short",text)
+        self.assertIn("nothing beyond it can be hit",text)
+
     def test_the_gun_cannot_shoot_through_a_structure(self):
         """Carl: you cannot fire through structures to reach enemies on the other side."""
         from brain import combat
