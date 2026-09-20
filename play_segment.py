@@ -137,6 +137,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             print(f"{run_id}: {mode}; 50% speed; warmup {warmup} frames ({'firing' if prelude_fire else 'gun off'}); "
                   f"{'pause-and-step' if stepping else 'continuous'}; Jev limit {limit if mode=='live' else 0}. Ctrl+C stops.",flush=True)
             next_step = decision_start
+            recent_positions = []
             while True:
                 if (ROOT / "STOP").exists() or (output / "STOP").exists():
                     reason="user_stop"; break
@@ -172,7 +173,14 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                                  (track["y"] <= 48, "top"), (track["y"] >= 191, "bottom")) if hit), None)
                     if edge:
                         entry_edges[edge] = entry_edges.get(edge, 0)+1
-                digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges)
+                # Every decision is judged fresh, so nothing tells the aircraft it has been
+                # camped on one side for the last few seconds. Runs that drifted to either
+                # extreme scored worst, so where it has actually been is a fact worth having.
+                recent_positions.append((state["frame"], obs["player"]["x"], obs["player"]["y"]))
+                while recent_positions and state["frame"]-recent_positions[0][0] > 300:
+                    recent_positions.pop(0)
+                digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges,
+                                       recent_positions=recent_positions)
                 digest["recent_entry_edges"] = dict(entry_edges)
                 states.write(json.dumps({"state":state,"observation":obs})+"\n"); states.flush()
                 if not digest["player_position_supported"]:

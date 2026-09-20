@@ -100,6 +100,23 @@ class CombatTests(unittest.TestCase):
             data[base:base+22]=payload
         return data
 
+    def test_recent_station_keeping_is_reported_from_measured_positions(self):
+        """Runs that camped at either extreme scored worst, and no single decision can show it."""
+        from brain.combat import where_you_have_been
+        forward=[(f,200,112) for f in range(100,400,6)]
+        back=[(f,40,112) for f in range(100,400,6)]
+        middle=[(f,110,112) for f in range(100,400,6)]
+        self.assertEqual(where_you_have_been(forward)["mostly_in"],"the forward third of the flyable area")
+        self.assertEqual(where_you_have_been(back)["mostly_in"],"the back third of the flyable area")
+        self.assertEqual(where_you_have_been(middle)["mostly_in"],"the middle of the flyable area")
+        self.assertEqual(where_you_have_been(forward)["share_of_that_window_in_the_forward_third"],1.0)
+        self.assertEqual(where_you_have_been(forward)["frames_sampled"],forward[-1][0]-forward[0][0])
+        self.assertIsNone(where_you_have_been([]))          # nothing measured, nothing claimed
+        self.assertIsNone(where_you_have_been(forward[:2]))
+        body=combat_request(combat_digest({"source_frame":101,"player":{"x":200,"y":112},"tracks":[]},
+                                          6,recent_positions=forward))
+        self.assertEqual(body["state"]["where_you_have_been_recently"]["median_x"],200)
+
     def test_a_screen_clearing_power_up_leads_every_option(self):
         """Carl's instruction: on the board, it changes the approach, so it cannot be buried."""
         up={"kind":"clear_screen_power_up","x":136.0,"y":81.0,"vx":-0.47,"vy":0.0,
@@ -345,7 +362,8 @@ class CombatTests(unittest.TestCase):
             self.assertIn("Ground targets stand at Y 156 here",text)
             self.assertIn("firing line, not a floor",text)
             # Ending at or below a RECORDED collision altitude is called out as disqualifying.
-            self.assertIn("TERRAIN: this ends at Y 170, at or below an altitude where a terrain collision was actually recorded",text)
+            self.assertIn("TERRAIN: this ends at Y 170, only 4 pixels above an altitude where a terrain collision "
+                          "was actually recorded",text)
             # A column where only a ground object stands is not a floor: flying its line stays allowed.
             only_object={202:{"hit_min_y":None,"safe_max_y":187,"ground_object_y":176.0}}
             with patch.object(combat,"_terrain",(only_object,4)):
@@ -356,14 +374,21 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
-    def test_terrain_constraint_never_forbids_every_option(self):
+    def test_being_too_low_everywhere_keeps_the_warning_and_points_the_way_out(self):
+        """Clearing the flags deleted the warning exactly when the aircraft was already too low."""
         from brain import combat
         columns={c:{"hit_min_y":60,"safe_max_y":None,"ground_object_y":None} for c in range(150,260)}
         with patch.object(combat,"_terrain",(columns,4)):
             obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":170},"tracks":[]}
             digest=combat.combat_digest(obs,6)
-            self.assertFalse(any(o["ends_at_or_below_terrain"] for o in digest["actions"].values()))
-            self.assertIn("every option",digest["terrain_constraint_suspended"])
+            # Every option is too low, and every one still says so.
+            self.assertTrue(all(o["ends_at_or_below_terrain"] for o in digest["actions"].values()))
+            self.assertIn("every option here ends at or below",digest["terrain_constraint_suspended"])
+            # Climbing has the most clearance, so the way out is visible in the numbers.
+            clearances={a:o["pixels_above_recorded_terrain"] for a,o in digest["actions"].items()}
+            self.assertEqual(max(clearances,key=clearances.get),"up")
+            text=combat.combat_request(digest)["questions"]["movement"]["criteria"]["up"]
+            self.assertIn("climbing is the only way out",text)
 
     def test_lua_object_table_matches_python(self):
         source=(Path(player.ROOT) / "lua" / "main.lua").read_text()

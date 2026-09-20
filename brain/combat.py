@@ -185,7 +185,29 @@ def sustained_path(position, action, frames, threats, target):
     return (round(tightest, 1) if tightest is not None else None), reaches, final_gap
 
 
-def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
+def where_you_have_been(recent_positions, bounds=PLAYER_BOUNDS):
+    """The aircraft's own recent station-keeping, which no single decision can show.
+
+    Runs that camped on either side of the flyable area scored worst; this reports
+    where it has actually been over the sampled window, as measured positions only.
+    """
+    if not recent_positions or len(recent_positions) < 3:
+        return None
+    xmin, xmax, _, _ = bounds
+    xs = sorted(p[1] for p in recent_positions)
+    middle = xs[len(xs)//2]
+    span = recent_positions[-1][0]-recent_positions[0][0]
+    third = xmin + (xmax-xmin)/3
+    two_thirds = xmin + 2*(xmax-xmin)/3
+    where = ("the back third of the flyable area" if middle < third
+             else "the forward third of the flyable area" if middle > two_thirds
+             else "the middle of the flyable area")
+    return {"frames_sampled": span, "median_x": round(middle), "mostly_in": where,
+            "share_of_that_window_in_the_forward_third": round(sum(x > two_thirds for x in xs)/len(xs), 2),
+            "share_of_that_window_in_the_back_third": round(sum(x < third for x in xs)/len(xs), 2)}
+
+
+def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
@@ -212,6 +234,7 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
             continue
         census[direction_words(t["x"]-px, t["y"]-py)] = census.get(direction_words(t["x"]-px, t["y"]-py), 0)+1
     digest["tracked_threats_by_direction"] = census
+    digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
                                               [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
     # The fastest speed anything is closing at right now, measured from the tracks themselves.
@@ -261,6 +284,10 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
         option["terrain_floor_y"] = option["terrain_hit_recorded_y"]
         option["ends_at_or_below_terrain"] = bool(
             position and option["terrain_floor_y"] is not None and position[1] >= option["terrain_floor_y"]-4)
+        # Positive means this option ends that many pixels above the recorded collision altitude.
+        option["pixels_above_recorded_terrain"] = (
+            round(option["terrain_floor_y"]-position[1], 1)
+            if position and option["terrain_floor_y"] is not None else None)
         option["gap_ahead_px"] = round(min(sides["ahead"]), 1) if sides["ahead"] else None
         option["gap_behind_px"] = round(min(sides["behind"]), 1) if sides["behind"] else None
         # The main gun fires right along the aircraft's Y; only targets still ahead can be hit.
@@ -328,13 +355,14 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
         option["targets_the_gun_would_hit"] = len(landings)
         option["soonest_hit_frames"] = landings[0][0] if landings else None
         option["soonest_hit_kind"] = landings[0][1] if landings else None
-    # A hard constraint that forbids every option is a defect in the constraint, not a fact
-    # about the level. Keep the measurement, but stop presenting it as a prohibition.
+    # A constraint that forbids every option cannot be obeyed, but clearing the flags
+    # deleted the warning exactly when the aircraft was already too low and told it
+    # nothing (three hits at Y 174 in one run). Keep every warning; say it applies to
+    # all of them, and let the clearance figure pick the way out.
     if all(o["ends_at_or_below_terrain"] for o in digest["actions"].values()):
-        for option in digest["actions"].values():
-            option["ends_at_or_below_terrain"] = False
         digest["terrain_constraint_suspended"] = (
-            "every option ended at or below measured terrain here; decide on the other facts")
+            "every option here ends at or below the altitude where a collision was recorded, so the "
+            "constraint cannot be met by any of them: the clearance figures say which climbs out fastest")
     return digest
 
 
@@ -424,9 +452,15 @@ def combat_request(digest, model="jev-latest"):
                          f"flying back past them.")
         ground = ""
         if f["ends_at_or_below_terrain"]:
-            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, at or below an altitude where a "
+            clearance = f["pixels_above_recorded_terrain"]
+            where = (f"only {clearance:.0f} pixels above" if clearance >= 0
+                     else f"{abs(clearance):.0f} pixels below")
+            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, {where} an altitude where a "
                        f"terrain collision was actually recorded on this path (Y {f['terrain_floor_y']:.0f}); "
-                       f"terrain contact is damage every time.")
+                       f"terrain contact is damage every time, and climbing is the only way out of it.")
+        elif f["pixels_above_recorded_terrain"] is not None:
+            ground += (f" Terrain clearance here: {f['pixels_above_recorded_terrain']:.0f} pixels above the "
+                       f"altitude where a collision was recorded (Y {f['terrain_floor_y']:.0f}).")
         if f["ground_object_y_here"] is not None:
             ground += (f" Ground targets stand at Y {f['ground_object_y_here']:.0f} here: that is the altitude the "
                        f"gun has to be at to hit them, and it has been flown without a hit, so it is a firing "
@@ -504,6 +538,8 @@ def combat_request(digest, model="jev-latest"):
         "object_entries_counted_this_run": digest.get("recent_entry_edges") or "none counted yet",
         "tracked_threats_by_direction_now": digest.get("tracked_threats_by_direction") or "none tracked",
         "field_forecast_next_30_frames": digest.get("field_forecast"),
+        # Measured from this run: where the aircraft has actually been sitting.
+        "where_you_have_been_recently": digest.get("where_you_have_been_recently") or "not enough samples yet",
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
@@ -551,8 +587,9 @@ def combat_request(digest, model="jev-latest"):
                 "power-up or kill something coming up behind you is the right move. Weaving between "
                 "bullets to reach a firing position is the intended play. The constraint is the closest tracked threat: do "
                 "not take an option whose closest threat is tight. Never choose an option whose TERRAIN line says it ends at "
-                "or below measured terrain: the ground and platforms are solid, contact is damage every time, and a higher "
-                "option is always available. Colliding with an aircraft, tank or turret is the main way this "
+                "or below measured terrain: the ground and platforms are solid and contact is damage every time. If every "
+                "option ends at or below it, the aircraft is already too low and the only way out is the option "
+                "with the most clearance, climbing until the clearance figure turns positive. Colliding with an aircraft, tank or turret is the main way this "
                 "aircraft takes damage, so an option whose closest threat sits inside the collision range is a last resort. "
 "When threats close from both sides at once, do not drift and let the gap shrink: take the option that "
                 "opens the squeeze, going over or under if that is the side with room, and take the shot on the way out "
@@ -566,4 +603,7 @@ def combat_request(digest, model="jev-latest"):
                 "collide like any other body. Compare the "
                 "already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe "
                 "fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they "
-                "have come from so far in this run. Health and model confidence must not be used to infer safety.")}}}
+                "have come from so far in this run. where_you_have_been_recently is this aircraft's own recent "
+                "station-keeping, which no single option can show: camping at either extreme of the flyable area "
+                "has scored worst, one because everything that slips past is then a long transit away, the other "
+                "because there is no room left to fall back into. Health and model confidence must not be used to infer safety.")}}}
