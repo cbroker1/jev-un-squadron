@@ -110,7 +110,7 @@ SHOT_SPEED = 11
 # decisions). Getting past something is travel, so it costs frames, not just pixels.
 PLAYER_SPEED = 2.5
 # Structure evidence is recorded and cleared over this band; see build_terrain_map.py.
-STRUCTURE_BAND = 4
+STRUCTURE_BAND = 6
 SHOT_BAND = 10          # the widest band any kind uses; kept for callers that ask generally
 # Measured as the share of frames at each offset that were followed by a kill within 20
 # frames, over 24 runs. Offset is aircraft altitude minus target altitude, so positive
