@@ -21,6 +21,13 @@ from brain.digest import ACTIONS
 
 ROOT = Path(__file__).resolve().parent
 SAVE_FRAME = 20183  # slot 1 resumes here; a later start means the emulator ran before Lua attached
+# The player's own object slot switches to this routine when the aircraft is destroyed,
+# seen at the end of two recordings. The aircraft then sits motionless while commands are
+# still accepted: one run kept deciding for 64 frames after it died, and those decisions
+# were paid for and counted. This ends the run instead; it is not a health or damage map,
+# and nothing about it is shown to Jev.
+DESTROYED_ROUTINE = bytes.fromhex("9be104")     # $04:E19B in slot 0x1000
+DESTROYED_FRAMES_BEFORE_STOPPING = 3
 
 
 def validate_answer(answer):
@@ -81,6 +88,7 @@ def wait_for_freeze(frame, timeout=1.0):
 
 
 def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_age=20, delay_ms=250, key=None,
+        expected_start=SAVE_FRAME,
         stepped=False, prelude_fire=False, recheck=6, replan_after=6):
     replan_after = min(replan_after, interval)
     run_id = output.name
@@ -123,9 +131,9 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             # Anchor a launched comparison to the Lua/save origin, not variable
             # Python startup/handshake time. Reloads still end the entire run.
             start = fresh.get("experiment_start_frame",fresh["frame"])
-            if start > SAVE_FRAME+30:
+            if start > expected_start+30:
                 reason="emulator_started_late"
-                log(reason, experiment_start_frame=start, expected_start_frame=SAVE_FRAME)
+                log(reason, experiment_start_frame=start, expected_start_frame=expected_start)
                 raise InterruptedError("Lua attached after the save frame; no request was made")
             decision_start, stop_frame = start+warmup, start+warmup+frame_budget
             log("start", mode=mode, state=fresh, experiment_start_frame=start,
@@ -139,6 +147,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             next_step = decision_start
             recent_positions = []
             recent_body_gaps = []
+            destroyed = 0
             while True:
                 if (ROOT / "STOP").exists() or (output / "STOP").exists():
                     reason="user_stop"; break
@@ -160,6 +169,15 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 last_frame = state["frame"]
                 final = state
                 progress = time.monotonic()
+                table = (state.get("observation_profile") or {}).get("object_table")
+                if table:
+                    first_record = bytes.fromhex(table["bytes_hex"])[:22]
+                    destroyed = destroyed+1 if bytes(first_record[1:4]) == DESTROYED_ROUTINE else 0
+                    if destroyed >= DESTROYED_FRAMES_BEFORE_STOPPING:
+                        reason="player_object_destroyed"
+                        log(reason, frame=state["frame"], player_xy=[state["player_x_candidate"],
+                                                                    state["player_y_candidate"]])
+                        break
                 obs = bridge_observation(state,tracker)
                 obs.pop("live_control_ready",None)
                 obs.update(mode="experimental_"+mode, complete_hazard_coverage=False,
@@ -350,6 +368,8 @@ def main():
     ap.add_argument("--output",type=Path,required=True)
     ap.add_argument("--mode",choices=("dry","live","baseline"),default="dry")
     ap.add_argument("--max-calls",type=int,default=5)
+    ap.add_argument("--expected-start-frame",type=int,default=SAVE_FRAME,
+                    help="frame the loaded save resumes at; slot 2 resumes at the boss")
     ap.add_argument("--warmup",type=int,default=480)
     ap.add_argument("--frames",type=int,default=210)
     ap.add_argument("--mock-delay-ms",type=int,default=250)
@@ -374,7 +394,8 @@ def main():
         if not key or "\n" in key or "\r" in key:
             raise SystemExit("Local key file must contain one key line; nothing was sent")
     result=run(output,args.mode,args.max_calls,interval=args.interval,warmup=args.warmup,frame_budget=args.frames,
-               delay_ms=args.mock_delay_ms,key=key,stepped=args.stepped,prelude_fire=args.prelude_fire)
+               delay_ms=args.mock_delay_ms,key=key,stepped=args.stepped,prelude_fire=args.prelude_fire,
+               expected_start=args.expected_start_frame)
     if result["reason"] not in ("decision_budget","game_frame_budget"):
         raise SystemExit(1)
 

@@ -76,6 +76,18 @@ event.onloadstate(function()
 end, "bridge_invalidate_save")
 event.onexit(function() joypad.set(neutral(), 1) end, "bridge_release")
 local run_label = os.getenv("JEV_RUN_LABEL") or "-"
+-- Reaching the boss takes about 3500 frames of flying. When asked, this writes slot 2 once
+-- on the way past, so the fight itself can be practised without replaying the whole stage.
+-- Slot 1, the evidence baseline, is never written.
+local save_at_frame = tonumber(os.getenv("JEV_SAVE_AT_FRAME") or "")
+local saved_boss_entry = false
+local function maybe_save_entry(frame)
+  if save_at_frame and not saved_boss_entry and frame >= save_at_frame then
+    saved_boss_entry = true
+    local ok = pcall(savestate.saveslot, 2)
+    console.log(string.format("boss entry slot 2 %s at frame %d", ok and "saved" or "FAILED", frame))
+  end
+end
 -- Narration overlay: the run label and frame are what Carl calls out by voice.
 -- gui.text's fifth argument is an anchor, not a background colour, so draw with
 -- gui.drawText and never let a drawing error interrupt a run.
@@ -248,6 +260,7 @@ while running do
   if a.action ~= "stop" and action_id ~= applied_id then
     applied_id = action_id; first_apply_frame = frame
   end
+  maybe_save_entry(frame)
   draw_overlay(frame, a, player_x, player_y, false)
   gui.drawBox(player_x - 4, player_y - 4, player_x + 4, player_y + 4, 0xFF00FF00, 0x00000000)
   poll_mask = -1; polls = 0

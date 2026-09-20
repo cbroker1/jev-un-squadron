@@ -75,6 +75,9 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mode",choices=("dry","live","baseline"),default="dry")
     ap.add_argument("--max-calls",type=int,default=5)
+    ap.add_argument("--save-at-frame",type=int,default=0,help="write slot 2 once at this frame, to practise from")
+    ap.add_argument("--load-slot",type=int,default=1,choices=(1,2),help="2 practises from the saved boss entry")
+    ap.add_argument("--expected-start-frame",type=int,default=0,help="frame the loaded slot resumes at (slot 2)")
     ap.add_argument("--mock-delay-ms",type=int,default=250)
     ap.add_argument("--expect-stop",choices=("stale_reply_rejected",))
     ap.add_argument("--interval",type=int,default=30,help="game frames between decisions")
@@ -104,6 +107,8 @@ def main():
     if '"EmuHawk.exe"' in listing.stdout or (ROOT / "STOP").exists():
         raise SystemExit("An emulator or project STOP exists; preserving it, no run started.")
     save_now=ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave1.State"
+    if args.load_slot==2 and not (ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave2.State").is_file():
+        raise SystemExit("No slot 2 yet: make one with --save-at-frame during a run that reaches the boss.")
     if sha256(save_now) != SLOT1_SHA256:
         raise SystemExit("Slot 1 does not match the evidence baseline (a save state was overwritten); no run started. "
                          "BizHawk keeps the previous state in the matching .bak file.")
@@ -127,16 +132,19 @@ def main():
     save_json(run / "manifest.json",manifest)
     env=os.environ.copy(); env.pop("TYPESAFE_API_KEY",None)
     env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1",JEV_RUN_LABEL=str(label))
+    if args.save_at_frame:
+        env["JEV_SAVE_AT_FRAME"]=str(args.save_at_frame)
     emu=worker=None
     started=time.monotonic()
     print(f"RUN {label} ({run.name}): {args.mode.upper()}, maximum Jev attempts {manifest['max_jev_attempts']}. Ctrl+C or stop_segment.bat stops.",flush=True)
     try:
         with (run / "emulator_stdout.txt").open("w") as out,(run / "emulator_stderr.txt").open("w") as err,(run / "console.txt").open("w") as console:
-            emu=subprocess.Popen([str(exe),"--load-slot","1","--lua",str(ROOT / "lua/main.lua"),cfg["rom_path"]],cwd=exe.parent,env=env,stdout=out,stderr=err)
+            emu=subprocess.Popen([str(exe),"--load-slot",str(args.load_slot),"--lua",str(ROOT / "lua/main.lua"),cfg["rom_path"]],cwd=exe.parent,env=env,stdout=out,stderr=err)
             save_json(ACTIVE,{"running":True,"run_dir":str(run),"pid":emu.pid})
             worker=subprocess.Popen([sys.executable,"-u",str(ROOT / "play_segment.py"),"--output",str(run),"--mode",args.mode,
                 "--max-calls",str(args.max_calls),"--mock-delay-ms",str(args.mock_delay_ms),
                 "--warmup",str(args.warmup),"--frames",str(args.frames),"--interval",str(args.interval)]
+                +(["--expected-start-frame",str(args.expected_start_frame)] if args.expected_start_frame else [])
                 +(["--stepped"] if args.stepped else [])+(["--prelude-fire"] if args.prelude_fire else []),cwd=ROOT,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
             # Forward only controller output (which deliberately contains no secrets).
             import threading
