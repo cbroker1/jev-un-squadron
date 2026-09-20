@@ -1,0 +1,6 @@
+[string "main"]:23: bad argument #2 to 'for iterator' (invalid format)
+stack traceback:
+	[C]: in for iterator 'for iterator'
+	[string "main"]:23: in function <[string "main"]:7>
+	[C]: in function 'xpcall'
+	[string "main"]:151: in main chunk

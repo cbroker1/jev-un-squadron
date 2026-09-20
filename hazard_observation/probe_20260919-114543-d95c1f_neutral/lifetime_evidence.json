@@ -1,0 +1,833 @@
+{
+  "source_capture": "probe_20260919-114543-d95c1f_neutral",
+  "status": "evidence only; general object semantics unverified",
+  "notes": [
+    "Missing cyan pixels are not proof of absence; sprite animation changes color.",
+    "Header transitions are observed bytes, not inferred game routine names.",
+    "Generation boundaries invalidate velocity; they do not identify every enemy bullet."
+  ],
+  "generations": {
+    "1": {
+      "first_sample": 564,
+      "first_frame": 20747,
+      "first_xy": [
+        214.0,
+        97.0
+      ],
+      "visual_match_count": 22,
+      "offscreen_samples": 11,
+      "last_sample": 720,
+      "last_frame": 20903,
+      "last_xy": [
+        -34.015625,
+        146.359375
+      ],
+      "velocity_range": [
+        [
+          -1.58984375,
+          -1.58984375
+        ],
+        [
+          0.31640625,
+          0.31640625
+        ]
+      ]
+    },
+    "2": {
+      "first_sample": 742,
+      "first_frame": 20925,
+      "first_xy": [
+        139.0,
+        164.0
+      ],
+      "visual_match_count": 7,
+      "offscreen_samples": 0,
+      "last_sample": 782,
+      "last_frame": 20965,
+      "last_xy": [
+        93.0625,
+        118.0625
+      ],
+      "velocity_range": [
+        [
+          -1.1484375,
+          -1.1484375
+        ],
+        [
+          -1.1484375,
+          -1.1484375
+        ]
+      ]
+    },
+    "3": {
+      "first_sample": 802,
+      "first_frame": 20985,
+      "first_xy": [
+        161.0,
+        118.0
+      ],
+      "visual_match_count": 16,
+      "offscreen_samples": 0,
+      "last_sample": 900,
+      "last_frame": 21083,
+      "last_xy": [
+        1.75,
+        118.0
+      ],
+      "velocity_range": [
+        [
+          -1.625,
+          -1.625
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    }
+  },
+  "transitions": [
+    {
+      "sample": 0,
+      "source_frame": 20183,
+      "header_hex": "00000000000000000000000000000000",
+      "x": 0.0,
+      "y": 0.0,
+      "phase": "inactive_or_unclassified"
+    },
+    {
+      "sample": 550,
+      "source_frame": 20733,
+      "header_hex": "00c3f904cbf90400f70001000009a001",
+      "x": 106.08203125,
+      "y": 109.13671875,
+      "phase": "inactive_or_unclassified"
+    },
+    {
+      "sample": 564,
+      "source_frame": 20747,
+      "header_hex": "cc7ff904cbf90400010001000017a001",
+      "x": 214.0,
+      "y": 97.0,
+      "phase": "observed_moving_signature"
+    },
+    {
+      "sample": 722,
+      "source_frame": 20905,
+      "header_hex": "007ff904cbf90400010001000017a001",
+      "x": -35.60546875,
+      "y": 146.67578125,
+      "phase": "inactive_or_unclassified"
+    },
+    {
+      "sample": 742,
+      "source_frame": 20925,
+      "header_hex": "cc7ff904cbf9040001000100001ca001",
+      "x": 139.0,
+      "y": 164.0,
+      "phase": "observed_moving_signature"
+    },
+    {
+      "sample": 784,
+      "source_frame": 20967,
+      "header_hex": "c0c3f904cbf90400f7000100001ca001",
+      "x": 91.9140625,
+      "y": 116.9140625,
+      "phase": "inactive_or_unclassified"
+    },
+    {
+      "sample": 788,
+      "source_frame": 20971,
+      "header_hex": "00c3f904cbf90400f7000100001ca001",
+      "x": 91.9140625,
+      "y": 116.9140625,
+      "phase": "inactive_or_unclassified"
+    },
+    {
+      "sample": 802,
+      "source_frame": 20985,
+      "header_hex": "cc7ff904cbf90400010001000018a001",
+      "x": 161.0,
+      "y": 118.0,
+      "phase": "observed_moving_signature"
+    }
+  ],
+  "visual_matches": [
+    {
+      "sample": 568,
+      "source_frame": 20751,
+      "generation": 1,
+      "ram_xy": [
+        207.640625,
+        98.265625
+      ],
+      "visual_xy": [
+        208.0,
+        96.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0568.png"
+    },
+    {
+      "sample": 574,
+      "source_frame": 20757,
+      "generation": 1,
+      "ram_xy": [
+        198.1015625,
+        100.1640625
+      ],
+      "visual_xy": [
+        198.0,
+        98.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0574.png"
+    },
+    {
+      "sample": 580,
+      "source_frame": 20763,
+      "generation": 1,
+      "ram_xy": [
+        188.5625,
+        102.0625
+      ],
+      "visual_xy": [
+        189.0,
+        100.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0580.png"
+    },
+    {
+      "sample": 586,
+      "source_frame": 20769,
+      "generation": 1,
+      "ram_xy": [
+        179.0234375,
+        103.9609375
+      ],
+      "visual_xy": [
+        179.0,
+        102.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0586.png"
+    },
+    {
+      "sample": 592,
+      "source_frame": 20775,
+      "generation": 1,
+      "ram_xy": [
+        169.484375,
+        105.859375
+      ],
+      "visual_xy": [
+        170.0,
+        104.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0592.png"
+    },
+    {
+      "sample": 598,
+      "source_frame": 20781,
+      "generation": 1,
+      "ram_xy": [
+        159.9453125,
+        107.7578125
+      ],
+      "visual_xy": [
+        160.0,
+        106.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0598.png"
+    },
+    {
+      "sample": 604,
+      "source_frame": 20787,
+      "generation": 1,
+      "ram_xy": [
+        150.40625,
+        109.65625
+      ],
+      "visual_xy": [
+        150.0,
+        108.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0604.png"
+    },
+    {
+      "sample": 610,
+      "source_frame": 20793,
+      "generation": 1,
+      "ram_xy": [
+        140.8671875,
+        111.5546875
+      ],
+      "visual_xy": [
+        141.0,
+        110.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0610.png"
+    },
+    {
+      "sample": 616,
+      "source_frame": 20799,
+      "generation": 1,
+      "ram_xy": [
+        131.328125,
+        113.453125
+      ],
+      "visual_xy": [
+        131.0,
+        112.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0616.png"
+    },
+    {
+      "sample": 622,
+      "source_frame": 20805,
+      "generation": 1,
+      "ram_xy": [
+        121.7890625,
+        115.3515625
+      ],
+      "visual_xy": [
+        122.0,
+        114.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0622.png"
+    },
+    {
+      "sample": 628,
+      "source_frame": 20811,
+      "generation": 1,
+      "ram_xy": [
+        112.25,
+        117.25
+      ],
+      "visual_xy": [
+        112.0,
+        115.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0628.png"
+    },
+    {
+      "sample": 634,
+      "source_frame": 20817,
+      "generation": 1,
+      "ram_xy": [
+        102.7109375,
+        119.1484375
+      ],
+      "visual_xy": [
+        103.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0634.png"
+    },
+    {
+      "sample": 640,
+      "source_frame": 20823,
+      "generation": 1,
+      "ram_xy": [
+        93.171875,
+        121.046875
+      ],
+      "visual_xy": [
+        93.0,
+        119.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0640.png"
+    },
+    {
+      "sample": 646,
+      "source_frame": 20829,
+      "generation": 1,
+      "ram_xy": [
+        83.6328125,
+        122.9453125
+      ],
+      "visual_xy": [
+        84.0,
+        121.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0646.png"
+    },
+    {
+      "sample": 652,
+      "source_frame": 20835,
+      "generation": 1,
+      "ram_xy": [
+        74.09375,
+        124.84375
+      ],
+      "visual_xy": [
+        74.0,
+        123.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0652.png"
+    },
+    {
+      "sample": 658,
+      "source_frame": 20841,
+      "generation": 1,
+      "ram_xy": [
+        64.5546875,
+        126.7421875
+      ],
+      "visual_xy": [
+        65.0,
+        125.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0658.png"
+    },
+    {
+      "sample": 664,
+      "source_frame": 20847,
+      "generation": 1,
+      "ram_xy": [
+        55.015625,
+        128.640625
+      ],
+      "visual_xy": [
+        55.0,
+        127.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0664.png"
+    },
+    {
+      "sample": 670,
+      "source_frame": 20853,
+      "generation": 1,
+      "ram_xy": [
+        45.4765625,
+        130.5390625
+      ],
+      "visual_xy": [
+        46.0,
+        129.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0670.png"
+    },
+    {
+      "sample": 676,
+      "source_frame": 20859,
+      "generation": 1,
+      "ram_xy": [
+        35.9375,
+        132.4375
+      ],
+      "visual_xy": [
+        36.0,
+        131.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0676.png"
+    },
+    {
+      "sample": 682,
+      "source_frame": 20865,
+      "generation": 1,
+      "ram_xy": [
+        26.3984375,
+        134.3359375
+      ],
+      "visual_xy": [
+        26.0,
+        133.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0682.png"
+    },
+    {
+      "sample": 688,
+      "source_frame": 20871,
+      "generation": 1,
+      "ram_xy": [
+        16.859375,
+        136.234375
+      ],
+      "visual_xy": [
+        17.0,
+        134.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0688.png"
+    },
+    {
+      "sample": 694,
+      "source_frame": 20877,
+      "generation": 1,
+      "ram_xy": [
+        7.3203125,
+        138.1328125
+      ],
+      "visual_xy": [
+        7.0,
+        136.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0694.png"
+    },
+    {
+      "sample": 746,
+      "source_frame": 20929,
+      "generation": 2,
+      "ram_xy": [
+        134.40625,
+        159.40625
+      ],
+      "visual_xy": [
+        134.0,
+        159.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0746.png"
+    },
+    {
+      "sample": 752,
+      "source_frame": 20935,
+      "generation": 2,
+      "ram_xy": [
+        127.515625,
+        152.515625
+      ],
+      "visual_xy": [
+        127.0,
+        152.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0752.png"
+    },
+    {
+      "sample": 758,
+      "source_frame": 20941,
+      "generation": 2,
+      "ram_xy": [
+        120.625,
+        145.625
+      ],
+      "visual_xy": [
+        120.0,
+        145.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0758.png"
+    },
+    {
+      "sample": 764,
+      "source_frame": 20947,
+      "generation": 2,
+      "ram_xy": [
+        113.734375,
+        138.734375
+      ],
+      "visual_xy": [
+        113.0,
+        138.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0764.png"
+    },
+    {
+      "sample": 770,
+      "source_frame": 20953,
+      "generation": 2,
+      "ram_xy": [
+        106.84375,
+        131.84375
+      ],
+      "visual_xy": [
+        106.0,
+        131.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0770.png"
+    },
+    {
+      "sample": 776,
+      "source_frame": 20959,
+      "generation": 2,
+      "ram_xy": [
+        99.953125,
+        124.953125
+      ],
+      "visual_xy": [
+        100.0,
+        125.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0776.png"
+    },
+    {
+      "sample": 782,
+      "source_frame": 20965,
+      "generation": 2,
+      "ram_xy": [
+        93.0625,
+        118.0625
+      ],
+      "visual_xy": [
+        93.0,
+        118.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0782.png"
+    },
+    {
+      "sample": 806,
+      "source_frame": 20989,
+      "generation": 3,
+      "ram_xy": [
+        154.5,
+        118.0
+      ],
+      "visual_xy": [
+        155.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0806.png"
+    },
+    {
+      "sample": 812,
+      "source_frame": 20995,
+      "generation": 3,
+      "ram_xy": [
+        144.75,
+        118.0
+      ],
+      "visual_xy": [
+        145.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0812.png"
+    },
+    {
+      "sample": 818,
+      "source_frame": 21001,
+      "generation": 3,
+      "ram_xy": [
+        135.0,
+        118.0
+      ],
+      "visual_xy": [
+        135.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0818.png"
+    },
+    {
+      "sample": 824,
+      "source_frame": 21007,
+      "generation": 3,
+      "ram_xy": [
+        125.25,
+        118.0
+      ],
+      "visual_xy": [
+        125.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0824.png"
+    },
+    {
+      "sample": 830,
+      "source_frame": 21013,
+      "generation": 3,
+      "ram_xy": [
+        115.5,
+        118.0
+      ],
+      "visual_xy": [
+        116.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0830.png"
+    },
+    {
+      "sample": 836,
+      "source_frame": 21019,
+      "generation": 3,
+      "ram_xy": [
+        105.75,
+        118.0
+      ],
+      "visual_xy": [
+        106.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0836.png"
+    },
+    {
+      "sample": 842,
+      "source_frame": 21025,
+      "generation": 3,
+      "ram_xy": [
+        96.0,
+        118.0
+      ],
+      "visual_xy": [
+        96.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0842.png"
+    },
+    {
+      "sample": 848,
+      "source_frame": 21031,
+      "generation": 3,
+      "ram_xy": [
+        86.25,
+        118.0
+      ],
+      "visual_xy": [
+        86.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0848.png"
+    },
+    {
+      "sample": 854,
+      "source_frame": 21037,
+      "generation": 3,
+      "ram_xy": [
+        76.5,
+        118.0
+      ],
+      "visual_xy": [
+        77.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0854.png"
+    },
+    {
+      "sample": 860,
+      "source_frame": 21043,
+      "generation": 3,
+      "ram_xy": [
+        66.75,
+        118.0
+      ],
+      "visual_xy": [
+        67.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0860.png"
+    },
+    {
+      "sample": 866,
+      "source_frame": 21049,
+      "generation": 3,
+      "ram_xy": [
+        57.0,
+        118.0
+      ],
+      "visual_xy": [
+        57.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0866.png"
+    },
+    {
+      "sample": 872,
+      "source_frame": 21055,
+      "generation": 3,
+      "ram_xy": [
+        47.25,
+        118.0
+      ],
+      "visual_xy": [
+        47.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0872.png"
+    },
+    {
+      "sample": 878,
+      "source_frame": 21061,
+      "generation": 3,
+      "ram_xy": [
+        37.5,
+        118.0
+      ],
+      "visual_xy": [
+        38.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0878.png"
+    },
+    {
+      "sample": 884,
+      "source_frame": 21067,
+      "generation": 3,
+      "ram_xy": [
+        27.75,
+        118.0
+      ],
+      "visual_xy": [
+        28.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0884.png"
+    },
+    {
+      "sample": 890,
+      "source_frame": 21073,
+      "generation": 3,
+      "ram_xy": [
+        18.0,
+        118.0
+      ],
+      "visual_xy": [
+        18.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0890.png"
+    },
+    {
+      "sample": 896,
+      "source_frame": 21079,
+      "generation": 3,
+      "ram_xy": [
+        8.25,
+        118.0
+      ],
+      "visual_xy": [
+        8.0,
+        117.0
+      ],
+      "pixels": 8,
+      "screenshot": "frame_0896.png"
+    }
+  ],
+  "jev_requests": 0
+}

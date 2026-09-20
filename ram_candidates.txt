@@ -1,0 +1,16 @@
+Automated RAM search; WRAM; 8-bit unsigned; 3 cycles
+candidates=13
+address,consistent_cycles,last_baseline,last_neutral,last_up,last_down
+0x002C,3,114,114,67,112
+0x0098,3,0,0,8,4
+0x009B,3,0,0,8,4
+0x009D,3,0,0,8,4
+0x00FA,3,0,0,8,4
+0x00FB,3,0,0,8,4
+0x0629,3,0,0,16,0
+0x062B,3,0,0,16,0
+0x0901,3,106,106,56,106
+0x0905,3,106,106,56,106
+0x100D,3,255,255,0,16
+0x1014,3,114,114,64,114
+0x1024,3,64,64,1,5

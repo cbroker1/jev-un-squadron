@@ -1,0 +1,3343 @@
+{
+  "status": "visual occurrence candidates; not complete enemy enumeration",
+  "slots": {
+    "0x16C0": [
+      {
+        "sample": 550,
+        "source_frame": 20733,
+        "ram_xy": [
+          192.7109375,
+          97.65625
+        ],
+        "visual_xy": [
+          195.0,
+          99.0
+        ],
+        "screenshot": "frame_0550.png"
+      },
+      {
+        "sample": 552,
+        "source_frame": 20735,
+        "ram_xy": [
+          196.1171875,
+          97.65625
+        ],
+        "visual_xy": [
+          198.0,
+          99.0
+        ],
+        "screenshot": "frame_0552.png"
+      },
+      {
+        "sample": 554,
+        "source_frame": 20737,
+        "ram_xy": [
+          199.5234375,
+          97.65625
+        ],
+        "visual_xy": [
+          201.0,
+          99.0
+        ],
+        "screenshot": "frame_0554.png"
+      },
+      {
+        "sample": 556,
+        "source_frame": 20739,
+        "ram_xy": [
+          202.9296875,
+          97.65625
+        ],
+        "visual_xy": [
+          205.0,
+          99.0
+        ],
+        "screenshot": "frame_0556.png"
+      },
+      {
+        "sample": 558,
+        "source_frame": 20741,
+        "ram_xy": [
+          206.3359375,
+          97.65625
+        ],
+        "visual_xy": [
+          208.0,
+          99.0
+        ],
+        "screenshot": "frame_0558.png"
+      },
+      {
+        "sample": 560,
+        "source_frame": 20743,
+        "ram_xy": [
+          209.7421875,
+          97.65625
+        ],
+        "visual_xy": [
+          212.0,
+          99.0
+        ],
+        "screenshot": "frame_0560.png"
+      },
+      {
+        "sample": 562,
+        "source_frame": 20745,
+        "ram_xy": [
+          213.1484375,
+          97.65625
+        ],
+        "visual_xy": [
+          215.0,
+          99.0
+        ],
+        "screenshot": "frame_0562.png"
+      },
+      {
+        "sample": 564,
+        "source_frame": 20747,
+        "ram_xy": [
+          216.5546875,
+          97.65625
+        ],
+        "visual_xy": [
+          218.0,
+          99.0
+        ],
+        "screenshot": "frame_0564.png"
+      },
+      {
+        "sample": 566,
+        "source_frame": 20749,
+        "ram_xy": [
+          219.9609375,
+          97.65625
+        ],
+        "visual_xy": [
+          222.0,
+          99.0
+        ],
+        "screenshot": "frame_0566.png"
+      },
+      {
+        "sample": 568,
+        "source_frame": 20751,
+        "ram_xy": [
+          223.3671875,
+          97.65625
+        ],
+        "visual_xy": [
+          225.0,
+          99.0
+        ],
+        "screenshot": "frame_0568.png"
+      },
+      {
+        "sample": 570,
+        "source_frame": 20753,
+        "ram_xy": [
+          226.7734375,
+          97.65625
+        ],
+        "visual_xy": [
+          229.0,
+          99.0
+        ],
+        "screenshot": "frame_0570.png"
+      },
+      {
+        "sample": 572,
+        "source_frame": 20755,
+        "ram_xy": [
+          230.1796875,
+          97.65625
+        ],
+        "visual_xy": [
+          232.0,
+          99.0
+        ],
+        "screenshot": "frame_0572.png"
+      },
+      {
+        "sample": 574,
+        "source_frame": 20757,
+        "ram_xy": [
+          233.5859375,
+          97.65625
+        ],
+        "visual_xy": [
+          235.0,
+          99.0
+        ],
+        "screenshot": "frame_0574.png"
+      },
+      {
+        "sample": 576,
+        "source_frame": 20759,
+        "ram_xy": [
+          236.9921875,
+          97.65625
+        ],
+        "visual_xy": [
+          239.0,
+          99.0
+        ],
+        "screenshot": "frame_0576.png"
+      },
+      {
+        "sample": 578,
+        "source_frame": 20761,
+        "ram_xy": [
+          240.3984375,
+          97.65625
+        ],
+        "visual_xy": [
+          242.0,
+          99.0
+        ],
+        "screenshot": "frame_0578.png"
+      },
+      {
+        "sample": 580,
+        "source_frame": 20763,
+        "ram_xy": [
+          243.8046875,
+          97.65625
+        ],
+        "visual_xy": [
+          246.0,
+          99.0
+        ],
+        "screenshot": "frame_0580.png"
+      },
+      {
+        "sample": 624,
+        "source_frame": 20807,
+        "ram_xy": [
+          246.84375,
+          104.0
+        ],
+        "visual_xy": [
+          243.0,
+          106.0
+        ],
+        "screenshot": "frame_0624.png"
+      },
+      {
+        "sample": 626,
+        "source_frame": 20809,
+        "ram_xy": [
+          243.25,
+          104.0
+        ],
+        "visual_xy": [
+          240.0,
+          106.0
+        ],
+        "screenshot": "frame_0626.png"
+      },
+      {
+        "sample": 628,
+        "source_frame": 20811,
+        "ram_xy": [
+          239.65625,
+          104.0
+        ],
+        "visual_xy": [
+          236.0,
+          106.0
+        ],
+        "screenshot": "frame_0628.png"
+      },
+      {
+        "sample": 630,
+        "source_frame": 20813,
+        "ram_xy": [
+          236.0625,
+          104.0
+        ],
+        "visual_xy": [
+          232.0,
+          106.0
+        ],
+        "screenshot": "frame_0630.png"
+      },
+      {
+        "sample": 632,
+        "source_frame": 20815,
+        "ram_xy": [
+          232.46875,
+          104.0
+        ],
+        "visual_xy": [
+          229.0,
+          106.0
+        ],
+        "screenshot": "frame_0632.png"
+      },
+      {
+        "sample": 634,
+        "source_frame": 20817,
+        "ram_xy": [
+          228.875,
+          104.0
+        ],
+        "visual_xy": [
+          225.0,
+          106.0
+        ],
+        "screenshot": "frame_0634.png"
+      },
+      {
+        "sample": 636,
+        "source_frame": 20819,
+        "ram_xy": [
+          225.28125,
+          104.0
+        ],
+        "visual_xy": [
+          222.0,
+          106.0
+        ],
+        "screenshot": "frame_0636.png"
+      },
+      {
+        "sample": 638,
+        "source_frame": 20821,
+        "ram_xy": [
+          221.6875,
+          104.0
+        ],
+        "visual_xy": [
+          218.0,
+          106.0
+        ],
+        "screenshot": "frame_0638.png"
+      },
+      {
+        "sample": 640,
+        "source_frame": 20823,
+        "ram_xy": [
+          218.09375,
+          104.0
+        ],
+        "visual_xy": [
+          214.0,
+          106.0
+        ],
+        "screenshot": "frame_0640.png"
+      },
+      {
+        "sample": 642,
+        "source_frame": 20825,
+        "ram_xy": [
+          214.5,
+          104.0
+        ],
+        "visual_xy": [
+          211.0,
+          106.0
+        ],
+        "screenshot": "frame_0642.png"
+      },
+      {
+        "sample": 644,
+        "source_frame": 20827,
+        "ram_xy": [
+          210.90625,
+          104.0
+        ],
+        "visual_xy": [
+          207.0,
+          106.0
+        ],
+        "screenshot": "frame_0644.png"
+      },
+      {
+        "sample": 646,
+        "source_frame": 20829,
+        "ram_xy": [
+          207.3125,
+          104.0
+        ],
+        "visual_xy": [
+          204.0,
+          106.0
+        ],
+        "screenshot": "frame_0646.png"
+      },
+      {
+        "sample": 648,
+        "source_frame": 20831,
+        "ram_xy": [
+          203.71875,
+          104.0
+        ],
+        "visual_xy": [
+          200.0,
+          106.0
+        ],
+        "screenshot": "frame_0648.png"
+      },
+      {
+        "sample": 650,
+        "source_frame": 20833,
+        "ram_xy": [
+          200.125,
+          104.0
+        ],
+        "visual_xy": [
+          196.0,
+          106.0
+        ],
+        "screenshot": "frame_0650.png"
+      },
+      {
+        "sample": 652,
+        "source_frame": 20835,
+        "ram_xy": [
+          196.53125,
+          104.0
+        ],
+        "visual_xy": [
+          193.0,
+          106.0
+        ],
+        "screenshot": "frame_0652.png"
+      },
+      {
+        "sample": 654,
+        "source_frame": 20837,
+        "ram_xy": [
+          192.9375,
+          104.0
+        ],
+        "visual_xy": [
+          189.0,
+          106.0
+        ],
+        "screenshot": "frame_0654.png"
+      },
+      {
+        "sample": 656,
+        "source_frame": 20839,
+        "ram_xy": [
+          189.34375,
+          104.0
+        ],
+        "visual_xy": [
+          186.0,
+          106.0
+        ],
+        "screenshot": "frame_0656.png"
+      },
+      {
+        "sample": 658,
+        "source_frame": 20841,
+        "ram_xy": [
+          185.75,
+          104.0
+        ],
+        "visual_xy": [
+          182.0,
+          106.0
+        ],
+        "screenshot": "frame_0658.png"
+      },
+      {
+        "sample": 660,
+        "source_frame": 20843,
+        "ram_xy": [
+          182.15625,
+          104.0
+        ],
+        "visual_xy": [
+          178.0,
+          106.0
+        ],
+        "screenshot": "frame_0660.png"
+      },
+      {
+        "sample": 662,
+        "source_frame": 20845,
+        "ram_xy": [
+          178.5625,
+          104.0
+        ],
+        "visual_xy": [
+          175.0,
+          106.0
+        ],
+        "screenshot": "frame_0662.png"
+      },
+      {
+        "sample": 664,
+        "source_frame": 20847,
+        "ram_xy": [
+          174.96875,
+          104.0
+        ],
+        "visual_xy": [
+          171.0,
+          106.0
+        ],
+        "screenshot": "frame_0664.png"
+      },
+      {
+        "sample": 666,
+        "source_frame": 20849,
+        "ram_xy": [
+          171.375,
+          104.0
+        ],
+        "visual_xy": [
+          168.0,
+          106.0
+        ],
+        "screenshot": "frame_0666.png"
+      },
+      {
+        "sample": 668,
+        "source_frame": 20851,
+        "ram_xy": [
+          167.78125,
+          104.0
+        ],
+        "visual_xy": [
+          164.0,
+          106.0
+        ],
+        "screenshot": "frame_0668.png"
+      },
+      {
+        "sample": 670,
+        "source_frame": 20853,
+        "ram_xy": [
+          164.1875,
+          104.0
+        ],
+        "visual_xy": [
+          160.0,
+          106.0
+        ],
+        "screenshot": "frame_0670.png"
+      },
+      {
+        "sample": 672,
+        "source_frame": 20855,
+        "ram_xy": [
+          160.59375,
+          104.0
+        ],
+        "visual_xy": [
+          157.0,
+          106.0
+        ],
+        "screenshot": "frame_0672.png"
+      },
+      {
+        "sample": 674,
+        "source_frame": 20857,
+        "ram_xy": [
+          157.29296875,
+          103.73046875
+        ],
+        "visual_xy": [
+          159.5,
+          102.0
+        ],
+        "screenshot": "frame_0674.png"
+      },
+      {
+        "sample": 676,
+        "source_frame": 20859,
+        "ram_xy": [
+          154.3828125,
+          103.1015625
+        ],
+        "visual_xy": [
+          156.5,
+          102.0
+        ],
+        "screenshot": "frame_0676.png"
+      },
+      {
+        "sample": 678,
+        "source_frame": 20861,
+        "ram_xy": [
+          151.86328125,
+          102.11328125
+        ],
+        "visual_xy": [
+          154.5,
+          101.0
+        ],
+        "screenshot": "frame_0678.png"
+      },
+      {
+        "sample": 680,
+        "source_frame": 20863,
+        "ram_xy": [
+          149.734375,
+          100.765625
+        ],
+        "visual_xy": [
+          151.5,
+          100.0
+        ],
+        "screenshot": "frame_0680.png"
+      },
+      {
+        "sample": 682,
+        "source_frame": 20865,
+        "ram_xy": [
+          147.99609375,
+          99.05859375
+        ],
+        "visual_xy": [
+          149.5,
+          98.0
+        ],
+        "screenshot": "frame_0682.png"
+      },
+      {
+        "sample": 684,
+        "source_frame": 20867,
+        "ram_xy": [
+          146.6484375,
+          96.9921875
+        ],
+        "visual_xy": [
+          148.5,
+          97.0
+        ],
+        "screenshot": "frame_0684.png"
+      },
+      {
+        "sample": 686,
+        "source_frame": 20869,
+        "ram_xy": [
+          145.69140625,
+          94.56640625
+        ],
+        "visual_xy": [
+          147.5,
+          94.0
+        ],
+        "screenshot": "frame_0686.png"
+      },
+      {
+        "sample": 688,
+        "source_frame": 20871,
+        "ram_xy": [
+          145.125,
+          91.78125
+        ],
+        "visual_xy": [
+          146.5,
+          92.0
+        ],
+        "screenshot": "frame_0688.png"
+      },
+      {
+        "sample": 698,
+        "source_frame": 20881,
+        "ram_xy": [
+          146.60546875,
+          78.23046875
+        ],
+        "visual_xy": [
+          147.5,
+          78.0
+        ],
+        "screenshot": "frame_0698.png"
+      },
+      {
+        "sample": 700,
+        "source_frame": 20883,
+        "ram_xy": [
+          147.56640625,
+          76.33203125
+        ],
+        "visual_xy": [
+          148.5,
+          76.0
+        ],
+        "screenshot": "frame_0700.png"
+      },
+      {
+        "sample": 702,
+        "source_frame": 20885,
+        "ram_xy": [
+          148.74609375,
+          74.71484375
+        ],
+        "visual_xy": [
+          149.5,
+          74.0
+        ],
+        "screenshot": "frame_0702.png"
+      },
+      {
+        "sample": 704,
+        "source_frame": 20887,
+        "ram_xy": [
+          150.14453125,
+          73.37890625
+        ],
+        "visual_xy": [
+          150.5,
+          73.0
+        ],
+        "screenshot": "frame_0704.png"
+      },
+      {
+        "sample": 706,
+        "source_frame": 20889,
+        "ram_xy": [
+          151.76171875,
+          72.32421875
+        ],
+        "visual_xy": [
+          151.5,
+          71.0
+        ],
+        "screenshot": "frame_0706.png"
+      },
+      {
+        "sample": 708,
+        "source_frame": 20891,
+        "ram_xy": [
+          153.59765625,
+          71.55078125
+        ],
+        "visual_xy": [
+          153.5,
+          70.0
+        ],
+        "screenshot": "frame_0708.png"
+      },
+      {
+        "sample": 710,
+        "source_frame": 20893,
+        "ram_xy": [
+          155.65234375,
+          71.05859375
+        ],
+        "visual_xy": [
+          155.5,
+          70.0
+        ],
+        "screenshot": "frame_0710.png"
+      },
+      {
+        "sample": 712,
+        "source_frame": 20895,
+        "ram_xy": [
+          157.92578125,
+          70.84765625
+        ],
+        "visual_xy": [
+          157.5,
+          69.0
+        ],
+        "screenshot": "frame_0712.png"
+      },
+      {
+        "sample": 714,
+        "source_frame": 20897,
+        "ram_xy": [
+          160.41796875,
+          70.91796875
+        ],
+        "visual_xy": [
+          160.5,
+          69.0
+        ],
+        "screenshot": "frame_0714.png"
+      },
+      {
+        "sample": 716,
+        "source_frame": 20899,
+        "ram_xy": [
+          162.96484375,
+          70.91796875
+        ],
+        "visual_xy": [
+          162.5,
+          69.0
+        ],
+        "screenshot": "frame_0716.png"
+      },
+      {
+        "sample": 718,
+        "source_frame": 20901,
+        "ram_xy": [
+          165.51171875,
+          70.91796875
+        ],
+        "visual_xy": [
+          165.5,
+          69.0
+        ],
+        "screenshot": "frame_0718.png"
+      },
+      {
+        "sample": 720,
+        "source_frame": 20903,
+        "ram_xy": [
+          168.05859375,
+          70.91796875
+        ],
+        "visual_xy": [
+          167.5,
+          69.0
+        ],
+        "screenshot": "frame_0720.png"
+      },
+      {
+        "sample": 722,
+        "source_frame": 20905,
+        "ram_xy": [
+          170.60546875,
+          70.91796875
+        ],
+        "visual_xy": [
+          170.5,
+          69.0
+        ],
+        "screenshot": "frame_0722.png"
+      },
+      {
+        "sample": 724,
+        "source_frame": 20907,
+        "ram_xy": [
+          173.15234375,
+          70.91796875
+        ],
+        "visual_xy": [
+          172.5,
+          69.0
+        ],
+        "screenshot": "frame_0724.png"
+      },
+      {
+        "sample": 726,
+        "source_frame": 20909,
+        "ram_xy": [
+          175.69921875,
+          70.91796875
+        ],
+        "visual_xy": [
+          175.5,
+          69.0
+        ],
+        "screenshot": "frame_0726.png"
+      },
+      {
+        "sample": 728,
+        "source_frame": 20911,
+        "ram_xy": [
+          178.24609375,
+          70.91796875
+        ],
+        "visual_xy": [
+          177.5,
+          69.0
+        ],
+        "screenshot": "frame_0728.png"
+      },
+      {
+        "sample": 730,
+        "source_frame": 20913,
+        "ram_xy": [
+          180.79296875,
+          70.91796875
+        ],
+        "visual_xy": [
+          180.5,
+          69.0
+        ],
+        "screenshot": "frame_0730.png"
+      },
+      {
+        "sample": 732,
+        "source_frame": 20915,
+        "ram_xy": [
+          183.33984375,
+          70.91796875
+        ],
+        "visual_xy": [
+          183.5,
+          69.0
+        ],
+        "screenshot": "frame_0732.png"
+      },
+      {
+        "sample": 734,
+        "source_frame": 20917,
+        "ram_xy": [
+          185.88671875,
+          70.91796875
+        ],
+        "visual_xy": [
+          185.5,
+          69.0
+        ],
+        "screenshot": "frame_0734.png"
+      },
+      {
+        "sample": 736,
+        "source_frame": 20919,
+        "ram_xy": [
+          188.43359375,
+          70.91796875
+        ],
+        "visual_xy": [
+          188.5,
+          69.0
+        ],
+        "screenshot": "frame_0736.png"
+      },
+      {
+        "sample": 738,
+        "source_frame": 20921,
+        "ram_xy": [
+          190.98046875,
+          70.91796875
+        ],
+        "visual_xy": [
+          190.5,
+          69.0
+        ],
+        "screenshot": "frame_0738.png"
+      },
+      {
+        "sample": 740,
+        "source_frame": 20923,
+        "ram_xy": [
+          193.52734375,
+          70.91796875
+        ],
+        "visual_xy": [
+          193.5,
+          69.0
+        ],
+        "screenshot": "frame_0740.png"
+      },
+      {
+        "sample": 766,
+        "source_frame": 20949,
+        "ram_xy": [
+          208.77734375,
+          99.078125
+        ],
+        "visual_xy": [
+          204.0,
+          99.0
+        ],
+        "screenshot": "frame_0766.png"
+      },
+      {
+        "sample": 770,
+        "source_frame": 20953,
+        "ram_xy": [
+          206.88671875,
+          103.53125
+        ],
+        "visual_xy": [
+          202.0,
+          104.0
+        ],
+        "screenshot": "frame_0770.png"
+      },
+      {
+        "sample": 774,
+        "source_frame": 20957,
+        "ram_xy": [
+          203.62109375,
+          107.109375
+        ],
+        "visual_xy": [
+          199.0,
+          108.0
+        ],
+        "screenshot": "frame_0774.png"
+      },
+      {
+        "sample": 776,
+        "source_frame": 20959,
+        "ram_xy": [
+          201.47265625,
+          108.5703125
+        ],
+        "visual_xy": [
+          197.0,
+          109.0
+        ],
+        "screenshot": "frame_0776.png"
+      },
+      {
+        "sample": 778,
+        "source_frame": 20961,
+        "ram_xy": [
+          198.98046875,
+          109.8125
+        ],
+        "visual_xy": [
+          195.0,
+          111.0
+        ],
+        "screenshot": "frame_0778.png"
+      },
+      {
+        "sample": 780,
+        "source_frame": 20963,
+        "ram_xy": [
+          196.14453125,
+          110.8359375
+        ],
+        "visual_xy": [
+          192.0,
+          112.0
+        ],
+        "screenshot": "frame_0780.png"
+      },
+      {
+        "sample": 782,
+        "source_frame": 20965,
+        "ram_xy": [
+          192.96484375,
+          111.640625
+        ],
+        "visual_xy": [
+          189.0,
+          113.0
+        ],
+        "screenshot": "frame_0782.png"
+      },
+      {
+        "sample": 784,
+        "source_frame": 20967,
+        "ram_xy": [
+          189.69921875,
+          112.390625
+        ],
+        "visual_xy": [
+          186.0,
+          114.0
+        ],
+        "screenshot": "frame_0784.png"
+      },
+      {
+        "sample": 786,
+        "source_frame": 20969,
+        "ram_xy": [
+          186.43359375,
+          113.140625
+        ],
+        "visual_xy": [
+          183.0,
+          114.0
+        ],
+        "screenshot": "frame_0786.png"
+      },
+      {
+        "sample": 788,
+        "source_frame": 20971,
+        "ram_xy": [
+          183.16796875,
+          113.890625
+        ],
+        "visual_xy": [
+          179.0,
+          115.0
+        ],
+        "screenshot": "frame_0788.png"
+      },
+      {
+        "sample": 790,
+        "source_frame": 20973,
+        "ram_xy": [
+          179.90234375,
+          114.640625
+        ],
+        "visual_xy": [
+          176.0,
+          116.0
+        ],
+        "screenshot": "frame_0790.png"
+      },
+      {
+        "sample": 792,
+        "source_frame": 20975,
+        "ram_xy": [
+          176.63671875,
+          115.390625
+        ],
+        "visual_xy": [
+          173.0,
+          117.0
+        ],
+        "screenshot": "frame_0792.png"
+      },
+      {
+        "sample": 794,
+        "source_frame": 20977,
+        "ram_xy": [
+          173.37109375,
+          116.140625
+        ],
+        "visual_xy": [
+          170.0,
+          117.0
+        ],
+        "screenshot": "frame_0794.png"
+      },
+      {
+        "sample": 796,
+        "source_frame": 20979,
+        "ram_xy": [
+          170.10546875,
+          116.890625
+        ],
+        "visual_xy": [
+          166.0,
+          118.0
+        ],
+        "screenshot": "frame_0796.png"
+      },
+      {
+        "sample": 798,
+        "source_frame": 20981,
+        "ram_xy": [
+          166.83984375,
+          117.640625
+        ],
+        "visual_xy": [
+          163.0,
+          119.0
+        ],
+        "screenshot": "frame_0798.png"
+      },
+      {
+        "sample": 800,
+        "source_frame": 20983,
+        "ram_xy": [
+          163.57421875,
+          118.390625
+        ],
+        "visual_xy": [
+          160.0,
+          120.0
+        ],
+        "screenshot": "frame_0800.png"
+      },
+      {
+        "sample": 802,
+        "source_frame": 20985,
+        "ram_xy": [
+          160.30859375,
+          119.140625
+        ],
+        "visual_xy": [
+          156.0,
+          120.0
+        ],
+        "screenshot": "frame_0802.png"
+      },
+      {
+        "sample": 804,
+        "source_frame": 20987,
+        "ram_xy": [
+          157.04296875,
+          119.890625
+        ],
+        "visual_xy": [
+          153.0,
+          121.0
+        ],
+        "screenshot": "frame_0804.png"
+      }
+    ],
+    "0x1780": [
+      {
+        "sample": 550,
+        "source_frame": 20733,
+        "ram_xy": [
+          231.8828125,
+          97.65625
+        ],
+        "visual_xy": [
+          234.0,
+          99.0
+        ],
+        "screenshot": "frame_0550.png"
+      },
+      {
+        "sample": 552,
+        "source_frame": 20735,
+        "ram_xy": [
+          235.2890625,
+          97.65625
+        ],
+        "visual_xy": [
+          237.0,
+          99.0
+        ],
+        "screenshot": "frame_0552.png"
+      },
+      {
+        "sample": 554,
+        "source_frame": 20737,
+        "ram_xy": [
+          238.6953125,
+          97.65625
+        ],
+        "visual_xy": [
+          240.0,
+          99.0
+        ],
+        "screenshot": "frame_0554.png"
+      },
+      {
+        "sample": 556,
+        "source_frame": 20739,
+        "ram_xy": [
+          242.1015625,
+          97.65625
+        ],
+        "visual_xy": [
+          244.0,
+          99.0
+        ],
+        "screenshot": "frame_0556.png"
+      },
+      {
+        "sample": 558,
+        "source_frame": 20741,
+        "ram_xy": [
+          245.5078125,
+          97.65625
+        ],
+        "visual_xy": [
+          247.0,
+          99.0
+        ],
+        "screenshot": "frame_0558.png"
+      },
+      {
+        "sample": 652,
+        "source_frame": 20835,
+        "ram_xy": [
+          246.84375,
+          104.0
+        ],
+        "visual_xy": [
+          243.0,
+          106.0
+        ],
+        "screenshot": "frame_0652.png"
+      },
+      {
+        "sample": 654,
+        "source_frame": 20837,
+        "ram_xy": [
+          243.25,
+          104.0
+        ],
+        "visual_xy": [
+          240.0,
+          106.0
+        ],
+        "screenshot": "frame_0654.png"
+      },
+      {
+        "sample": 656,
+        "source_frame": 20839,
+        "ram_xy": [
+          239.65625,
+          104.0
+        ],
+        "visual_xy": [
+          236.0,
+          106.0
+        ],
+        "screenshot": "frame_0656.png"
+      },
+      {
+        "sample": 658,
+        "source_frame": 20841,
+        "ram_xy": [
+          236.0625,
+          104.0
+        ],
+        "visual_xy": [
+          232.0,
+          106.0
+        ],
+        "screenshot": "frame_0658.png"
+      },
+      {
+        "sample": 660,
+        "source_frame": 20843,
+        "ram_xy": [
+          232.46875,
+          104.0
+        ],
+        "visual_xy": [
+          229.0,
+          106.0
+        ],
+        "screenshot": "frame_0660.png"
+      },
+      {
+        "sample": 662,
+        "source_frame": 20845,
+        "ram_xy": [
+          228.875,
+          104.0
+        ],
+        "visual_xy": [
+          225.0,
+          106.0
+        ],
+        "screenshot": "frame_0662.png"
+      },
+      {
+        "sample": 664,
+        "source_frame": 20847,
+        "ram_xy": [
+          225.28125,
+          104.0
+        ],
+        "visual_xy": [
+          222.0,
+          106.0
+        ],
+        "screenshot": "frame_0664.png"
+      },
+      {
+        "sample": 666,
+        "source_frame": 20849,
+        "ram_xy": [
+          221.6875,
+          104.0
+        ],
+        "visual_xy": [
+          218.0,
+          106.0
+        ],
+        "screenshot": "frame_0666.png"
+      },
+      {
+        "sample": 668,
+        "source_frame": 20851,
+        "ram_xy": [
+          218.09375,
+          104.0
+        ],
+        "visual_xy": [
+          214.0,
+          106.0
+        ],
+        "screenshot": "frame_0668.png"
+      },
+      {
+        "sample": 670,
+        "source_frame": 20853,
+        "ram_xy": [
+          214.5,
+          104.0
+        ],
+        "visual_xy": [
+          211.0,
+          106.0
+        ],
+        "screenshot": "frame_0670.png"
+      },
+      {
+        "sample": 672,
+        "source_frame": 20855,
+        "ram_xy": [
+          210.90625,
+          104.0
+        ],
+        "visual_xy": [
+          207.0,
+          106.0
+        ],
+        "screenshot": "frame_0672.png"
+      },
+      {
+        "sample": 674,
+        "source_frame": 20857,
+        "ram_xy": [
+          207.3125,
+          104.0
+        ],
+        "visual_xy": [
+          204.0,
+          106.0
+        ],
+        "screenshot": "frame_0674.png"
+      },
+      {
+        "sample": 676,
+        "source_frame": 20859,
+        "ram_xy": [
+          203.71875,
+          104.0
+        ],
+        "visual_xy": [
+          200.0,
+          106.0
+        ],
+        "screenshot": "frame_0676.png"
+      },
+      {
+        "sample": 678,
+        "source_frame": 20861,
+        "ram_xy": [
+          200.125,
+          104.0
+        ],
+        "visual_xy": [
+          196.0,
+          106.0
+        ],
+        "screenshot": "frame_0678.png"
+      },
+      {
+        "sample": 680,
+        "source_frame": 20863,
+        "ram_xy": [
+          196.53125,
+          104.0
+        ],
+        "visual_xy": [
+          193.0,
+          106.0
+        ],
+        "screenshot": "frame_0680.png"
+      },
+      {
+        "sample": 682,
+        "source_frame": 20865,
+        "ram_xy": [
+          192.9375,
+          104.0
+        ],
+        "visual_xy": [
+          189.0,
+          106.0
+        ],
+        "screenshot": "frame_0682.png"
+      },
+      {
+        "sample": 684,
+        "source_frame": 20867,
+        "ram_xy": [
+          189.34375,
+          104.0
+        ],
+        "visual_xy": [
+          186.0,
+          106.0
+        ],
+        "screenshot": "frame_0684.png"
+      },
+      {
+        "sample": 686,
+        "source_frame": 20869,
+        "ram_xy": [
+          185.75,
+          104.0
+        ],
+        "visual_xy": [
+          182.0,
+          106.0
+        ],
+        "screenshot": "frame_0686.png"
+      },
+      {
+        "sample": 688,
+        "source_frame": 20871,
+        "ram_xy": [
+          182.15625,
+          104.0
+        ],
+        "visual_xy": [
+          178.0,
+          106.0
+        ],
+        "screenshot": "frame_0688.png"
+      },
+      {
+        "sample": 690,
+        "source_frame": 20873,
+        "ram_xy": [
+          178.5625,
+          104.0
+        ],
+        "visual_xy": [
+          175.0,
+          106.0
+        ],
+        "screenshot": "frame_0690.png"
+      },
+      {
+        "sample": 692,
+        "source_frame": 20875,
+        "ram_xy": [
+          174.96875,
+          104.0
+        ],
+        "visual_xy": [
+          171.0,
+          106.0
+        ],
+        "screenshot": "frame_0692.png"
+      },
+      {
+        "sample": 694,
+        "source_frame": 20877,
+        "ram_xy": [
+          171.375,
+          104.0
+        ],
+        "visual_xy": [
+          168.0,
+          106.0
+        ],
+        "screenshot": "frame_0694.png"
+      },
+      {
+        "sample": 696,
+        "source_frame": 20879,
+        "ram_xy": [
+          167.78125,
+          104.0
+        ],
+        "visual_xy": [
+          164.0,
+          106.0
+        ],
+        "screenshot": "frame_0696.png"
+      },
+      {
+        "sample": 698,
+        "source_frame": 20881,
+        "ram_xy": [
+          164.1875,
+          104.0
+        ],
+        "visual_xy": [
+          160.0,
+          106.0
+        ],
+        "screenshot": "frame_0698.png"
+      },
+      {
+        "sample": 700,
+        "source_frame": 20883,
+        "ram_xy": [
+          160.59375,
+          104.0
+        ],
+        "visual_xy": [
+          157.0,
+          106.0
+        ],
+        "screenshot": "frame_0700.png"
+      },
+      {
+        "sample": 702,
+        "source_frame": 20885,
+        "ram_xy": [
+          157.29296875,
+          103.73046875
+        ],
+        "visual_xy": [
+          159.5,
+          102.0
+        ],
+        "screenshot": "frame_0702.png"
+      },
+      {
+        "sample": 704,
+        "source_frame": 20887,
+        "ram_xy": [
+          154.3828125,
+          103.1015625
+        ],
+        "visual_xy": [
+          156.5,
+          102.0
+        ],
+        "screenshot": "frame_0704.png"
+      },
+      {
+        "sample": 706,
+        "source_frame": 20889,
+        "ram_xy": [
+          151.86328125,
+          102.11328125
+        ],
+        "visual_xy": [
+          154.5,
+          101.0
+        ],
+        "screenshot": "frame_0706.png"
+      },
+      {
+        "sample": 708,
+        "source_frame": 20891,
+        "ram_xy": [
+          149.734375,
+          100.765625
+        ],
+        "visual_xy": [
+          151.5,
+          100.0
+        ],
+        "screenshot": "frame_0708.png"
+      },
+      {
+        "sample": 710,
+        "source_frame": 20893,
+        "ram_xy": [
+          147.99609375,
+          99.05859375
+        ],
+        "visual_xy": [
+          149.5,
+          98.0
+        ],
+        "screenshot": "frame_0710.png"
+      },
+      {
+        "sample": 712,
+        "source_frame": 20895,
+        "ram_xy": [
+          146.6484375,
+          96.9921875
+        ],
+        "visual_xy": [
+          148.5,
+          97.0
+        ],
+        "screenshot": "frame_0712.png"
+      },
+      {
+        "sample": 714,
+        "source_frame": 20897,
+        "ram_xy": [
+          145.69140625,
+          94.56640625
+        ],
+        "visual_xy": [
+          147.5,
+          94.0
+        ],
+        "screenshot": "frame_0714.png"
+      },
+      {
+        "sample": 716,
+        "source_frame": 20899,
+        "ram_xy": [
+          145.125,
+          91.78125
+        ],
+        "visual_xy": [
+          146.5,
+          92.0
+        ],
+        "screenshot": "frame_0716.png"
+      },
+      {
+        "sample": 724,
+        "source_frame": 20907,
+        "ram_xy": [
+          145.86328125,
+          80.41015625
+        ],
+        "visual_xy": [
+          146.5,
+          80.0
+        ],
+        "screenshot": "frame_0724.png"
+      },
+      {
+        "sample": 726,
+        "source_frame": 20909,
+        "ram_xy": [
+          146.60546875,
+          78.23046875
+        ],
+        "visual_xy": [
+          147.5,
+          78.0
+        ],
+        "screenshot": "frame_0726.png"
+      },
+      {
+        "sample": 728,
+        "source_frame": 20911,
+        "ram_xy": [
+          147.56640625,
+          76.33203125
+        ],
+        "visual_xy": [
+          148.5,
+          76.0
+        ],
+        "screenshot": "frame_0728.png"
+      },
+      {
+        "sample": 730,
+        "source_frame": 20913,
+        "ram_xy": [
+          148.74609375,
+          74.71484375
+        ],
+        "visual_xy": [
+          149.5,
+          74.0
+        ],
+        "screenshot": "frame_0730.png"
+      },
+      {
+        "sample": 732,
+        "source_frame": 20915,
+        "ram_xy": [
+          150.14453125,
+          73.37890625
+        ],
+        "visual_xy": [
+          150.5,
+          73.0
+        ],
+        "screenshot": "frame_0732.png"
+      },
+      {
+        "sample": 734,
+        "source_frame": 20917,
+        "ram_xy": [
+          151.76171875,
+          72.32421875
+        ],
+        "visual_xy": [
+          151.5,
+          71.0
+        ],
+        "screenshot": "frame_0734.png"
+      },
+      {
+        "sample": 736,
+        "source_frame": 20919,
+        "ram_xy": [
+          153.59765625,
+          71.55078125
+        ],
+        "visual_xy": [
+          153.5,
+          70.0
+        ],
+        "screenshot": "frame_0736.png"
+      },
+      {
+        "sample": 738,
+        "source_frame": 20921,
+        "ram_xy": [
+          155.65234375,
+          71.05859375
+        ],
+        "visual_xy": [
+          155.5,
+          70.0
+        ],
+        "screenshot": "frame_0738.png"
+      },
+      {
+        "sample": 740,
+        "source_frame": 20923,
+        "ram_xy": [
+          157.92578125,
+          70.84765625
+        ],
+        "visual_xy": [
+          157.5,
+          69.0
+        ],
+        "screenshot": "frame_0740.png"
+      },
+      {
+        "sample": 742,
+        "source_frame": 20925,
+        "ram_xy": [
+          160.41796875,
+          70.91796875
+        ],
+        "visual_xy": [
+          160.5,
+          69.0
+        ],
+        "screenshot": "frame_0742.png"
+      },
+      {
+        "sample": 744,
+        "source_frame": 20927,
+        "ram_xy": [
+          162.96484375,
+          70.91796875
+        ],
+        "visual_xy": [
+          162.5,
+          69.0
+        ],
+        "screenshot": "frame_0744.png"
+      },
+      {
+        "sample": 746,
+        "source_frame": 20929,
+        "ram_xy": [
+          165.51171875,
+          70.91796875
+        ],
+        "visual_xy": [
+          165.5,
+          69.0
+        ],
+        "screenshot": "frame_0746.png"
+      },
+      {
+        "sample": 748,
+        "source_frame": 20931,
+        "ram_xy": [
+          168.05859375,
+          70.91796875
+        ],
+        "visual_xy": [
+          167.5,
+          69.0
+        ],
+        "screenshot": "frame_0748.png"
+      },
+      {
+        "sample": 750,
+        "source_frame": 20933,
+        "ram_xy": [
+          170.60546875,
+          70.91796875
+        ],
+        "visual_xy": [
+          170.5,
+          69.0
+        ],
+        "screenshot": "frame_0750.png"
+      },
+      {
+        "sample": 752,
+        "source_frame": 20935,
+        "ram_xy": [
+          173.15234375,
+          70.91796875
+        ],
+        "visual_xy": [
+          172.5,
+          69.0
+        ],
+        "screenshot": "frame_0752.png"
+      },
+      {
+        "sample": 754,
+        "source_frame": 20937,
+        "ram_xy": [
+          175.69921875,
+          70.91796875
+        ],
+        "visual_xy": [
+          175.5,
+          69.0
+        ],
+        "screenshot": "frame_0754.png"
+      },
+      {
+        "sample": 756,
+        "source_frame": 20939,
+        "ram_xy": [
+          178.24609375,
+          70.91796875
+        ],
+        "visual_xy": [
+          177.5,
+          69.0
+        ],
+        "screenshot": "frame_0756.png"
+      },
+      {
+        "sample": 758,
+        "source_frame": 20941,
+        "ram_xy": [
+          180.79296875,
+          70.91796875
+        ],
+        "visual_xy": [
+          180.5,
+          69.0
+        ],
+        "screenshot": "frame_0758.png"
+      },
+      {
+        "sample": 760,
+        "source_frame": 20943,
+        "ram_xy": [
+          183.33984375,
+          70.91796875
+        ],
+        "visual_xy": [
+          183.5,
+          69.0
+        ],
+        "screenshot": "frame_0760.png"
+      },
+      {
+        "sample": 762,
+        "source_frame": 20945,
+        "ram_xy": [
+          185.88671875,
+          70.91796875
+        ],
+        "visual_xy": [
+          185.5,
+          69.0
+        ],
+        "screenshot": "frame_0762.png"
+      },
+      {
+        "sample": 764,
+        "source_frame": 20947,
+        "ram_xy": [
+          188.43359375,
+          70.91796875
+        ],
+        "visual_xy": [
+          188.5,
+          69.0
+        ],
+        "screenshot": "frame_0764.png"
+      },
+      {
+        "sample": 766,
+        "source_frame": 20949,
+        "ram_xy": [
+          190.98046875,
+          70.91796875
+        ],
+        "visual_xy": [
+          190.5,
+          69.0
+        ],
+        "screenshot": "frame_0766.png"
+      },
+      {
+        "sample": 768,
+        "source_frame": 20951,
+        "ram_xy": [
+          193.52734375,
+          70.91796875
+        ],
+        "visual_xy": [
+          193.5,
+          69.0
+        ],
+        "screenshot": "frame_0768.png"
+      },
+      {
+        "sample": 794,
+        "source_frame": 20977,
+        "ram_xy": [
+          208.77734375,
+          99.078125
+        ],
+        "visual_xy": [
+          204.0,
+          99.0
+        ],
+        "screenshot": "frame_0794.png"
+      },
+      {
+        "sample": 798,
+        "source_frame": 20981,
+        "ram_xy": [
+          206.88671875,
+          103.53125
+        ],
+        "visual_xy": [
+          202.0,
+          104.0
+        ],
+        "screenshot": "frame_0798.png"
+      },
+      {
+        "sample": 800,
+        "source_frame": 20983,
+        "ram_xy": [
+          205.42578125,
+          105.4296875
+        ],
+        "visual_xy": [
+          201.0,
+          106.0
+        ],
+        "screenshot": "frame_0800.png"
+      },
+      {
+        "sample": 802,
+        "source_frame": 20985,
+        "ram_xy": [
+          203.62109375,
+          107.109375
+        ],
+        "visual_xy": [
+          199.0,
+          108.0
+        ],
+        "screenshot": "frame_0802.png"
+      },
+      {
+        "sample": 804,
+        "source_frame": 20987,
+        "ram_xy": [
+          201.47265625,
+          108.5703125
+        ],
+        "visual_xy": [
+          197.0,
+          109.0
+        ],
+        "screenshot": "frame_0804.png"
+      },
+      {
+        "sample": 806,
+        "source_frame": 20989,
+        "ram_xy": [
+          198.98046875,
+          109.8125
+        ],
+        "visual_xy": [
+          195.0,
+          111.0
+        ],
+        "screenshot": "frame_0806.png"
+      },
+      {
+        "sample": 808,
+        "source_frame": 20991,
+        "ram_xy": [
+          196.14453125,
+          110.8359375
+        ],
+        "visual_xy": [
+          192.0,
+          112.0
+        ],
+        "screenshot": "frame_0808.png"
+      },
+      {
+        "sample": 810,
+        "source_frame": 20993,
+        "ram_xy": [
+          192.96484375,
+          111.640625
+        ],
+        "visual_xy": [
+          189.0,
+          113.0
+        ],
+        "screenshot": "frame_0810.png"
+      },
+      {
+        "sample": 812,
+        "source_frame": 20995,
+        "ram_xy": [
+          189.69921875,
+          112.390625
+        ],
+        "visual_xy": [
+          186.0,
+          114.0
+        ],
+        "screenshot": "frame_0812.png"
+      },
+      {
+        "sample": 814,
+        "source_frame": 20997,
+        "ram_xy": [
+          186.43359375,
+          113.140625
+        ],
+        "visual_xy": [
+          183.0,
+          114.0
+        ],
+        "screenshot": "frame_0814.png"
+      },
+      {
+        "sample": 816,
+        "source_frame": 20999,
+        "ram_xy": [
+          183.16796875,
+          113.890625
+        ],
+        "visual_xy": [
+          179.0,
+          115.0
+        ],
+        "screenshot": "frame_0816.png"
+      },
+      {
+        "sample": 818,
+        "source_frame": 21001,
+        "ram_xy": [
+          179.90234375,
+          114.640625
+        ],
+        "visual_xy": [
+          176.0,
+          116.0
+        ],
+        "screenshot": "frame_0818.png"
+      },
+      {
+        "sample": 820,
+        "source_frame": 21003,
+        "ram_xy": [
+          176.63671875,
+          115.390625
+        ],
+        "visual_xy": [
+          173.0,
+          117.0
+        ],
+        "screenshot": "frame_0820.png"
+      },
+      {
+        "sample": 822,
+        "source_frame": 21005,
+        "ram_xy": [
+          173.37109375,
+          116.140625
+        ],
+        "visual_xy": [
+          170.0,
+          117.0
+        ],
+        "screenshot": "frame_0822.png"
+      },
+      {
+        "sample": 824,
+        "source_frame": 21007,
+        "ram_xy": [
+          170.10546875,
+          116.890625
+        ],
+        "visual_xy": [
+          166.0,
+          118.0
+        ],
+        "screenshot": "frame_0824.png"
+      },
+      {
+        "sample": 826,
+        "source_frame": 21009,
+        "ram_xy": [
+          166.83984375,
+          117.640625
+        ],
+        "visual_xy": [
+          163.0,
+          119.0
+        ],
+        "screenshot": "frame_0826.png"
+      },
+      {
+        "sample": 828,
+        "source_frame": 21011,
+        "ram_xy": [
+          163.57421875,
+          118.390625
+        ],
+        "visual_xy": [
+          160.0,
+          120.0
+        ],
+        "screenshot": "frame_0828.png"
+      },
+      {
+        "sample": 830,
+        "source_frame": 21013,
+        "ram_xy": [
+          160.30859375,
+          119.140625
+        ],
+        "visual_xy": [
+          156.0,
+          120.0
+        ],
+        "screenshot": "frame_0830.png"
+      },
+      {
+        "sample": 832,
+        "source_frame": 21015,
+        "ram_xy": [
+          157.04296875,
+          119.890625
+        ],
+        "visual_xy": [
+          153.0,
+          121.0
+        ],
+        "screenshot": "frame_0832.png"
+      }
+    ],
+    "0x1940": [
+      {
+        "sample": 680,
+        "source_frame": 20863,
+        "ram_xy": [
+          246.84375,
+          104.0
+        ],
+        "visual_xy": [
+          243.0,
+          106.0
+        ],
+        "screenshot": "frame_0680.png"
+      },
+      {
+        "sample": 682,
+        "source_frame": 20865,
+        "ram_xy": [
+          243.25,
+          104.0
+        ],
+        "visual_xy": [
+          240.0,
+          106.0
+        ],
+        "screenshot": "frame_0682.png"
+      },
+      {
+        "sample": 684,
+        "source_frame": 20867,
+        "ram_xy": [
+          239.65625,
+          104.0
+        ],
+        "visual_xy": [
+          236.0,
+          106.0
+        ],
+        "screenshot": "frame_0684.png"
+      },
+      {
+        "sample": 686,
+        "source_frame": 20869,
+        "ram_xy": [
+          236.0625,
+          104.0
+        ],
+        "visual_xy": [
+          232.0,
+          106.0
+        ],
+        "screenshot": "frame_0686.png"
+      },
+      {
+        "sample": 688,
+        "source_frame": 20871,
+        "ram_xy": [
+          232.46875,
+          104.0
+        ],
+        "visual_xy": [
+          229.0,
+          106.0
+        ],
+        "screenshot": "frame_0688.png"
+      },
+      {
+        "sample": 690,
+        "source_frame": 20873,
+        "ram_xy": [
+          228.875,
+          104.0
+        ],
+        "visual_xy": [
+          225.0,
+          106.0
+        ],
+        "screenshot": "frame_0690.png"
+      },
+      {
+        "sample": 692,
+        "source_frame": 20875,
+        "ram_xy": [
+          225.28125,
+          104.0
+        ],
+        "visual_xy": [
+          222.0,
+          106.0
+        ],
+        "screenshot": "frame_0692.png"
+      },
+      {
+        "sample": 694,
+        "source_frame": 20877,
+        "ram_xy": [
+          221.6875,
+          104.0
+        ],
+        "visual_xy": [
+          218.0,
+          106.0
+        ],
+        "screenshot": "frame_0694.png"
+      },
+      {
+        "sample": 696,
+        "source_frame": 20879,
+        "ram_xy": [
+          218.09375,
+          104.0
+        ],
+        "visual_xy": [
+          214.0,
+          106.0
+        ],
+        "screenshot": "frame_0696.png"
+      },
+      {
+        "sample": 698,
+        "source_frame": 20881,
+        "ram_xy": [
+          214.5,
+          104.0
+        ],
+        "visual_xy": [
+          211.0,
+          106.0
+        ],
+        "screenshot": "frame_0698.png"
+      },
+      {
+        "sample": 700,
+        "source_frame": 20883,
+        "ram_xy": [
+          210.90625,
+          104.0
+        ],
+        "visual_xy": [
+          207.0,
+          106.0
+        ],
+        "screenshot": "frame_0700.png"
+      },
+      {
+        "sample": 702,
+        "source_frame": 20885,
+        "ram_xy": [
+          207.3125,
+          104.0
+        ],
+        "visual_xy": [
+          204.0,
+          106.0
+        ],
+        "screenshot": "frame_0702.png"
+      },
+      {
+        "sample": 704,
+        "source_frame": 20887,
+        "ram_xy": [
+          203.71875,
+          104.0
+        ],
+        "visual_xy": [
+          200.0,
+          106.0
+        ],
+        "screenshot": "frame_0704.png"
+      },
+      {
+        "sample": 706,
+        "source_frame": 20889,
+        "ram_xy": [
+          200.125,
+          104.0
+        ],
+        "visual_xy": [
+          196.0,
+          106.0
+        ],
+        "screenshot": "frame_0706.png"
+      },
+      {
+        "sample": 708,
+        "source_frame": 20891,
+        "ram_xy": [
+          196.53125,
+          104.0
+        ],
+        "visual_xy": [
+          193.0,
+          106.0
+        ],
+        "screenshot": "frame_0708.png"
+      },
+      {
+        "sample": 710,
+        "source_frame": 20893,
+        "ram_xy": [
+          192.9375,
+          104.0
+        ],
+        "visual_xy": [
+          189.0,
+          106.0
+        ],
+        "screenshot": "frame_0710.png"
+      },
+      {
+        "sample": 712,
+        "source_frame": 20895,
+        "ram_xy": [
+          189.34375,
+          104.0
+        ],
+        "visual_xy": [
+          186.0,
+          106.0
+        ],
+        "screenshot": "frame_0712.png"
+      },
+      {
+        "sample": 714,
+        "source_frame": 20897,
+        "ram_xy": [
+          185.75,
+          104.0
+        ],
+        "visual_xy": [
+          182.0,
+          106.0
+        ],
+        "screenshot": "frame_0714.png"
+      },
+      {
+        "sample": 716,
+        "source_frame": 20899,
+        "ram_xy": [
+          182.15625,
+          104.0
+        ],
+        "visual_xy": [
+          178.0,
+          106.0
+        ],
+        "screenshot": "frame_0716.png"
+      },
+      {
+        "sample": 718,
+        "source_frame": 20901,
+        "ram_xy": [
+          178.5625,
+          104.0
+        ],
+        "visual_xy": [
+          175.0,
+          106.0
+        ],
+        "screenshot": "frame_0718.png"
+      },
+      {
+        "sample": 720,
+        "source_frame": 20903,
+        "ram_xy": [
+          174.96875,
+          104.0
+        ],
+        "visual_xy": [
+          171.0,
+          106.0
+        ],
+        "screenshot": "frame_0720.png"
+      },
+      {
+        "sample": 722,
+        "source_frame": 20905,
+        "ram_xy": [
+          171.375,
+          104.0
+        ],
+        "visual_xy": [
+          168.0,
+          106.0
+        ],
+        "screenshot": "frame_0722.png"
+      },
+      {
+        "sample": 724,
+        "source_frame": 20907,
+        "ram_xy": [
+          167.78125,
+          104.0
+        ],
+        "visual_xy": [
+          164.0,
+          106.0
+        ],
+        "screenshot": "frame_0724.png"
+      },
+      {
+        "sample": 726,
+        "source_frame": 20909,
+        "ram_xy": [
+          164.1875,
+          104.0
+        ],
+        "visual_xy": [
+          160.0,
+          106.0
+        ],
+        "screenshot": "frame_0726.png"
+      },
+      {
+        "sample": 728,
+        "source_frame": 20911,
+        "ram_xy": [
+          160.59375,
+          104.0
+        ],
+        "visual_xy": [
+          157.0,
+          106.0
+        ],
+        "screenshot": "frame_0728.png"
+      },
+      {
+        "sample": 730,
+        "source_frame": 20913,
+        "ram_xy": [
+          157.29296875,
+          103.73046875
+        ],
+        "visual_xy": [
+          159.5,
+          102.0
+        ],
+        "screenshot": "frame_0730.png"
+      },
+      {
+        "sample": 732,
+        "source_frame": 20915,
+        "ram_xy": [
+          154.3828125,
+          103.1015625
+        ],
+        "visual_xy": [
+          156.5,
+          102.0
+        ],
+        "screenshot": "frame_0732.png"
+      },
+      {
+        "sample": 734,
+        "source_frame": 20917,
+        "ram_xy": [
+          151.86328125,
+          102.11328125
+        ],
+        "visual_xy": [
+          154.5,
+          101.0
+        ],
+        "screenshot": "frame_0734.png"
+      },
+      {
+        "sample": 736,
+        "source_frame": 20919,
+        "ram_xy": [
+          149.734375,
+          100.765625
+        ],
+        "visual_xy": [
+          151.5,
+          100.0
+        ],
+        "screenshot": "frame_0736.png"
+      },
+      {
+        "sample": 738,
+        "source_frame": 20921,
+        "ram_xy": [
+          147.99609375,
+          99.05859375
+        ],
+        "visual_xy": [
+          149.5,
+          98.0
+        ],
+        "screenshot": "frame_0738.png"
+      },
+      {
+        "sample": 740,
+        "source_frame": 20923,
+        "ram_xy": [
+          146.6484375,
+          96.9921875
+        ],
+        "visual_xy": [
+          148.5,
+          97.0
+        ],
+        "screenshot": "frame_0740.png"
+      },
+      {
+        "sample": 742,
+        "source_frame": 20925,
+        "ram_xy": [
+          145.69140625,
+          94.56640625
+        ],
+        "visual_xy": [
+          147.5,
+          94.0
+        ],
+        "screenshot": "frame_0742.png"
+      },
+      {
+        "sample": 744,
+        "source_frame": 20927,
+        "ram_xy": [
+          145.125,
+          91.78125
+        ],
+        "visual_xy": [
+          146.5,
+          92.0
+        ],
+        "screenshot": "frame_0744.png"
+      },
+      {
+        "sample": 746,
+        "source_frame": 20929,
+        "ram_xy": [
+          144.94921875,
+          88.63671875
+        ],
+        "visual_xy": [
+          145.5,
+          89.0
+        ],
+        "screenshot": "frame_0746.png"
+      },
+      {
+        "sample": 748,
+        "source_frame": 20931,
+        "ram_xy": [
+          145.03515625,
+          85.61328125
+        ],
+        "visual_xy": [
+          145.5,
+          86.0
+        ],
+        "screenshot": "frame_0748.png"
+      },
+      {
+        "sample": 750,
+        "source_frame": 20933,
+        "ram_xy": [
+          145.33984375,
+          82.87109375
+        ],
+        "visual_xy": [
+          146.5,
+          83.0
+        ],
+        "screenshot": "frame_0750.png"
+      },
+      {
+        "sample": 752,
+        "source_frame": 20935,
+        "ram_xy": [
+          145.86328125,
+          80.41015625
+        ],
+        "visual_xy": [
+          146.5,
+          80.0
+        ],
+        "screenshot": "frame_0752.png"
+      },
+      {
+        "sample": 754,
+        "source_frame": 20937,
+        "ram_xy": [
+          146.60546875,
+          78.23046875
+        ],
+        "visual_xy": [
+          147.5,
+          78.0
+        ],
+        "screenshot": "frame_0754.png"
+      },
+      {
+        "sample": 756,
+        "source_frame": 20939,
+        "ram_xy": [
+          147.56640625,
+          76.33203125
+        ],
+        "visual_xy": [
+          148.5,
+          76.0
+        ],
+        "screenshot": "frame_0756.png"
+      },
+      {
+        "sample": 758,
+        "source_frame": 20941,
+        "ram_xy": [
+          148.74609375,
+          74.71484375
+        ],
+        "visual_xy": [
+          149.5,
+          74.0
+        ],
+        "screenshot": "frame_0758.png"
+      },
+      {
+        "sample": 760,
+        "source_frame": 20943,
+        "ram_xy": [
+          150.14453125,
+          73.37890625
+        ],
+        "visual_xy": [
+          150.5,
+          73.0
+        ],
+        "screenshot": "frame_0760.png"
+      },
+      {
+        "sample": 762,
+        "source_frame": 20945,
+        "ram_xy": [
+          151.76171875,
+          72.32421875
+        ],
+        "visual_xy": [
+          151.5,
+          71.0
+        ],
+        "screenshot": "frame_0762.png"
+      },
+      {
+        "sample": 764,
+        "source_frame": 20947,
+        "ram_xy": [
+          153.59765625,
+          71.55078125
+        ],
+        "visual_xy": [
+          153.5,
+          70.0
+        ],
+        "screenshot": "frame_0764.png"
+      },
+      {
+        "sample": 766,
+        "source_frame": 20949,
+        "ram_xy": [
+          155.65234375,
+          71.05859375
+        ],
+        "visual_xy": [
+          155.5,
+          70.0
+        ],
+        "screenshot": "frame_0766.png"
+      },
+      {
+        "sample": 768,
+        "source_frame": 20951,
+        "ram_xy": [
+          157.92578125,
+          70.84765625
+        ],
+        "visual_xy": [
+          157.5,
+          69.0
+        ],
+        "screenshot": "frame_0768.png"
+      },
+      {
+        "sample": 770,
+        "source_frame": 20953,
+        "ram_xy": [
+          160.41796875,
+          70.91796875
+        ],
+        "visual_xy": [
+          160.5,
+          69.0
+        ],
+        "screenshot": "frame_0770.png"
+      },
+      {
+        "sample": 772,
+        "source_frame": 20955,
+        "ram_xy": [
+          162.96484375,
+          70.91796875
+        ],
+        "visual_xy": [
+          162.5,
+          69.0
+        ],
+        "screenshot": "frame_0772.png"
+      },
+      {
+        "sample": 774,
+        "source_frame": 20957,
+        "ram_xy": [
+          165.51171875,
+          70.91796875
+        ],
+        "visual_xy": [
+          165.5,
+          69.0
+        ],
+        "screenshot": "frame_0774.png"
+      },
+      {
+        "sample": 776,
+        "source_frame": 20959,
+        "ram_xy": [
+          168.05859375,
+          70.91796875
+        ],
+        "visual_xy": [
+          167.5,
+          69.0
+        ],
+        "screenshot": "frame_0776.png"
+      },
+      {
+        "sample": 778,
+        "source_frame": 20961,
+        "ram_xy": [
+          170.60546875,
+          70.91796875
+        ],
+        "visual_xy": [
+          170.5,
+          69.0
+        ],
+        "screenshot": "frame_0778.png"
+      },
+      {
+        "sample": 780,
+        "source_frame": 20963,
+        "ram_xy": [
+          173.15234375,
+          70.91796875
+        ],
+        "visual_xy": [
+          172.5,
+          69.0
+        ],
+        "screenshot": "frame_0780.png"
+      },
+      {
+        "sample": 782,
+        "source_frame": 20965,
+        "ram_xy": [
+          175.69921875,
+          70.91796875
+        ],
+        "visual_xy": [
+          175.5,
+          69.0
+        ],
+        "screenshot": "frame_0782.png"
+      },
+      {
+        "sample": 784,
+        "source_frame": 20967,
+        "ram_xy": [
+          178.24609375,
+          70.91796875
+        ],
+        "visual_xy": [
+          177.5,
+          69.0
+        ],
+        "screenshot": "frame_0784.png"
+      },
+      {
+        "sample": 786,
+        "source_frame": 20969,
+        "ram_xy": [
+          180.79296875,
+          70.91796875
+        ],
+        "visual_xy": [
+          180.5,
+          69.0
+        ],
+        "screenshot": "frame_0786.png"
+      },
+      {
+        "sample": 788,
+        "source_frame": 20971,
+        "ram_xy": [
+          183.33984375,
+          70.91796875
+        ],
+        "visual_xy": [
+          183.5,
+          69.0
+        ],
+        "screenshot": "frame_0788.png"
+      },
+      {
+        "sample": 790,
+        "source_frame": 20973,
+        "ram_xy": [
+          185.88671875,
+          70.91796875
+        ],
+        "visual_xy": [
+          185.5,
+          69.0
+        ],
+        "screenshot": "frame_0790.png"
+      },
+      {
+        "sample": 792,
+        "source_frame": 20975,
+        "ram_xy": [
+          188.43359375,
+          70.91796875
+        ],
+        "visual_xy": [
+          188.5,
+          69.0
+        ],
+        "screenshot": "frame_0792.png"
+      },
+      {
+        "sample": 794,
+        "source_frame": 20977,
+        "ram_xy": [
+          190.98046875,
+          70.91796875
+        ],
+        "visual_xy": [
+          190.5,
+          69.0
+        ],
+        "screenshot": "frame_0794.png"
+      },
+      {
+        "sample": 796,
+        "source_frame": 20979,
+        "ram_xy": [
+          193.52734375,
+          70.91796875
+        ],
+        "visual_xy": [
+          193.5,
+          69.0
+        ],
+        "screenshot": "frame_0796.png"
+      },
+      {
+        "sample": 822,
+        "source_frame": 21005,
+        "ram_xy": [
+          208.77734375,
+          99.078125
+        ],
+        "visual_xy": [
+          204.0,
+          99.0
+        ],
+        "screenshot": "frame_0822.png"
+      },
+      {
+        "sample": 826,
+        "source_frame": 21009,
+        "ram_xy": [
+          206.88671875,
+          103.53125
+        ],
+        "visual_xy": [
+          202.0,
+          104.0
+        ],
+        "screenshot": "frame_0826.png"
+      },
+      {
+        "sample": 828,
+        "source_frame": 21011,
+        "ram_xy": [
+          205.42578125,
+          105.4296875
+        ],
+        "visual_xy": [
+          201.0,
+          106.0
+        ],
+        "screenshot": "frame_0828.png"
+      },
+      {
+        "sample": 830,
+        "source_frame": 21013,
+        "ram_xy": [
+          203.62109375,
+          107.109375
+        ],
+        "visual_xy": [
+          199.0,
+          108.0
+        ],
+        "screenshot": "frame_0830.png"
+      },
+      {
+        "sample": 832,
+        "source_frame": 21015,
+        "ram_xy": [
+          201.47265625,
+          108.5703125
+        ],
+        "visual_xy": [
+          197.0,
+          109.0
+        ],
+        "screenshot": "frame_0832.png"
+      },
+      {
+        "sample": 834,
+        "source_frame": 21017,
+        "ram_xy": [
+          198.98046875,
+          109.8125
+        ],
+        "visual_xy": [
+          195.0,
+          111.0
+        ],
+        "screenshot": "frame_0834.png"
+      },
+      {
+        "sample": 836,
+        "source_frame": 21019,
+        "ram_xy": [
+          196.14453125,
+          110.8359375
+        ],
+        "visual_xy": [
+          192.0,
+          112.0
+        ],
+        "screenshot": "frame_0836.png"
+      },
+      {
+        "sample": 838,
+        "source_frame": 21021,
+        "ram_xy": [
+          192.96484375,
+          111.640625
+        ],
+        "visual_xy": [
+          189.0,
+          113.0
+        ],
+        "screenshot": "frame_0838.png"
+      },
+      {
+        "sample": 840,
+        "source_frame": 21023,
+        "ram_xy": [
+          189.69921875,
+          112.390625
+        ],
+        "visual_xy": [
+          186.0,
+          114.0
+        ],
+        "screenshot": "frame_0840.png"
+      },
+      {
+        "sample": 842,
+        "source_frame": 21025,
+        "ram_xy": [
+          186.43359375,
+          113.140625
+        ],
+        "visual_xy": [
+          183.0,
+          114.0
+        ],
+        "screenshot": "frame_0842.png"
+      },
+      {
+        "sample": 844,
+        "source_frame": 21027,
+        "ram_xy": [
+          183.16796875,
+          113.890625
+        ],
+        "visual_xy": [
+          179.0,
+          115.0
+        ],
+        "screenshot": "frame_0844.png"
+      },
+      {
+        "sample": 846,
+        "source_frame": 21029,
+        "ram_xy": [
+          179.90234375,
+          114.640625
+        ],
+        "visual_xy": [
+          176.0,
+          116.0
+        ],
+        "screenshot": "frame_0846.png"
+      },
+      {
+        "sample": 848,
+        "source_frame": 21031,
+        "ram_xy": [
+          176.63671875,
+          115.390625
+        ],
+        "visual_xy": [
+          173.0,
+          117.0
+        ],
+        "screenshot": "frame_0848.png"
+      },
+      {
+        "sample": 850,
+        "source_frame": 21033,
+        "ram_xy": [
+          173.37109375,
+          116.140625
+        ],
+        "visual_xy": [
+          170.0,
+          117.0
+        ],
+        "screenshot": "frame_0850.png"
+      },
+      {
+        "sample": 852,
+        "source_frame": 21035,
+        "ram_xy": [
+          170.10546875,
+          116.890625
+        ],
+        "visual_xy": [
+          166.0,
+          118.0
+        ],
+        "screenshot": "frame_0852.png"
+      },
+      {
+        "sample": 854,
+        "source_frame": 21037,
+        "ram_xy": [
+          166.83984375,
+          117.640625
+        ],
+        "visual_xy": [
+          163.0,
+          119.0
+        ],
+        "screenshot": "frame_0854.png"
+      },
+      {
+        "sample": 856,
+        "source_frame": 21039,
+        "ram_xy": [
+          163.57421875,
+          118.390625
+        ],
+        "visual_xy": [
+          160.0,
+          120.0
+        ],
+        "screenshot": "frame_0856.png"
+      },
+      {
+        "sample": 858,
+        "source_frame": 21041,
+        "ram_xy": [
+          160.30859375,
+          119.140625
+        ],
+        "visual_xy": [
+          156.0,
+          120.0
+        ],
+        "screenshot": "frame_0858.png"
+      },
+      {
+        "sample": 860,
+        "source_frame": 21043,
+        "ram_xy": [
+          157.04296875,
+          119.890625
+        ],
+        "visual_xy": [
+          153.0,
+          121.0
+        ],
+        "screenshot": "frame_0860.png"
+      }
+    ],
+    "0x17C0": [
+      {
+        "sample": 746,
+        "source_frame": 20929,
+        "ram_xy": [
+          148.2578125,
+          88.515625
+        ],
+        "visual_xy": [
+          145.5,
+          89.0
+        ],
+        "screenshot": "frame_0746.png"
+      }
+    ],
+    "0x1800": [
+      {
+        "sample": 886,
+        "source_frame": 21069,
+        "ram_xy": [
+          245.78515625,
+          88.51171875
+        ],
+        "visual_xy": [
+          242.0,
+          91.0
+        ],
+        "screenshot": "frame_0886.png"
+      },
+      {
+        "sample": 888,
+        "source_frame": 21071,
+        "ram_xy": [
+          243.29296875,
+          86.84765625
+        ],
+        "visual_xy": [
+          239.0,
+          89.0
+        ],
+        "screenshot": "frame_0888.png"
+      },
+      {
+        "sample": 890,
+        "source_frame": 21073,
+        "ram_xy": [
+          240.80078125,
+          85.18359375
+        ],
+        "visual_xy": [
+          237.0,
+          88.0
+        ],
+        "screenshot": "frame_0890.png"
+      },
+      {
+        "sample": 892,
+        "source_frame": 21075,
+        "ram_xy": [
+          238.30859375,
+          83.51953125
+        ],
+        "visual_xy": [
+          234.0,
+          86.0
+        ],
+        "screenshot": "frame_0892.png"
+      },
+      {
+        "sample": 894,
+        "source_frame": 21077,
+        "ram_xy": [
+          235.81640625,
+          81.85546875
+        ],
+        "visual_xy": [
+          232.0,
+          84.0
+        ],
+        "screenshot": "frame_0894.png"
+      },
+      {
+        "sample": 896,
+        "source_frame": 21079,
+        "ram_xy": [
+          233.32421875,
+          80.19140625
+        ],
+        "visual_xy": [
+          229.0,
+          83.0
+        ],
+        "screenshot": "frame_0896.png"
+      },
+      {
+        "sample": 898,
+        "source_frame": 21081,
+        "ram_xy": [
+          230.83203125,
+          78.52734375
+        ],
+        "visual_xy": [
+          227.0,
+          81.0
+        ],
+        "screenshot": "frame_0898.png"
+      },
+      {
+        "sample": 900,
+        "source_frame": 21083,
+        "ram_xy": [
+          228.33984375,
+          76.86328125
+        ],
+        "visual_xy": [
+          224.0,
+          79.0
+        ],
+        "screenshot": "frame_0900.png"
+      }
+    ]
+  }
+}

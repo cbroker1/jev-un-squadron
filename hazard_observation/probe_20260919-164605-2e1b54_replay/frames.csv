@@ -1,0 +1,12 @@
+sample,emu_frame,player_x,player_y,mode,snapshot_index,screenshot,legacy_y_scratch
+0,20183,96,112,replay,0,frame_0000.png,112
+2,20185,96,112,replay,1,frame_0002.png,112
+4,20187,96,112,replay,2,frame_0004.png,112
+6,20189,96,112,replay,3,frame_0006.png,112
+8,20191,96,112,replay,4,frame_0008.png,112
+10,20193,96,112,replay,5,frame_0010.png,112
+12,20195,96,112,replay,6,frame_0012.png,112
+14,20197,96,112,replay,7,frame_0014.png,112
+16,20199,96,112,replay,8,frame_0016.png,112
+18,20201,96,112,replay,9,frame_0018.png,112
+20,20203,96,112,replay,10,frame_0020.png,112

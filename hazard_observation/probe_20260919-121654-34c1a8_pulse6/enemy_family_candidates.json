@@ -1,0 +1,33 @@
+{
+  "status": "visual occurrence candidates; not complete enemy enumeration",
+  "slots": {
+    "0x1800": [
+      {
+        "sample": 652,
+        "source_frame": 20835,
+        "ram_xy": [
+          246.84375,
+          104.0
+        ],
+        "visual_xy": [
+          243.0,
+          106.0
+        ],
+        "screenshot": "frame_0652.png"
+      },
+      {
+        "sample": 654,
+        "source_frame": 20837,
+        "ram_xy": [
+          243.25,
+          104.0
+        ],
+        "visual_xy": [
+          240.0,
+          106.0
+        ],
+        "screenshot": "frame_0654.png"
+      }
+    ]
+  }
+}

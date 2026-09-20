@@ -1,0 +1,7 @@
+{
+  "rom_path": "C:\\Users\\Carl-MainRig\\Downloads\\U.N. Squadron (USA).sfc",
+  "max_calls": 60,
+  "decision_interval_frames": 30,
+  "dry_run": true,
+  "model": "jev-latest"
+}

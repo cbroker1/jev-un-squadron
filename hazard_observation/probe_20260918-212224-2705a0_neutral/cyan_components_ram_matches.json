@@ -1,0 +1,103 @@
+{
+  "status": "candidate matches only",
+  "visual_samples": [
+    "568",
+    "574",
+    "580",
+    "586",
+    "592",
+    "598",
+    "604",
+    "610",
+    "616",
+    "622"
+  ],
+  "axes": {
+    "x": {
+      "match_count": 2,
+      "matches": [
+        {
+          "address": "0x0020",
+          "domain": "WRAM",
+          "type": "u8",
+          "mean_pixel_offset": -4.6,
+          "offset_spread": 1.0,
+          "values": [
+            203,
+            194,
+            184,
+            175,
+            165,
+            155,
+            146,
+            136,
+            127,
+            117
+          ]
+        },
+        {
+          "address": "0x1AD1",
+          "domain": "WRAM",
+          "type": "u8",
+          "mean_pixel_offset": -0.6,
+          "offset_spread": 1.0,
+          "values": [
+            207,
+            198,
+            188,
+            179,
+            169,
+            159,
+            150,
+            140,
+            131,
+            121
+          ]
+        }
+      ]
+    },
+    "y": {
+      "match_count": 2,
+      "matches": [
+        {
+          "address": "0x0022",
+          "domain": "WRAM",
+          "type": "u8",
+          "mean_pixel_offset": -2.7,
+          "offset_spread": 1.0,
+          "values": [
+            94,
+            96,
+            98,
+            99,
+            101,
+            103,
+            105,
+            107,
+            109,
+            111
+          ]
+        },
+        {
+          "address": "0x1AD4",
+          "domain": "WRAM",
+          "type": "u8",
+          "mean_pixel_offset": 1.3,
+          "offset_spread": 1.0,
+          "values": [
+            98,
+            100,
+            102,
+            103,
+            105,
+            107,
+            109,
+            111,
+            113,
+            115
+          ]
+        }
+      ]
+    }
+  }
+}

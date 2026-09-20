@@ -1,0 +1,34 @@
+{
+  "status": "candidate matches only",
+  "visual_samples": [
+    "10",
+    "12",
+    "14",
+    "16",
+    "18"
+  ],
+  "axes": {
+    "x": {
+      "match_count": 1,
+      "matches": [
+        {
+          "address": "0x1091",
+          "domain": "WRAM",
+          "type": "u8",
+          "mean_pixel_offset": 8.5,
+          "offset_spread": 0.0,
+          "values": [
+            146,
+            168,
+            190,
+            212,
+            234
+          ]
+        }
+      ]
+    },
+    "y": {
+      "status": "insufficient motion to identify this axis"
+    }
+  }
+}

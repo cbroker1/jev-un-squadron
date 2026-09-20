@@ -1,0 +1,557 @@
+{
+  "status": "discovery; routine addresses are candidate types until visually checked",
+  "table": "0x1000..0x1FC0 step 0x40",
+  "types": {
+    "$04:F97F": {
+      "samples": 1329,
+      "on_screen": 1078,
+      "slots": [
+        "0x1AC0",
+        "0x1B00",
+        "0x1B40",
+        "0x1B80",
+        "0x1BC0",
+        "0x1C00",
+        "0x1C40",
+        "0x1C80"
+      ],
+      "flags": [
+        "CC"
+      ],
+      "byte8": [
+        1
+      ],
+      "first_sample": 694,
+      "last_sample": 1380,
+      "x_range": [
+        0.0,
+        255.0
+      ],
+      "y_range": [
+        0.0,
+        182.0
+      ]
+    },
+    "$02:9274": {
+      "samples": 1324,
+      "on_screen": 1196,
+      "slots": [
+        "0x1700",
+        "0x1780",
+        "0x1840",
+        "0x18C0",
+        "0x1940"
+      ],
+      "flags": [
+        "E0"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 526,
+      "last_sample": 1352,
+      "x_range": [
+        0.0,
+        254.0
+      ],
+      "y_range": [
+        176.0,
+        188.0
+      ]
+    },
+    "$02:B04A": {
+      "samples": 780,
+      "on_screen": 692,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1780",
+        "0x17C0",
+        "0x1800",
+        "0x1840",
+        "0x1880",
+        "0x18C0",
+        "0x1980",
+        "0x19C0",
+        "0x1A00"
+      ],
+      "flags": [
+        "88",
+        "C8"
+      ],
+      "byte8": [
+        3
+      ],
+      "first_sample": 480,
+      "last_sample": 1380,
+      "x_range": [
+        0.796875,
+        255.75390625
+      ],
+      "y_range": [
+        64.0,
+        175.9609375
+      ]
+    },
+    "$02:9166": {
+      "samples": 576,
+      "on_screen": 510,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880",
+        "0x1900"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        1,
+        5
+      ],
+      "first_sample": 842,
+      "last_sample": 1350,
+      "x_range": [
+        0.87109375,
+        172.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:E6AF": {
+      "samples": 496,
+      "on_screen": 496,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 480,
+      "last_sample": 1380,
+      "x_range": [
+        22.0,
+        251.0
+      ],
+      "y_range": [
+        48.0,
+        191.0
+      ]
+    },
+    "$04:DF96": {
+      "samples": 451,
+      "on_screen": 451,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "80",
+        "C0",
+        "C8"
+      ],
+      "byte8": [
+        6,
+        8
+      ],
+      "first_sample": 480,
+      "last_sample": 1380,
+      "x_range": [
+        16.5,
+        239.5
+      ],
+      "y_range": [
+        48.0,
+        191.0
+      ]
+    },
+    "$02:9119": {
+      "samples": 256,
+      "on_screen": 256,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        1,
+        5
+      ],
+      "first_sample": 694,
+      "last_sample": 980,
+      "x_range": [
+        135.0,
+        182.67578125
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:90F0": {
+      "samples": 226,
+      "on_screen": 190,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 526,
+      "last_sample": 832,
+      "x_range": [
+        146.0,
+        254.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:FABA": {
+      "samples": 222,
+      "on_screen": 222,
+      "slots": [
+        "0x1400"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 486,
+      "last_sample": 928,
+      "x_range": [
+        26.5,
+        202.6875
+      ],
+      "y_range": [
+        87.171875,
+        115.296875
+      ]
+    },
+    "$02:93DD": {
+      "samples": 202,
+      "on_screen": 202,
+      "slots": [
+        "0x1700",
+        "0x1740",
+        "0x17C0"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        2,
+        6
+      ],
+      "first_sample": 1162,
+      "last_sample": 1380,
+      "x_range": [
+        143.0,
+        252.0
+      ],
+      "y_range": [
+        156.0,
+        188.0
+      ]
+    },
+    "$04:FCC0": {
+      "samples": 163,
+      "on_screen": 161,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1780",
+        "0x17C0",
+        "0x1800",
+        "0x1840",
+        "0x18C0",
+        "0x1900",
+        "0x1980",
+        "0x19C0",
+        "0x1A00"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        249,
+        253,
+        255
+      ],
+      "first_sample": 480,
+      "last_sample": 1378,
+      "x_range": [
+        114.1875,
+        255.625
+      ],
+      "y_range": [
+        64.0,
+        184.0
+      ]
+    },
+    "$02:A78D": {
+      "samples": 106,
+      "on_screen": 106,
+      "slots": [
+        "0x1980"
+      ],
+      "flags": [
+        "9A"
+      ],
+      "byte8": [
+        10
+      ],
+      "first_sample": 1170,
+      "last_sample": 1380,
+      "x_range": [
+        143.5390625,
+        248.5390625
+      ],
+      "y_range": [
+        80.6796875,
+        80.6796875
+      ]
+    },
+    "$02:9131": {
+      "samples": 95,
+      "on_screen": 69,
+      "slots": [
+        "0x1900"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 738,
+      "last_sample": 926,
+      "x_range": [
+        0.25,
+        42.75
+      ],
+      "y_range": [
+        184.0,
+        184.0
+      ]
+    },
+    "$02:91DB": {
+      "samples": 90,
+      "on_screen": 90,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        1,
+        5
+      ],
+      "first_sample": 634,
+      "last_sample": 852,
+      "x_range": [
+        136.0,
+        165.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:91FF": {
+      "samples": 80,
+      "on_screen": 80,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1800",
+        "0x1880",
+        "0x1900"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        1,
+        5
+      ],
+      "first_sample": 822,
+      "last_sample": 1020,
+      "x_range": [
+        14.0625,
+        182.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:F8BC": {
+      "samples": 79,
+      "on_screen": 79,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1224,
+      "last_sample": 1380,
+      "x_range": [
+        16.0,
+        239.0
+      ],
+      "y_range": [
+        123.0,
+        191.0
+      ]
+    },
+    "$02:AFA5": {
+      "samples": 68,
+      "on_screen": 34,
+      "slots": [
+        "0x17C0",
+        "0x1800"
+      ],
+      "flags": [
+        "80"
+      ],
+      "byte8": [
+        5,
+        255
+      ],
+      "first_sample": 866,
+      "last_sample": 1316,
+      "x_range": [
+        151.1875,
+        151.1875
+      ],
+      "y_range": [
+        104.0,
+        104.0
+      ]
+    },
+    "$02:93CD": {
+      "samples": 60,
+      "on_screen": 9,
+      "slots": [
+        "0x1700",
+        "0x1740",
+        "0x17C0"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        6
+      ],
+      "first_sample": 1122,
+      "last_sample": 1376,
+      "x_range": [
+        253.0,
+        255.0
+      ],
+      "y_range": [
+        156.0,
+        188.0
+      ]
+    },
+    "$04:F8A1": {
+      "samples": 12,
+      "on_screen": 12,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 1200,
+      "last_sample": 1222,
+      "x_range": [
+        239.0,
+        239.0
+      ],
+      "y_range": [
+        78.0,
+        123.0
+      ]
+    },
+    "$04:E6E1": {
+      "samples": 8,
+      "on_screen": 8,
+      "slots": [
+        "0x1080",
+        "0x10C0"
+      ],
+      "flags": [
+        "C0",
+        "C8"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 624,
+      "last_sample": 1372,
+      "x_range": [
+        106.0,
+        236.0
+      ],
+      "y_range": [
+        73.0,
+        191.0
+      ]
+    },
+    "$02:9203": {
+      "samples": 1,
+      "on_screen": 1,
+      "slots": [
+        "0x1900"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        1
+      ],
+      "first_sample": 1352,
+      "last_sample": 1352,
+      "x_range": [
+        126.1875,
+        126.1875
+      ],
+      "y_range": [
+        184.0,
+        184.0
+      ]
+    }
+  }
+}

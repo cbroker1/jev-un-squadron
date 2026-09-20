@@ -1,0 +1,376 @@
+{
+  "status": "discovery; routine addresses are candidate types until visually checked",
+  "table": "0x1000..0x1FC0 step 0x40",
+  "types": {
+    "$02:B04A": {
+      "samples": 931,
+      "on_screen": 879,
+      "slots": [
+        "0x16C0",
+        "0x1740",
+        "0x1780",
+        "0x17C0",
+        "0x1800",
+        "0x1840",
+        "0x1880",
+        "0x1940"
+      ],
+      "flags": [
+        "88",
+        "C8"
+      ],
+      "byte8": [
+        3
+      ],
+      "first_sample": 550,
+      "last_sample": 900,
+      "x_range": [
+        24.2421875,
+        255.75390625
+      ],
+      "y_range": [
+        64.55859375,
+        175.515625
+      ]
+    },
+    "$02:9274": {
+      "samples": 552,
+      "on_screen": 525,
+      "slots": [
+        "0x1740",
+        "0x1900",
+        "0x19C0",
+        "0x1A40"
+      ],
+      "flags": [
+        "E0"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 550,
+      "last_sample": 900,
+      "x_range": [
+        94.0,
+        254.0
+      ],
+      "y_range": [
+        176.0,
+        188.0
+      ]
+    },
+    "$04:F97F": {
+      "samples": 380,
+      "on_screen": 347,
+      "slots": [
+        "0x1AC0",
+        "0x1B00",
+        "0x1B40",
+        "0x1B80",
+        "0x1BC0",
+        "0x1C00"
+      ],
+      "flags": [
+        "CC"
+      ],
+      "byte8": [
+        1
+      ],
+      "first_sample": 550,
+      "last_sample": 900,
+      "x_range": [
+        0.9609375,
+        214.0
+      ],
+      "y_range": [
+        0.0,
+        171.0
+      ]
+    },
+    "$02:90F0": {
+      "samples": 224,
+      "on_screen": 197,
+      "slots": [
+        "0x1700",
+        "0x18C0",
+        "0x1980",
+        "0x1A00"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 550,
+      "last_sample": 812,
+      "x_range": [
+        146.0,
+        254.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:9119": {
+      "samples": 184,
+      "on_screen": 184,
+      "slots": [
+        "0x1700",
+        "0x18C0",
+        "0x1980",
+        "0x1A00"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 674,
+      "last_sample": 900,
+      "x_range": [
+        115.0,
+        172.67578125
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$04:DF96": {
+      "samples": 175,
+      "on_screen": 175,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "80",
+        "C0",
+        "C8"
+      ],
+      "byte8": [
+        6,
+        7
+      ],
+      "first_sample": 550,
+      "last_sample": 898,
+      "x_range": [
+        96.5,
+        96.5
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:F8BC": {
+      "samples": 89,
+      "on_screen": 89,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 550,
+      "last_sample": 898,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$02:91DB": {
+      "samples": 80,
+      "on_screen": 80,
+      "slots": [
+        "0x1700",
+        "0x18C0",
+        "0x1980",
+        "0x1A00"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 654,
+      "last_sample": 852,
+      "x_range": [
+        116.0,
+        165.0
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:9166": {
+      "samples": 34,
+      "on_screen": 34,
+      "slots": [
+        "0x1700",
+        "0x18C0"
+      ],
+      "flags": [
+        "C8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 842,
+      "last_sample": 900,
+      "x_range": [
+        94.87109375,
+        152.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:91FF": {
+      "samples": 30,
+      "on_screen": 30,
+      "slots": [
+        "0x1700",
+        "0x18C0"
+      ],
+      "flags": [
+        "D8"
+      ],
+      "byte8": [
+        5
+      ],
+      "first_sample": 802,
+      "last_sample": 892,
+      "x_range": [
+        143.87109375,
+        172.87109375
+      ],
+      "y_range": [
+        184.0,
+        196.0
+      ]
+    },
+    "$02:AFA5": {
+      "samples": 18,
+      "on_screen": 0,
+      "slots": [
+        "0x17C0"
+      ],
+      "flags": [
+        "80"
+      ],
+      "byte8": [
+        3
+      ],
+      "first_sample": 866,
+      "last_sample": 900,
+      "x_range": null,
+      "y_range": null
+    },
+    "$04:F8A1": {
+      "samples": 12,
+      "on_screen": 12,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 784,
+      "last_sample": 806,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:F9C3": {
+      "samples": 3,
+      "on_screen": 3,
+      "slots": [
+        "0x1AC0",
+        "0x1C00"
+      ],
+      "flags": [
+        "C0"
+      ],
+      "byte8": [
+        247
+      ],
+      "first_sample": 784,
+      "last_sample": 900,
+      "x_range": [
+        86.9140625,
+        91.9140625
+      ],
+      "y_range": [
+        116.9140625,
+        116.9140625
+      ]
+    },
+    "$04:E0D3": {
+      "samples": 1,
+      "on_screen": 1,
+      "slots": [
+        "0x1000"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 900,
+      "last_sample": 900,
+      "x_range": [
+        96.5,
+        96.5
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    },
+    "$04:F94A": {
+      "samples": 1,
+      "on_screen": 1,
+      "slots": [
+        "0x1040"
+      ],
+      "flags": [
+        "D0"
+      ],
+      "byte8": [
+        0
+      ],
+      "first_sample": 900,
+      "last_sample": 900,
+      "x_range": [
+        96.0,
+        96.0
+      ],
+      "y_range": [
+        112.0,
+        112.0
+      ]
+    }
+  }
+}

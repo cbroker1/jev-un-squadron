@@ -1,0 +1,20 @@
+config.local.json
+runtime_action.json
+runtime_state.json
+run.log
+run-*.jsonl
+runs/
+PROJECT_STATE.local.md
+STOP
+*.key
+typesafe_api_key.txt
+
+# Emulator distribution and save states (large, not ours to redistribute)
+bizhawk/
+# Raw capture data: regenerate with probe_hazards.py
+hazard_observation/**/wram_u8.bin
+hazard_observation/**/frame_*.png
+hazard_observation/**/brain_frame_*.png
+__pycache__/
+# Separate upstream clone kept locally for reference
+third_party/
