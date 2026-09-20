@@ -66,9 +66,9 @@ def blocked_altitudes(position, scroll, spread=1, span_from=None):
 
 KINDS = ("hostile_projectile", "enemy_aircraft", "power_up", "ground_tank", "turret",
          "clear_screen_power_up", "boss_part")
-# A boss part is solid and collides, but nothing yet shows it can be destroyed, so it is
-# not a target: aiming at one would be a guess dressed up as a fact.
-TARGETS = ("enemy_aircraft", "ground_tank", "turret")
+# Carl, who plays this game: every part of the boss is vulnerable, and a part that
+# flashes when shot is taking damage. So boss parts are targets as well as bodies.
+TARGETS = ("enemy_aircraft", "ground_tank", "turret", "boss_part")
 # Player shots travel right at exactly 11 px per game frame at the aircraft's own Y
 # (420 measured steps). The vertical tolerance is estimated from two observed kills.
 SHOT_SPEED = 11
@@ -687,7 +687,8 @@ def combat_request(digest, model="jev-latest"):
             "instructions": ("Choose one movement. Enemies close in from any direction - ahead, behind, above and below - so read each "
                 "option's closest threat and its direction rather than assuming danger comes from one side. Play to "
                 "destroy targets and collect power-ups: prefer options whose "
-                "Attack line puts tracked targets in the gun's path. Turrets are the highest-value target: destroying one drops a "
+                "Attack line puts tracked targets in the gun's path. Every destroyed unit pays, so a shot that connects is "
+                "never wasted and a target left alive is value given up. Turrets are the highest-value target: destroying one drops a "
                 "power-up, and more power-ups mean more firepower for the rest of the level, so take a turret when the "
                 "closest threat allows. A screen-clearing power-up is worth more than any single kill because it destroys every "
                 "live target at once. While one is in play every option leads with it: reaching it is the objective that "

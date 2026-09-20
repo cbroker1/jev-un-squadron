@@ -121,11 +121,12 @@ class CombatTests(unittest.TestCase):
             return classify_record(payload)
         # Its fire carries the same gating as the known bullet routine.
         self.assertEqual(record("fcc404",0xCC,1),("hostile_projectile",True))
-        # Its body parts collide but are never aimed at, because nothing shows they break.
+        # Its body parts collide, and Carl reports every one of them is vulnerable, so they
+        # are shot at as well as avoided.
         for routine, flags in (("b1c304",0x89),("e6c304",0xC0),("05c004",0xC8),("e6c504",0xD0)):
             self.assertEqual(record(routine,flags),("boss_part",True),routine)
         self.assertIn("boss_part",KINDS)
-        self.assertNotIn("boss_part",TARGETS)
+        self.assertIn("boss_part",TARGETS)
         self.assertEqual(record("59c504",0xC8,3),("enemy_aircraft",True))
 
     def test_the_fortified_line_past_frame_22400_is_classified(self):

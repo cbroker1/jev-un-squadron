@@ -57,7 +57,7 @@ def shot_samples(run):
             record = data[index*RECORD_BYTES:(index+1)*RECORD_BYTES]
             kind, gated = classify_record(record)
             x, y = fixed24(record, 16), fixed24(record, 19)
-            if gated and kind in ("enemy_aircraft", "ground_tank", "turret"):
+            if gated and kind in ("enemy_aircraft", "ground_tank", "turret", "boss_part"):
                 targets.append((x, y))
             if bytes(record[1:4]) == PLAYER_SHOT and record[0] & 0x40:
                 live[base] = (x, y, scroll)
