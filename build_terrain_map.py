@@ -32,15 +32,24 @@ BUCKET = 4
 MAX_PLAUSIBLE_SCROLL = 60000
 
 
-def shot_stops(run):
-    """(level column, altitude) where a shot stopped against something solid."""
-    previous = {}
+def shot_samples(run):
+    """("stop"|"pass", level column, altitude) for our own shots.
+
+    A stop is evidence of something solid; a shot that flies through the same column at
+    the same altitude is evidence that it is open, and outweighs a stop that was really
+    an enemy this code cannot classify. Without the passes, one stray stop condemned an
+    entire firing line and the aircraft stopped attacking (9 kills, dead at frame 21208).
+
+    Each shot is followed as a trajectory, because its own final sample sits inside the
+    column where it stopped: counting that as a pass cancelled every stop ever recorded.
+    """
+    flying = {}
     for line in (run / "states.jsonl").read_text().splitlines():
         state = json.loads(line)["state"]
         table = state.get("observation_profile", {}).get("object_table")
         scroll = state.get("scroll_x")
         if not table or scroll is None or scroll > MAX_PLAUSIBLE_SCROLL:
-            previous = {}
+            flying = {}
             continue
         data = bytes.fromhex(table["bytes_hex"])
         live, targets = {}, []
@@ -51,14 +60,28 @@ def shot_stops(run):
             if gated and kind in ("enemy_aircraft", "ground_tank", "turret"):
                 targets.append((x, y))
             if bytes(record[1:4]) == PLAYER_SHOT and record[0] & 0x40:
-                live[base] = (x, y)
-        for base, (x, y) in previous.items():
-            if base in live or x >= SHOT_EDGE_X:
-                continue
-            if any(abs(x-tx) < NEAR_A_TARGET_PX and abs(y-ty) < NEAR_A_TARGET_PX for tx, ty in targets):
-                continue                      # it hit something we can already see
-            yield int((x+scroll)//BUCKET), round(y)
-        previous = live
+                live[base] = (x, y, scroll)
+        for base, track in list(flying.items()):
+            if base in live:
+                continue                       # still in the air; keep following it
+            x, y, shot_scroll = track[-1]
+            stopped = (x < SHOT_EDGE_X and not any(
+                abs(x-tx) < NEAR_A_TARGET_PX and abs(y-ty) < NEAR_A_TARGET_PX for tx, ty in targets))
+            # Everything before the final sample is open air the shot flew through.
+            for px, py, ps in track[:-1]:
+                yield "pass", int((px+ps)//BUCKET), round(py)
+            if stopped:
+                yield "stop", int((x+shot_scroll)//BUCKET), round(y)
+            else:
+                yield "pass", int((x+shot_scroll)//BUCKET), round(y)
+            del flying[base]
+        for base, sample in live.items():
+            # A slot is reused by a new shot once its x jumps backwards.
+            if base in flying and sample[0] < flying[base][-1][0]:
+                for px, py, ps in flying[base]:
+                    yield "pass", int((px+ps)//BUCKET), round(py)
+                flying[base] = []
+            flying.setdefault(base, []).append(sample)
 
 
 def run_samples(run):
@@ -97,7 +120,7 @@ def main():
     # A column is not a floor: at level column 1644 a collision was recorded at Y 171 while
     # Y 189 was flown safely, so these are structures with open air below them. Keep every
     # measured altitude rather than collapsing them into a floor that was never observed.
-    safe, hits, surface, used, bands, blocked, seen = {}, {}, {}, [], {}, {}, {}
+    safe, hits, surface, used, bands, blocked, seen, passed = {}, {}, {}, [], {}, {}, {}, set()
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
@@ -111,12 +134,16 @@ def main():
                 bands.setdefault(column, set()).add(round(y))
             else:
                 safe[column] = max(safe.get(column, 0), y)
-        for column, y in set(shot_stops(run)):
-            seen.setdefault((column, y), set()).add(run.name)
+        for what, column, y in set(shot_samples(run)):
+            if what == "stop":
+                seen.setdefault((column, y), set()).add(run.name)
+            else:
+                passed.add((column, y))
         if count:
             used.append({"run": run.name, "frames": count})
     for (column, y), runs in seen.items():
-        if len(runs) >= RUNS_THAT_MUST_AGREE:
+        # Solid only where shots stopped in separate runs and none has ever flown through.
+        if len(runs) >= RUNS_THAT_MUST_AGREE and (column, y) not in passed:
             blocked.setdefault(column, set()).add(y)
     columns = sorted(set(safe) | set(hits) | set(surface) | set(blocked))
     payload = {"status": "measured: lowest altitude flown without an untracked hit, and untracked-hit altitudes",
