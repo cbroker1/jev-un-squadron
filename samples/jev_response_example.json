@@ -1,0 +1,17 @@
+{
+  "response": {
+    "choice": "down",
+    "confidence": 0.19,
+    "probabilities": {
+      "down": 0.35,
+      "right": 0.05,
+      "left": 0.15,
+      "up": 0.28,
+      "hold": 0.17
+    }
+  },
+  "latency_ms": 489.41,
+  "source_frame": 22214,
+  "decision_source": "jev",
+  "frozen_throughout": true
+}

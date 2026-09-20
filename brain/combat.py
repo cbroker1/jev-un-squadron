@@ -338,8 +338,33 @@ def clear_targets(position, targets, scroll):
     return [t for t in targets if not shot_is_blocked(position, t["x"], scroll)]
 
 
+OPPOSITES = {"left": "right", "right": "left", "up": "down", "down": "up"}
+
+
+def what_you_have_been_doing(recent_choices):
+    """The aircraft's own recent choices, which nothing else in the request carries.
+
+    Every decision is judged fresh, so a commitment that takes several moves - flying back
+    past a target, crossing to a power-up - cannot be sustained: the next request has no
+    memory of having started one. Measured, not advised: this reports the choices and how
+    often they reversed, and says nothing about what to do next.
+    """
+    if not recent_choices:
+        return None
+    recent = list(recent_choices)[-8:]
+    reversals = sum(1 for a, b in zip(recent, recent[1:]) if OPPOSITES.get(a) == b)
+    held = 1
+    for earlier in reversed(recent[:-1]):
+        if earlier != recent[-1]:
+            break
+        held += 1
+    return {"last_choices_oldest_first": recent,
+            "decisions_spent_going_the_same_way": held,
+            "times_you_reversed_in_those": reversals}
+
+
 def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None,
-                  recent_body_gaps=None):
+                  recent_body_gaps=None, recent_choices=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
     # Tanks collide with the aircraft too (one observed collision), so they count as bodies.
@@ -369,6 +394,7 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     digest["tracked_threats_by_direction"] = census
     digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
     digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
+    digest["what_you_have_been_doing"] = what_you_have_been_doing(recent_choices)
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
                                               [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
     # The fastest speed anything is closing at right now, measured from the tracks themselves.
@@ -760,6 +786,9 @@ def combat_request(digest, model="jev-latest"):
         # Measured from this run: how long it has been sitting where collisions happen.
         "time_in_the_collision_range": digest.get("time_in_the_collision_range")
                                        or "not inside it recently",
+        # Measured from this run: the aircraft's own recent choices. Nothing else in the
+        # request carries them, so a multi-move commitment cannot otherwise be sustained.
+        "what_you_have_been_doing": digest.get("what_you_have_been_doing") or "no choices yet",
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
@@ -835,7 +864,10 @@ def combat_request(digest, model="jev-latest"):
                 "collide like any other body. Compare the "
                 "already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe "
                 "fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they "
-                "have come from so far in this run. Each option also carries what actually happened to past runs at that "
+                "have come from so far in this run. what_you_have_been_doing is the aircraft's own last few choices: a "
+                "transit past a target behind, or a crossing to a power-up, takes several moves in the same "
+                "direction, and reversing partway spends the frames without finishing either. Each option also "
+                "carries what actually happened to past runs at that "
                 "exact position and altitude, counted from every frame ever flown there; a position no run has "
                 "flown enough is unknown rather than safe. where_you_have_been_recently is this aircraft's own recent "
                 "station-keeping, which no single option can show: camping at either extreme of the flyable area "

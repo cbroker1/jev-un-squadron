@@ -115,6 +115,11 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             events.write(json.dumps({"event":event, "run_id":run_id, **fields})+"\n"); events.flush()
         def command(state, action, fire, source, attempt=None, observed=None, freeze_at=0):
             nonlocal command_id, last_command
+            # Jev's own choices are the only thing carrying across decisions; the prelude's
+            # deterministic commands are not choices and would drown them out.
+            if source in ("jev", "deterministic_mock"):
+                recent_choices.append(action)
+                del recent_choices[:-8]
             command_id += 1
             issued = state["frame"]
             value = {"run_id":run_id, "call":command_id, "action":action, "fire":fire,
@@ -147,6 +152,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
             next_step = decision_start
             recent_positions = []
             recent_body_gaps = []
+            recent_choices = []
             destroyed = 0
             while True:
                 if (ROOT / "STOP").exists() or (output / "STOP").exists():
@@ -199,7 +205,8 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 while recent_positions and state["frame"]-recent_positions[0][0] > 300:
                     recent_positions.pop(0)
                 digest = combat_digest(obs, horizon=interval, entry_edges=entry_edges,
-                                       recent_positions=recent_positions, recent_body_gaps=recent_body_gaps)
+                                       recent_positions=recent_positions, recent_body_gaps=recent_body_gaps,
+                                       recent_choices=recent_choices)
                 # Lingering inside the range where collisions have happened is only visible
                 # over several decisions: R20 sat at 20-21 px from a tank for four in a row.
                 staying = (digest["actions"].get("hold") or {}).get("enemy_body_anchor_gap_px")
