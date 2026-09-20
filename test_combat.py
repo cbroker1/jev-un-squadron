@@ -438,6 +438,31 @@ class CombatTests(unittest.TestCase):
             high={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":90},"tracks":[]}
             self.assertNotIn("TERRAIN:",combat.combat_request(combat.combat_digest(high,6))["questions"]["movement"]["criteria"]["hold"])
 
+    def test_the_gun_cannot_shoot_through_a_structure(self):
+        """Carl: you cannot fire through structures to reach enemies on the other side."""
+        from brain import combat
+        target={"kind":"enemy_aircraft","x":200.0,"y":112.0,"vx":-1.0,"vy":0.0,
+                "phase":"observed_moving_signature","on_screen":True,"in_play":True,
+                "slot":"WRAM:0x1840","generation":1}
+        # A structure at the aircraft's own altitude, between it and the target.
+        wall={c:{"hit_min_y":None,"collision_altitudes":None,"safe_max_y":None,
+                 "ground_object_y":None,"shots_stopped_at":[112]} for c in range(230,240)}
+        with patch.object(combat,"_terrain",(wall,4)):
+            obs={"source_frame":101,"scroll_x":800,"player":{"x":60,"y":112},"tracks":[target]}
+            hold=combat.combat_digest(obs,6)["actions"]["hold"]
+            self.assertEqual(hold["targets_the_gun_would_hit"],0)
+            self.assertEqual(hold["targets_hidden_behind_structure"],1)
+            text=combat.combat_request(combat.combat_digest(obs,6))["questions"]["movement"]["criteria"]["hold"]
+            self.assertIn("sit behind a structure from here",text)
+        # With the structure at another altitude the same shot connects.
+        clear={c:{"hit_min_y":None,"collision_altitudes":None,"safe_max_y":None,
+                  "ground_object_y":None,"shots_stopped_at":[60]} for c in range(230,240)}
+        with patch.object(combat,"_terrain",(clear,4)):
+            obs={"source_frame":101,"scroll_x":800,"player":{"x":60,"y":112},"tracks":[target]}
+            hold=combat.combat_digest(obs,6)["actions"]["hold"]
+            self.assertEqual(hold["targets_the_gun_would_hit"],1)
+            self.assertEqual(hold["targets_hidden_behind_structure"],0)
+
     def test_a_blocked_option_says_so_before_anything_else(self):
         """Every untracked hit past frame 22400 happened where the map already had evidence."""
         from brain import combat
@@ -457,7 +482,7 @@ class CombatTests(unittest.TestCase):
         """In 11% of decisions four or five options were blocked, with no way to choose."""
         from brain import combat
         columns={c:{"hit_min_y":None,"collision_altitudes":None,"safe_max_y":191,
-                    "ground_object_y":None,"shots_stopped_at":[159,174,189]} for c in range(150,260)}
+                    "ground_object_y":None,"shots_stopped_at":[160,174,188]} for c in range(150,260)}
         with patch.object(combat,"_terrain",(columns,4)):
             obs={"source_frame":101,"scroll_x":760,"player":{"x":40,"y":174},"tracks":[]}
             digest=combat.combat_digest(obs,6)

@@ -357,7 +357,7 @@ def main():
     ap.add_argument("--stepped",action="store_true",help="pause the emulator on each decision frame (pause-and-step)")
     ap.add_argument("--prelude-fire",action="store_true",help="Y firing during the prelude instead of gun off")
     args=ap.parse_args()
-    if not 1 <= args.max_calls <= 1600 or not 0 <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
+    if not 1 <= args.max_calls <= 2600 or not 0 <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
         ap.error("Run budgets out of range")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")
