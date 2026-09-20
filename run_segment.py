@@ -92,7 +92,7 @@ def main():
                 raise SystemExit("Invalid runner location")
             (target / "STOP").touch()
         print("Stop requested for this runner only."); return
-    if not 1 <= args.max_calls <= 1600:
+    if not 1 <= args.max_calls <= 2600:
         ap.error("Request limit must be 1..400")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")

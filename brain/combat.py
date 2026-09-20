@@ -79,6 +79,28 @@ SHOT_BAND = 10
 SHOT_MAX_X = 251
 
 
+def shot_is_blocked(position, reach_x, scroll, spread=1):
+    """Does a structure stand between this position and where the shot would land?
+
+    Shots travel right along the aircraft's own Y, so the columns between it and the
+    target are exactly the ones the shot-stop map already measured: if one of them has
+    stopped a shot at this altitude, this one stops too.
+    """
+    columns, bucket = terrain_columns()
+    if not columns or scroll is None or scroll > 60000 or not position:
+        return False
+    px, py = position
+    start, end = sorted((int((px+scroll)//bucket), int((reach_x+scroll)//bucket)))
+    for column in range(start, end+1):
+        entry = columns.get(column)
+        if not entry:
+            continue
+        for altitude in (entry.get("shots_stopped_at") or ()):
+            if abs(altitude-py) <= SHOT_BAND and column > start+spread:
+                return True          # measured solid on the way, past the muzzle
+    return False
+
+
 def future_shots(position, targets, window=30, step=3):
     """Targets that will cross into the gun's line if the aircraft holds this position.
 
@@ -256,6 +278,11 @@ def time_in_the_collision_range(recent_body_gaps):
             "frames_since_the_first_of_those": samples[-1][0]-inside[0] if run else 0}
 
 
+def clear_targets(position, targets, scroll):
+    """The targets this position can actually shoot, with structures in the way removed."""
+    return [t for t in targets if not shot_is_blocked(position, t["x"], scroll)]
+
+
 def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positions=None,
                   recent_body_gaps=None):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
@@ -365,7 +392,10 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
         option["firing_alignment_error_px"] = line_error("enemy_aircraft")
         option["tank_firing_line_error_px"] = line_error("ground_tank")
         option["turret_firing_line_error_px"] = line_error("turret")
-        reachable = [t for t in live if t["kind"] in TARGETS]
+        # A shot cannot pass through a structure, so a target behind one is not reachable.
+        all_targets = [t for t in live if t["kind"] in TARGETS]
+        reachable = clear_targets(position, all_targets, obs.get("scroll_x")) if position else all_targets
+        option["targets_hidden_behind_structure"] = len(all_targets)-len(reachable)
         landings = shot_intersections(position, reachable, horizon)
         aim = aim_error(position, reachable, horizon)
         option["aim_error_px"] = aim[0] if aim else None
@@ -473,6 +503,9 @@ def combat_request(digest, model="jev-latest"):
             shots = f"no hit yet; the nearest reachable target is {f['aim_error_px']:.0f} pixels off the gun line (smaller means lining up)"
         else:
             shots = "no tracked target the gun can reach"
+        hidden = ("" if not f.get("targets_hidden_behind_structure") else
+                  f" {f['targets_hidden_behind_structure']} target(s) sit behind a structure from here, where "
+                  f"shots have been stopped before, so the gun cannot reach them from this altitude.")
         alignment = ("no tracked aircraft ahead to align with" if f["firing_alignment_error_px"] is None
                      else f"aircraft firing-line error {f['firing_alignment_error_px']:.1f} pixels (smaller is better)")
         if f["clear_screen_power_up_closest_px"] is None:
@@ -614,7 +647,7 @@ def combat_request(digest, model="jev-latest"):
                     f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
             clear_up = ""
         criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
-            f"Attack: {shots}.{coming}{slipping}{squeeze}{behind}{room}{later}{ground} "
+            f"Attack: {shots}.{hidden}{coming}{slipping}{squeeze}{behind}{room}{later}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
