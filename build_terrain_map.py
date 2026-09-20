@@ -19,6 +19,11 @@ from brain.observations import RECORD_BYTES, TABLE_BASES, classify_record, fixed
 PLAYER_SHOT = bytes.fromhex("afe604")
 SHOT_EDGE_X = 235          # beyond this a shot is leaving the screen, not stopping
 NEAR_A_TARGET_PX = 14
+# A shot also stops against an enemy this code cannot classify yet, and those appear at any
+# altitude, which made the first version of this map mark 37 altitudes in one column. The
+# level is deterministic, so a real structure stops shots at the same place in run after
+# run while an enemy hit does not: keep only what two separate runs both found.
+RUNS_THAT_MUST_AGREE = 2
 
 BUCKET = 4
 # WRAM 0x007B counts the level scroll, but it wraps once the level stops scrolling at the
@@ -92,7 +97,7 @@ def main():
     # A column is not a floor: at level column 1644 a collision was recorded at Y 171 while
     # Y 189 was flown safely, so these are structures with open air below them. Keep every
     # measured altitude rather than collapsing them into a floor that was never observed.
-    safe, hits, surface, used, bands, blocked = {}, {}, {}, [], {}, {}
+    safe, hits, surface, used, bands, blocked, seen = {}, {}, {}, [], {}, {}, {}
     for run in sorted(args.runs.glob("combat-*")):
         if not (run / "states.jsonl").exists():
             continue
@@ -106,10 +111,13 @@ def main():
                 bands.setdefault(column, set()).add(round(y))
             else:
                 safe[column] = max(safe.get(column, 0), y)
-        for column, y in shot_stops(run):
-            blocked.setdefault(column, set()).add(y)
+        for column, y in set(shot_stops(run)):
+            seen.setdefault((column, y), set()).add(run.name)
         if count:
             used.append({"run": run.name, "frames": count})
+    for (column, y), runs in seen.items():
+        if len(runs) >= RUNS_THAT_MUST_AGREE:
+            blocked.setdefault(column, set()).add(y)
     columns = sorted(set(safe) | set(hits) | set(surface) | set(blocked))
     payload = {"status": "measured: lowest altitude flown without an untracked hit, and untracked-hit altitudes",
                "bucket_px": BUCKET, "scroll_address": "0x007B", "runs": used,
