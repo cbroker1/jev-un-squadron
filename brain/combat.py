@@ -49,6 +49,9 @@ TARGETS = ("enemy_aircraft", "ground_tank", "turret")
 # Player shots travel right at exactly 11 px per game frame at the aircraft's own Y
 # (420 measured steps). The vertical tolerance is estimated from two observed kills.
 SHOT_SPEED = 11
+# The aircraft moves 2.5 px per game frame in every direction (median of 242 measured
+# decisions). Getting past something is travel, so it costs frames, not just pixels.
+PLAYER_SPEED = 2.5
 SHOT_BAND = 10
 SHOT_MAX_X = 251
 
@@ -156,6 +159,32 @@ def field_forecast(targets, threats, window=30):
     return cells
 
 
+def sustained_path(position, action, frames, threats, target):
+    """What holding one direction for a whole transit would cost and reach.
+
+    A move that pays off in four steps is judged on its first step alone unless the
+    path itself is measured: this walks the aircraft at its measured speed for the
+    transit, against constant-velocity threats, and reports the tightest gap on the
+    way and whether it ends in a firing position on the target it was flying for.
+    """
+    dx, dy = ACTIONS[action]
+    xmin, xmax, ymin, ymax = PLAYER_BOUNDS
+    tightest = None
+    x = y = None
+    for frame in range(1, frames+1):
+        x = min(max(position[0]+dx*PLAYER_SPEED*frame, xmin), xmax)
+        y = min(max(position[1]+dy*PLAYER_SPEED*frame, ymin), ymax)
+        for threat in threats:
+            gap = ((threat["x"]+threat["vx"]*frame-x)**2 + (threat["y"]+threat["vy"]*frame-y)**2)**0.5
+            tightest = gap if tightest is None else min(tightest, gap)
+    if x is None:
+        return None, None, None
+    end_x, end_y = target["x"]+target["vx"]*frames, target["y"]+target["vy"]*frames
+    reaches = end_x > x and abs(end_y-y) <= SHOT_BAND and end_x <= SHOT_MAX_X
+    final_gap = round(((end_x-x)**2 + (end_y-y)**2)**0.5, 1)
+    return (round(tightest, 1) if tightest is not None else None), reaches, final_gap
+
+
 def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
     tracks = {kind: [t for t in obs["tracks"] if t["kind"] == kind] for kind in KINDS}
     digest = summarize(dict(obs, tracks=tracks["hostile_projectile"]), horizon)
@@ -185,6 +214,10 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
     digest["tracked_threats_by_direction"] = census
     digest["field_forecast"] = field_forecast([t for t in live if t["kind"] in TARGETS],
                                               [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")])
+    # The fastest speed anything is closing at right now, measured from the tracks themselves.
+    approach = max((-t["vx"] for t in live if t["kind"] != "power_up" and t["vx"] is not None and t["vx"] < 0),
+                   default=None)
+    digest["fastest_closing_speed_px_per_frame"] = round(approach, 2) if approach else None
     for action, option in digest["actions"].items():
         option["enemy_body_anchor_gap_px"] = bodies["actions"][action]["closest_anchor_distance_px"]
         nearest = min(option["tracked_projectiles"]+bodies["actions"][action]["tracked_projectiles"],
@@ -192,6 +225,25 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
         option["closest_threat_direction"] = nearest["relative_direction"] if nearest else None
         option["power_up_closest_px"] = reach["actions"][action]["closest_anchor_distance_px"]
         option["clear_screen_power_up_closest_px"] = clear_reach["actions"][action]["closest_anchor_distance_px"]
+        # A power-up is only worth a detour while it is still in play. Both halves of that
+        # are time: the flying it takes to reach it, and the frames before it drifts out.
+        for kind in ("power_up", "clear_screen_power_up"):
+            gap = option[f"{kind}_closest_px"]
+            option[f"frames_to_reach_{kind}"] = round(gap/PLAYER_SPEED) if gap is not None else None
+            leaving = [(t["x"]+32)/-t["vx"] for t in live
+                       if t["kind"] == kind and t["vx"] is not None and t["vx"] < -0.05]
+            option[f"frames_until_{kind}_leaves_play"] = round(min(leaving)) if leaving else None
+            option[f"holding_this_direction_closes_to_px_of_{kind}"] = None
+            option[f"tightest_gap_on_the_way_to_{kind}_px"] = None
+            items = [t for t in live if t["kind"] == kind]
+            frames_needed = option[f"frames_to_reach_{kind}"]
+            start = option["projected_position"]
+            if items and start and frames_needed and frames_needed <= lookahead*3:
+                nearest = min(items, key=lambda t: (t["x"]-start[0])**2 + (t["y"]-start[1])**2)
+                threats = [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")]
+                tight, _, final = sustained_path(start, action, frames_needed, threats, nearest)
+                option[f"holding_this_direction_closes_to_px_of_{kind}"] = final
+                option[f"tightest_gap_on_the_way_to_{kind}_px"] = tight
         position = option["projected_position"]
         # A squeeze is only visible if the sides are reported separately.
         sides = {"ahead": [], "behind": []}
@@ -203,8 +255,10 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
         (option["terrain_hit_recorded_y"], option["lowest_safe_y_measured"],
          option["ground_object_y_here"]) = terrain_at(position, obs.get("scroll_x"), span_from=px)
         # The altitude at or below which terrain is known to be solid along this path.
-        known = [v for v in (option["terrain_hit_recorded_y"], option["ground_object_y_here"]) if v is not None]
-        option["terrain_floor_y"] = min(known) if known else None
+        # Only recorded untracked hits measure that. A tank or turret standing here measures
+        # where ground targets sit, and the aircraft has flown at or below that altitude
+        # without a hit in 74 of the 122 mapped columns, so it is a firing line, not a floor.
+        option["terrain_floor_y"] = option["terrain_hit_recorded_y"]
         option["ends_at_or_below_terrain"] = bool(
             position and option["terrain_floor_y"] is not None and position[1] >= option["terrain_floor_y"]-4)
         option["gap_ahead_px"] = round(min(sides["ahead"]), 1) if sides["ahead"] else None
@@ -231,8 +285,41 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
                         if position and t["x"]+t["vx"]*horizon <= position[0]) if position else []
         option["targets_behind"] = len(behind)
         option["pixels_to_pass_nearest_behind"] = round(behind[0], 1) if behind else None
+        # The gun only fires right, so a target behind is a multi-move commitment, and a
+        # target drifting left at nearly the aircraft's own speed cannot be caught at all.
+        # Closing rate flying back is PLAYER_SPEED + the target's vx (negative going left).
+        rear = [(position[0]-(t["x"]+t["vx"]*horizon), t) for t in reachable
+                if position and t["x"]+t["vx"]*horizon <= position[0]] if position else []
+        # Something slipping behind is cheap to prevent and expensive to undo, so the
+        # crossing is worth seeing before it happens rather than after.
+        crossing = [(t["x"]-position[0])/-t["vx"] for t in reachable
+                    if position and t["vx"] is not None and t["vx"] < -0.05
+                    and t["x"] > position[0] and (t["x"]-position[0])/-t["vx"] <= lookahead]
+        option["targets_that_will_slip_behind_you"] = len(crossing)
+        option["first_slips_behind_in_frames"] = round(min(crossing)) if crossing else None
+        option["frames_to_get_behind_nearest_target_behind"] = None
+        option["nearest_target_behind_kind"] = None
+        option["tightest_gap_if_this_direction_is_held_px"] = None
+        option["holding_this_direction_reaches_a_shot_on_it"] = None
+        if rear:
+            gap, target = min(rear, key=lambda pair: pair[0])
+            closing = PLAYER_SPEED + target["vx"]
+            option["nearest_target_behind_kind"] = target["kind"]
+            transit = round(gap/closing) if closing > 0.05 else None
+            option["frames_to_get_behind_nearest_target_behind"] = transit
+            # The transit is several moves long, so judge the whole path, not its first step.
+            if transit and transit <= lookahead*2 and position:
+                threats = [t for t in live if t["kind"] not in ("power_up", "clear_screen_power_up")]
+                (option["tightest_gap_if_this_direction_is_held_px"],
+                 option["holding_this_direction_reaches_a_shot_on_it"], _) = sustained_path(
+                    position, action, transit, threats, target)
         option["warning_room_px"], option["warning_room_edge"] = warning_room(position, entry_edges)
         option["retreat_room_px"] = retreat_room(position, entry_edges)
+        # Pixels of room mean nothing on their own: turn both into frames.
+        option["warning_time_frames"] = (round(option["warning_room_px"]/approach)
+                                         if option["warning_room_px"] is not None and approach else None)
+        option["retreat_time_frames"] = (round(option["retreat_room_px"]/PLAYER_SPEED)
+                                         if option["retreat_room_px"] is not None else None)
         # One action can look clear for its own frames and still end where something arrives soon.
         waits = [nearest_approach(t["x"]+t["vx"]*horizon-position[0], t["y"]+t["vy"]*horizon-position[1],
                                   t["vx"], t["vy"], lookahead)[0]
@@ -241,6 +328,13 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30):
         option["targets_the_gun_would_hit"] = len(landings)
         option["soonest_hit_frames"] = landings[0][0] if landings else None
         option["soonest_hit_kind"] = landings[0][1] if landings else None
+    # A hard constraint that forbids every option is a defect in the constraint, not a fact
+    # about the level. Keep the measurement, but stop presenting it as a prohibition.
+    if all(o["ends_at_or_below_terrain"] for o in digest["actions"].values()):
+        for option in digest["actions"].values():
+            option["ends_at_or_below_terrain"] = False
+        digest["terrain_constraint_suspended"] = (
+            "every option ended at or below measured terrain here; decide on the other facts")
     return digest
 
 
@@ -277,11 +371,39 @@ def combat_request(digest, model="jev-latest"):
             shots = "no tracked target the gun can reach"
         alignment = ("no tracked aircraft ahead to align with" if f["firing_alignment_error_px"] is None
                      else f"aircraft firing-line error {f['firing_alignment_error_px']:.1f} pixels (smaller is better)")
-        clear_up = ("" if f["clear_screen_power_up_closest_px"] is None
-                    else f"; closest approach to the screen-clearing power-up {f['clear_screen_power_up_closest_px']:.1f} pixels "
-                         f"(touching it destroyed every live target in both observed pickups)")
-        power_up = ("" if f["power_up_closest_px"] is None
-                    else f"; closest approach to the power-up {f['power_up_closest_px']:.1f} pixels (touching collects it; the one observed pickup happened at about 18 pixels)")
+        if f["clear_screen_power_up_closest_px"] is None:
+            clear_up = ""
+        else:
+            reach_cost = ("" if f["frames_to_reach_clear_screen_power_up"] is None else
+                          f", about {f['frames_to_reach_clear_screen_power_up']} frames of flying away")
+            if f["holding_this_direction_closes_to_px_of_clear_screen_power_up"] is not None:
+                on_the_way = ("" if f["tightest_gap_on_the_way_to_clear_screen_power_up_px"] is None else
+                              f" with a tightest gap of "
+                              f"{f['tightest_gap_on_the_way_to_clear_screen_power_up_px']:.0f} pixels on the way")
+                reach_cost += (f", and holding this direction for those frames closes to "
+                               f"{f['holding_this_direction_closes_to_px_of_clear_screen_power_up']:.0f} "
+                               f"pixels of it{on_the_way}")
+            expiry = ("" if f["frames_until_clear_screen_power_up_leaves_play"] is None else
+                      f", and it drifts out of play in about "
+                      f"{f['frames_until_clear_screen_power_up_leaves_play']} frames")
+            clear_up = (f"; closest approach to the screen-clearing power-up "
+                        f"{f['clear_screen_power_up_closest_px']:.1f} pixels{reach_cost}{expiry} "
+                        f"(touching it destroyed every live target in both observed pickups)")
+        if f["power_up_closest_px"] is None:
+            power_up = ""
+        else:
+            reach_cost = ("" if f["frames_to_reach_power_up"] is None else
+                          f", about {f['frames_to_reach_power_up']} frames of flying away")
+            if f["holding_this_direction_closes_to_px_of_power_up"] is not None:
+                on_the_way = ("" if f["tightest_gap_on_the_way_to_power_up_px"] is None else
+                              f" with a tightest gap of {f['tightest_gap_on_the_way_to_power_up_px']:.0f} "
+                              f"pixels on the way")
+                reach_cost += (f", and holding this direction for those frames closes to "
+                               f"{f['holding_this_direction_closes_to_px_of_power_up']:.0f} pixels of it{on_the_way}")
+            expiry = ("" if f["frames_until_power_up_leaves_play"] is None else
+                      f", and it drifts out of play in about {f['frames_until_power_up_leaves_play']} frames")
+            power_up = (f"; closest approach to the power-up {f['power_up_closest_px']:.1f} pixels{reach_cost}"
+                        f"{expiry} (touching collects it; the one observed pickup happened at about 18 pixels)")
         tanks = ("" if f["tank_firing_line_error_px"] is None
                  else f"; ground-tank firing-line error {f['tank_firing_line_error_px']:.1f} pixels (smaller lets the gun hit tanks)")
         turrets = ("" if f["turret_firing_line_error_px"] is None
@@ -295,30 +417,73 @@ def combat_request(digest, model="jev-latest"):
         coming = ("" if not f["targets_entering_your_line_soon"]
                   else f" Holding this position, {f['targets_entering_your_line_soon']} target(s) drift into the gun's line "
                        f"within the next minute of play, the first in about {f['first_such_target_in_frames']} frames.")
+        slipping = ("" if not f["targets_that_will_slip_behind_you"]
+                    else f" From here {f['targets_that_will_slip_behind_you']} target(s) pass behind you within "
+                         f"{f['first_slips_behind_in_frames']} to 30 frames, the first in about "
+                         f"{f['first_slips_behind_in_frames']} frames; the gun cannot reach them afterwards without "
+                         f"flying back past them.")
         ground = ""
         if f["ends_at_or_below_terrain"]:
-            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, at or below the terrain measured on "
-                       f"this path (Y {f['terrain_floor_y']:.0f}); terrain contact is damage every time.")
+            ground += (f" TERRAIN: this ends at Y {f['projected_position'][1]:.0f}, at or below an altitude where a "
+                       f"terrain collision was actually recorded on this path (Y {f['terrain_floor_y']:.0f}); "
+                       f"terrain contact is damage every time.")
         if f["ground_object_y_here"] is not None:
-            ground += (f" Terrain: tanks or turrets stand at Y {f['ground_object_y_here']:.0f} here, so the solid "
-                       f"surface is about that altitude.")
+            ground += (f" Ground targets stand at Y {f['ground_object_y_here']:.0f} here: that is the altitude the "
+                       f"gun has to be at to hit them, and it has been flown without a hit, so it is a firing "
+                       f"line, not a floor.")
         if f["terrain_hit_recorded_y"] is not None:
             ground += f" A terrain collision was recorded here at Y {f['terrain_hit_recorded_y']:.0f} and below."
         elif f["lowest_safe_y_measured"] is not None:
             ground += f" The lowest altitude flown here without an untracked hit is Y {f['lowest_safe_y_measured']:.0f}."
         squeeze = ("" if f["gap_ahead_px"] is None and f["gap_behind_px"] is None
                    else f" Nearest threat ahead: {describe_gap(f['gap_ahead_px'])}; behind: {describe_gap(f['gap_behind_px'])}.")
-        behind = ("" if not f["targets_behind"]
-                  else f" Targets behind you: {f['targets_behind']} (nearest {f['pixels_to_pass_nearest_behind']:.0f} pixels back; "
-                       f"slip past it and the gun can hit it).")
-        room = ("" if f["warning_room_px"] is None
-                else f" Targets ahead of you: {f['targets_ahead']}; room from the {f['warning_room_edge']} side, "
-                     f"where objects have been entering: {f['warning_room_px']:.0f} pixels; room left to fall back "
-                     f"away from that side: {f['retreat_room_px']:.0f} pixels.")
+        if not f["targets_behind"]:
+            behind = ""
+        else:
+            frames = f["frames_to_get_behind_nearest_target_behind"]
+            kind = (f["nearest_target_behind_kind"] or "target").replace("_", " ")
+            path = ""
+            if f["tightest_gap_if_this_direction_is_held_px"] is not None:
+                path = (f"; holding this direction for those frames "
+                        f"{'reaches a shot on it' if f['holding_this_direction_reaches_a_shot_on_it'] else 'does not line up a shot on it'}"
+                        f", and the tightest gap to anything along that path is "
+                        f"{f['tightest_gap_if_this_direction_is_held_px']:.0f} pixels")
+            cost = (f"flying back past it takes about {frames} frames at this aircraft's measured speed"
+                    if frames is not None else
+                    "it is drifting away about as fast as this aircraft flies, so it cannot be caught from here")
+            behind = (f" Targets behind you: {f['targets_behind']} (nearest is a {kind}, "
+                      f"{f['pixels_to_pass_nearest_behind']:.0f} pixels back; {cost}{path}, and the gun can hit "
+                      f"it once past).")
+        if f["warning_room_px"] is None:
+            room = ""
+        else:
+            warning = ("" if f["warning_time_frames"] is None else
+                       f", about {f['warning_time_frames']} frames of warning at the fastest speed anything is "
+                       f"closing at right now")
+            retreat = ("" if f["retreat_time_frames"] is None else
+                       f", about {f['retreat_time_frames']} frames of flying")
+            room = (f" Targets ahead of you: {f['targets_ahead']}; room from the {f['warning_room_edge']} side, "
+                    f"where objects have been entering: {f['warning_room_px']:.0f} pixels{warning}; room left to "
+                    f"fall back away from that side: {f['retreat_room_px']:.0f} pixels{retreat}.")
         later = ("" if f["threat_gap_if_you_hold_px"] is None
                  else f" Staying there afterwards, the nearest tracked threat closes to {f['threat_gap_if_you_hold_px']:.0f} pixels.")
-        criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {closest}"
-            f"Attack: {shots}.{coming}{squeeze}{behind}{room}{later}{ground} "
+        lead = ""
+        if f["clear_screen_power_up_closest_px"] is not None:
+            closing = ("" if f["holding_this_direction_closes_to_px_of_clear_screen_power_up"] is None else
+                       f" Holding this direction for those frames closes to "
+                       f"{f['holding_this_direction_closes_to_px_of_clear_screen_power_up']:.0f} pixels of it" +
+                       ("." if f["tightest_gap_on_the_way_to_clear_screen_power_up_px"] is None else
+                        f", with a tightest gap of "
+                        f"{f['tightest_gap_on_the_way_to_clear_screen_power_up_px']:.0f} pixels on the way."))
+            expiry = ("" if f["frames_until_clear_screen_power_up_leaves_play"] is None else
+                      f" It drifts out of play in about {f['frames_until_clear_screen_power_up_leaves_play']} "
+                      f"frames and is then gone for good.")
+            lead = ("SCREEN-CLEARING POWER-UP IN PLAY - touching it destroyed every live target in both observed "
+                    f"pickups. Closest approach {f['clear_screen_power_up_closest_px']:.0f} pixels, about "
+                    f"{f['frames_to_reach_clear_screen_power_up']} frames of flying away.{closing}{expiry} ")
+            clear_up = ""
+        criteria[action] = (f"{'No directional buttons' if action == 'hold' else 'Move '+action}. {lead}{closest}"
+            f"Attack: {shots}.{coming}{slipping}{squeeze}{behind}{room}{later}{ground} "
             f"Bullet-reference gap: {describe_gap(f['closest_anchor_distance_px'])}; "
             f"aircraft/tank/turret-reference gap: {describe_gap(f['enemy_body_anchor_gap_px'])}; {alignment}{power_up}{clear_up}{tanks}{turrets}. "
             f"Ends at {f['projected_position'][0]:.0f},{f['projected_position'][1]:.0f}, {f['room_description']}."
@@ -342,7 +507,9 @@ def combat_request(digest, model="jev-latest"):
         "terrain": ("The ground and the platforms structures stand on are solid but are not tracked at all. Tracked tanks "
                     "and turrets sit on that terrain, so their altitude marks where it is. Every recorded collision with "
                     "terrain happened while flying at Y 174 to 191, with nothing tracked nearby. Where past runs measured "
-                    "this stretch, each option says so; a column with no measurement is unknown, not safe."),
+                    "this stretch, each option says so; a column with no measurement is unknown, not safe. Only a recorded "
+                    "collision measures the solid surface; a tank or turret standing somewhere marks the altitude to "
+                    "shoot it from, and that altitude has been flown safely."),
         "uncertainty": ("Gaps are between reference points, not hitboxes: every collision recorded so far happened at a "
                         "reference gap of 9 to 22 pixels, so a gap in that range is a hit, not clearance. Constant recent "
                         "velocity is a short-horizon estimate. Health and death are unknown.")},
@@ -353,9 +520,24 @@ def combat_request(digest, model="jev-latest"):
                 "Attack line puts tracked targets in the gun's path. Turrets are the highest-value target: destroying one drops a "
                 "power-up, and more power-ups mean more firepower for the rest of the level, so take a turret when the "
                 "closest threat allows. A screen-clearing power-up is worth more than any single kill because it destroys every "
-                "live target at once, so go for it when the way there is clear and let it go when reaching it means "
-                "crossing close threats. A target behind you cannot be shot until you get past it: when one is close "
-                "behind and the way is clear, go around and take it rather than drifting away and letting it box you in. "
+                "live target at once. While one is in play every option leads with it: reaching it is the objective that "
+                "reshapes the rest, because it pays more than any sequence of ordinary kills available in the same "
+                "frames. Work the approach it offers - hold a direction long enough to close, and take the opening "
+                "when the path's tightest gap allows - and give it up only when every approach crosses a threat "
+                "inside the collision range. Ordinary targets will still be there afterwards; the power-up will not. A power-up that can be reached in the time it has left is worth more than an "
+                "ordinary kill, because the firepower lasts for the rest of the level while a single kill does not; "
+                "passing one up to keep shooting at what is already in front is the wrong trade. Power-ups drift out "
+                "of play and are gone for the rest of the level: each "
+                "option gives the frames of flying needed to reach one and the frames before it leaves, so a detour "
+                "that fits inside the time left is a real choice, while drifting near one without closing wastes "
+                "both the frames and the power-up. A target behind you cannot be shot until you get past it, and each option says how "
+                "many frames that transit actually takes. A slow one, such as a tank, is worth the frames when the way "
+                "is clear; one drifting away nearly as fast as this aircraft flies cannot be caught at all, and its transit "
+                "cost says which. Each option also says which targets are about to pass behind you and how soon. "
+                "cost says which case this is. Decide and carry it through: trading a few pixels back and forth while "
+                "both sides close is how this aircraft gets boxed in with something behind it that the gun cannot "
+                "reach. Sitting far forward is what creates that: everything that slips past is then a long transit "
+                "away, and the room behind is the room to dodge into, measured in frames of flying. "
                 "field_forecast_next_30_frames covers the whole flyable area, not just this step: for positions across the "
                 "screen it gives the targets that would cross the gun's line within 30 frames and how close threats would "
                 "come there. Work toward the areas that pay off over several moves instead of judging only the next one. "
@@ -378,8 +560,10 @@ def combat_request(digest, model="jev-latest"):
                 "move that is clear for its own few frames can still end where a tank, aircraft or bullet arrives moments "
                 "later. An option "
                 "that hits nothing, collects nothing and only keeps distance is a wasted move when a safer-or-equal option "
-                "attacks. Ground tanks collide with the aircraft, so shoot them from a horizontal distance rather than "
-                "descending onto them. Compare the "
+                "attacks. Tanks and turrets can only be hit from their own altitude, so descending to their firing line is "
+                "ordinary play and not a terrain risk: the altitude a ground target stands at has been flown without a "
+                "hit. Close onto that line from a horizontal distance rather than dropping onto them, since they "
+                "collide like any other body. Compare the "
                 "already-computed consequences, not raw coordinates. Hold is an ordinary action, not an automatic safe "
                 "fallback. New objects appear from off-screen without warning; object_entries_counted_this_run says where they "
                 "have come from so far in this run. Health and model confidence must not be used to infer safety.")}}}

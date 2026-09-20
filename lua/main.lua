@@ -75,6 +75,23 @@ event.onloadstate(function()
   joypad.set(neutral(), 1)
 end, "bridge_invalidate_save")
 event.onexit(function() joypad.set(neutral(), 1) end, "bridge_release")
+local run_label = os.getenv("JEV_RUN_LABEL") or "-"
+-- Narration overlay: the run label and frame are what Carl calls out by voice.
+-- gui.text's fifth argument is an anchor, not a background colour, so draw with
+-- gui.drawText and never let a drawing error interrupt a run.
+local function draw_overlay(frame, a, player_x, player_y, paused)
+  local drawn = pcall(function()
+    gui.drawRectangle(2, 2, 96, 34, 0xFF000000, 0xC0101010)
+    gui.drawText(5, 3, string.format("d%d %s%s", a.call or 0, a.action,
+      paused and "*" or ""), 0xFFFFFF00, 0xFF000000, 11)
+    gui.drawText(5, 14, string.format("R%s F%d", run_label, frame), 0xFFFFFFFF, 0xFF000000, 11)
+    gui.drawText(5, 25, string.format("%d,%d s%d", player_x, player_y,
+      memory.read_u16_le(0x007B)), 0xFF40FF40, 0xFF000000, 11)
+  end)
+  if not drawn then
+    pcall(gui.text, 4, 4, string.format("RUN %s  FRAME %d  %s", run_label, frame, a.action or ""))
+  end
+end
 local trace_dir = os.getenv("JEV_BRIDGE_TRACE") -- Optional offline verification only.
 local trace = trace_dir and assert(io.open(trace_dir .. "/inputs.csv", "w")) or nil
 local preview_trace = os.getenv("JEV_BRAIN_PREVIEW") == "1"
@@ -185,6 +202,7 @@ local function hold_for_next_command(frame, a, p)
     if (now and (now.id ~= c.id or now.stop)) or os.time() - started >= 5 then break end
     freeze_heartbeat = freeze_heartbeat + 1
     write_state(a, frame, p, reload_active, frame, true)
+    draw_overlay(frame, a, memory.read_u8(PLAYER_X), memory.read_u8(PLAYER_Y), true)
     emu.yield()
   end
   client.unpause()
@@ -230,10 +248,7 @@ while running do
   if a.action ~= "stop" and action_id ~= applied_id then
     applied_id = action_id; first_apply_frame = frame
   end
-  gui.text(4, 4, string.format("Jev bridge: %s  %s=%s pulse=%s frame=%d", a.action, a.fire_button, tostring(a.fire), tostring(a.fire_pulse), frame), "white", "black")
-  gui.text(4, 16, string.format("UNVERIFIED 8-bit X=%d Y=%d", candidate_x, candidate_y), "yellow", "black")
-  gui.text(4, 28, string.format("UNVERIFIED 16-bit Y=%d XY=%d", candidate16_y, candidate16_xy), "orange", "black")
-  gui.text(4, 40, string.format("Player X=0x1011:%d Y=0x1014:%d (liveness unknown)", player_x, player_y), "lime", "black")
+  draw_overlay(frame, a, player_x, player_y, false)
   gui.drawBox(player_x - 4, player_y - 4, player_x + 4, player_y + 4, 0xFF00FF00, 0x00000000)
   poll_mask = -1; polls = 0
   emu.frameadvance()

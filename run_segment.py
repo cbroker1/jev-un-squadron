@@ -111,6 +111,10 @@ def main():
         raise SystemExit("The existing local key file is missing; emulator not started.")
     run=ROOT / "runs" / ("combat-"+dt.datetime.now().strftime("%Y%m%d-%H%M%S")+"-"+uuid.uuid4().hex[:6]+"-"+args.mode)
     run.mkdir()
+    # A short number is what gets called out by voice; the folder name is unwieldy.
+    counter=ROOT / "runs/run_counter.json"
+    label=(json.loads(counter.read_text()).get("last",0) if counter.exists() else 0)+1
+    save_json(counter,{"last":label,"run":run.name})
     cfg=json.loads((ROOT / "config.json").read_text())
     exe=ROOT / "bizhawk/EmuHawk.exe"
     save=ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave1.State"
@@ -118,14 +122,14 @@ def main():
         "rom_sha256":sha256(Path(cfg["rom_path"])),"slot1_sha256":sha256(save),"max_jev_attempts":args.max_calls if args.mode=="live" else 0,
         "expected_stop":args.expect_stop,"requested_speed":50,"core":"Snes9x","warmup_frames":args.warmup,
         "frame_budget":args.frames,"decision_timing":"pause_and_step" if args.stepped else "continuous",
-        "prelude":"Y firing, no movement" if args.prelude_fire else "neutral, gun off","decision_interval_frames":args.interval,
+        "prelude":"Y firing, no movement" if args.prelude_fire else "neutral, gun off","decision_interval_frames":args.interval,"run_label":label,
         "lua_sha256":sha256(ROOT / "lua/main.lua"),"controller_sha256":sha256(ROOT / "play_segment.py")}
     save_json(run / "manifest.json",manifest)
     env=os.environ.copy(); env.pop("TYPESAFE_API_KEY",None)
-    env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1")
+    env.update(JEV_BRIDGE_TRACE=str(run),JEV_BRAIN_PREVIEW="1",JEV_RUN_LABEL=str(label))
     emu=worker=None
     started=time.monotonic()
-    print(f"{run.name}: {args.mode.upper()}, maximum Jev attempts {manifest['max_jev_attempts']}. Ctrl+C or stop_segment.bat stops.",flush=True)
+    print(f"RUN {label} ({run.name}): {args.mode.upper()}, maximum Jev attempts {manifest['max_jev_attempts']}. Ctrl+C or stop_segment.bat stops.",flush=True)
     try:
         with (run / "emulator_stdout.txt").open("w") as out,(run / "emulator_stderr.txt").open("w") as err,(run / "console.txt").open("w") as console:
             emu=subprocess.Popen([str(exe),"--load-slot","1","--lua",str(ROOT / "lua/main.lua"),cfg["rom_path"]],cwd=exe.parent,env=env,stdout=out,stderr=err)

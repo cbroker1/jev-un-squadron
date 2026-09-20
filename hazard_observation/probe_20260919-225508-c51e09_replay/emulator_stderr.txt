@@ -1,0 +1,1 @@
+parsing command-line flags: --load-slot 1 --lua C:\Users\Carl-MainRig\Projects\jev-un-squadron\lua\hazard_snapshots.lua C:\Users\Carl-MainRig\Downloads\U.N. Squadron (USA).sfc
