@@ -100,6 +100,26 @@ class CombatTests(unittest.TestCase):
             data[base:base+22]=payload
         return data
 
+    def test_the_fortified_line_past_frame_22400_is_classified(self):
+        """Routines confirmed in two long recordings by measured motion and screenshots."""
+        from brain.observations import classify_record
+        def record(routine_hex, flags, byte8=0):
+            payload=bytearray(22)
+            payload[0]=flags
+            payload[1:4]=bytes.fromhex(routine_hex)
+            payload[8]=byte8
+            return classify_record(payload)
+        # The diagonal shells the aircraft died to in both long runs.
+        self.assertEqual(record("499602",0xDC),("hostile_projectile",True))
+        self.assertEqual(record("499602",0x00),("hostile_projectile",False))   # gated on its flag byte
+        # Gun emplacements of the fortified line.
+        for routine, flags in (("1b9502",0xD8),("cd9302",0xD0),("089502",0xD0),("8fb002",0xD8)):
+            self.assertEqual(record(routine,flags),("turret",True),routine)
+        # The helicopter that sits on the ground and climbs away.
+        self.assertEqual(record("5ab002",0xC8),("enemy_aircraft",True))
+        # Our own shots travel right at 11 px/frame and are not an enemy of anything.
+        self.assertEqual(record("afe604",0xC8)[0],"unclassified")
+
     def test_lingering_in_the_collision_range_is_counted_across_decisions(self):
         """R20 died after four straight decisions at 20-21 px from a tank; each looked fine alone."""
         from brain.combat import time_in_the_collision_range
