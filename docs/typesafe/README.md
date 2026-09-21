@@ -1,8 +1,10 @@
 # TypeSafe / Jev documentation, saved locally
 
-All 109 pages of https://docs.typesafe.ai fetched on 2026-09-20, kept so changes to this
-project can be checked against the vendor's own guidance instead of assumption. `_index.txt`
-is the upstream `llms.txt` listing every page.
+All 109 pages of https://docs.typesafe.ai were fetched on 2026-09-20 so changes to this
+project could be checked against the vendor's own guidance instead of assumption. The pages are
+TypeSafe's, so they are kept locally and **not redistributed in this repository**: only this
+summary is tracked. Read them at https://docs.typesafe.ai (the page index is
+https://docs.typesafe.ai/llms.txt). The file names cited below are paths on that site.
 
 ## The rules this project is currently breaking
 
@@ -11,7 +13,7 @@ followed by what this project does today.
 
 | Documentation | This project |
 |---|---|
-| "Jev cannot reliably perform arithmetic, counting, or numeric comparisons… **implement any mathematical logic in code**" (`model-jaggedness/jev-1.13.md`) | every option carries about 1,600 characters of numbers - pixels, frames, percentages - and Jev is asked to weigh them |
+| "Jev is not a calculator. We strongly recommend **implementing any mathematical logic in code**." (`model-jaggedness/jev-1.13.md`) | every option carries about 1,600 characters of numbers - pixels, frames, percentages - and Jev is asked to weigh them |
 | "Break complex problems into **atomic questions**… don't hide multiple judgments behind one question" (`concepts/how-to-build-with-system-one.md`) | one `movement` question conflating dodging, attacking, positioning, power-ups, terrain and the boss method |
 | "Ask many independent questions together… they execute in parallel with little effect on response time"; measured 12x cheaper and 10x faster (`cookbooks/parallel_questions.md`, `patterns/fan-out.md`) | one question per call, about 1,300 calls in a full run |
 | "Large states containing unrelated information act as **distractors and degrade accuracy**… context rot" (`model-jaggedness/jev-1.13.md`) | about 22 KB per request |

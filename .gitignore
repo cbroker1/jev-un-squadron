@@ -22,3 +22,8 @@ third_party/
 
 # Locally downloaded GitHub CLI; not part of the project
 tools/
+
+# TypeSafe's own documentation, fetched locally for reference; it is theirs, so it is not
+# redistributed here. Only our summary (docs/typesafe/README.md) is tracked.
+docs/typesafe/*
+!docs/typesafe/README.md
