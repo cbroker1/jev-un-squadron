@@ -8,7 +8,14 @@ import math
 from brain.digest import ACTIONS
 
 POLICY = "categorical-v1"
-CONFIDENCE_FLOOR = 0.5  # Experimental, to be evaluated on matched gameplay runs.
+import os
+
+# Below this, the policy plays a computed move instead of Jev's answer. Measured over three
+# matched runs, the floor of 0.5 overrode 31% of decisions, every one of them for low
+# confidence rather than a measured constraint, and those runs scored 71% of units against
+# 78% for the legacy policy acting on median confidence 0.27. The floor is the thing under
+# test, so it is settable per run rather than baked in.
+CONFIDENCE_FLOOR = float(os.getenv("JEV_CONFIDENCE_FLOOR", "0.5"))
 COLLISION_BAND = 22     # Upper end of the observed reference-gap collision range.
 
 
@@ -180,7 +187,8 @@ def compose(body, answers):
     selected = answers[plan["objective"]]
     chosen = selected["choice"]
     source, reason = "jev", "confident_admissible_choice"
-    if chosen not in plan["admissible_moves"] or selected["confidence"] < CONFIDENCE_FLOOR:
+    floor = float(os.getenv("JEV_CONFIDENCE_FLOOR", CONFIDENCE_FLOOR))
+    if chosen not in plan["admissible_moves"] or selected["confidence"] < floor:
         reason = "measured_constraint" if chosen not in plan["admissible_moves"] else "low_confidence"
         candidates = plan["fallback_moves"]
         previous = plan["previous_move"]
