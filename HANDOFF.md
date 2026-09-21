@@ -1,5 +1,8 @@
 # Handoff - 2026-09-20, America/Chicago
 
+Later work and the current resume checkpoint are in [HANDOFF_LATEST.md](HANDOFF_LATEST.md).
+Read that file before treating the status below as current.
+
 ## Where this stands
 
 A bounded controller plays U.N. Squadron level 1 with Jev choosing movement every 3 game

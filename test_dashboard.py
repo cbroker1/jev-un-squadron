@@ -9,6 +9,28 @@ import dashboard
 
 
 class DashboardTests(unittest.TestCase):
+    def test_fallback_does_not_attribute_its_move_probability_to_jev(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            run = root / "combat-unit-live"
+            run.mkdir()
+            (run / "manifest.json").write_text(json.dumps({"run_label":1,"mode":"live"}))
+            records = [
+                {"event":"request","attempt":1,"observation":{"source_frame":100,"tracks":[]},
+                 "request_body":{"questions":{"attack":{"instructions":"Choose a firing line"}}}},
+                {"event":"response","attempt":1,"source_frame":100,"decision_source":"jev_fallback",
+                 "response":{"choice":"left","raw_choice":"up","confidence":0.1,
+                             "probabilities":{"up":0.3,"left":0.2},"objective":"attack",
+                             "selection_reason":"low_confidence_continue"}}]
+            (run / "events.jsonl").write_text("\n".join(json.dumps(row) for row in records))
+            (root / "active_segment.json").write_text(json.dumps({"running":True,"run_dir":str(run)}))
+            with patch.object(dashboard, "RUNS", root):
+                live = dashboard.live_state()
+            self.assertEqual(live["judgment"]["question"], "ATTACK")
+            self.assertEqual(live["judgment"]["choice"], "up")
+            self.assertEqual(live["judgment"]["applied_choice"], "left")
+            self.assertEqual(live["judgment"]["source"], "jev_fallback")
+
     def test_tail_events_survives_a_half_written_line(self):
         """The dashboard reads a file the runner is still appending to."""
         with tempfile.TemporaryDirectory() as folder:

@@ -143,7 +143,8 @@ function drawProbs(j){
     `<div class="row ${name === j.choice ? "pick" : ""}"><span>${name}</span>
      <span class="meter"><i style="width:${Math.round(value*100)}%"></i></span>
      <span>${value.toFixed(2)}</span></div>`).join("");
-  $("judgeNote").textContent = j.confidence != null ? "confidence " + j.confidence.toFixed(2) : "";
+  $("judgeNote").textContent = (j.confidence != null ? "model confidence " + j.confidence.toFixed(2) : "")
+    + (j.source === "jev_fallback" ? " · applied " + j.applied_choice + " via fallback (" + j.selection_reason + ")" : "");
 }
 
 function drawFeed(live){
@@ -155,7 +156,7 @@ function drawFeed(live){
     const conf = f.confidence != null ? f.confidence.toFixed(2) : "–";
     const ms = f.latency_ms != null ? Math.round(f.latency_ms) + "ms" : "–";
     return `<div class="item"><b>d${f.attempt ?? "?"}</b> f${f.frame} ·
-      <span style="color:var(--hot)">${f.choice || "–"}</span> conf ${conf} · ${ms}
+      <span style="color:var(--hot)">${f.choice || "–"}</span> model conf ${conf} · ${ms}
       ${f.source && f.source !== "jev" ? '· <span class="muted">' + f.source + "</span>" : ""}
       <div>${tags}</div></div>`;
   }).join("");

@@ -12,6 +12,7 @@ import uuid
 
 import bridge
 from brain.observations import SLOT1_SHA256
+from brain.decisions import POLICY
 from probe_hazards import close_owned_window, save_json, sha256
 
 ROOT=Path(__file__).resolve().parent
@@ -38,7 +39,7 @@ def validate(run, limit):
             "first_apply_frame":int(actual[0]["source_frame"]),"last_result_frame":int(actual[-1]["result_frame"]),
             "start_xy":[int(before["player_x"]),int(before["player_y"])],
             "end_xy":[int(actual[-1]["player_x"]),int(actual[-1]["player_y"])]})
-    selected=[a for a in actions if a["source"] in ("jev","deterministic_mock")]
+    selected=[a for a in actions if a["source"] in ("jev","jev_fallback","deterministic_mock")]
     http_events=[e for e in events if e["event"]=="request"]
     final=json.loads((run / "final_state.json").read_text())
     expected_stop=manifest.get("expected_stop")
@@ -75,6 +76,7 @@ def validate(run, limit):
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mode",choices=("dry","live","baseline"),default="dry")
+    ap.add_argument("--policy",choices=("legacy",POLICY),default="legacy",help="experimental decision interface")
     ap.add_argument("--max-calls",type=int,default=5)
     ap.add_argument("--save-at-frame",type=int,default=0,help="write slot 2 once at this frame, to practise from")
     ap.add_argument("--load-slot",type=int,default=1,choices=(1,2,3,4),help="2+ practise from a saved entry")
@@ -109,6 +111,8 @@ def main():
         ap.error("Request limit must be 1..400")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")
+    if args.policy != "legacy" and not args.stepped:
+        ap.error("The categorical policy requires --stepped")
     if not (1 if args.stepped else 0) <= args.warmup <= 900 or not 1 <= args.frames <= 7200:
         ap.error("Warmup must be 0..900 (1.. when stepped) and frames 1..7200")
     if not args.speed:
@@ -135,12 +139,13 @@ def main():
     cfg=json.loads((ROOT / "config.json").read_text())
     exe=ROOT / "bizhawk/EmuHawk.exe"
     save=ROOT / "bizhawk/SNES/State/U.N. Squadron (USA).Snes9x.QuickSave1.State"
-    manifest={"run_id":run.name,"mode":args.mode,"local_started":dt.datetime.now().astimezone().isoformat(),
+    manifest={"run_id":run.name,"mode":args.mode,"policy":args.policy,"local_started":dt.datetime.now().astimezone().isoformat(),
         "rom_sha256":sha256(Path(cfg["rom_path"])),"slot1_sha256":sha256(save),"max_jev_attempts":args.max_calls if args.mode=="live" else 0,
         "expected_stop":args.expect_stop,"requested_speed":50,"core":"Snes9x","warmup_frames":args.warmup,
         "frame_budget":args.frames,"decision_timing":"pause_and_step" if args.stepped else "continuous",
         "prelude":"Y firing, no movement" if args.prelude_fire else "neutral, gun off","decision_interval_frames":args.interval,"run_label":label,
         "lua_sha256":sha256(ROOT / "lua/main.lua"),"controller_sha256":sha256(ROOT / "play_segment.py"),
+        "combat_sha256":sha256(ROOT / "brain/combat.py"),"policy_sha256":sha256(ROOT / "brain/decisions.py"),
         "speed_percent":args.speed,"change_under_test":args.change}
     save_json(run / "manifest.json",manifest)
     env=os.environ.copy(); env.pop("TYPESAFE_API_KEY",None)
@@ -159,6 +164,7 @@ def main():
             emu=subprocess.Popen([str(exe),"--load-slot",str(args.load_slot),"--lua",str(ROOT / "lua/main.lua"),cfg["rom_path"]],cwd=exe.parent,env=env,stdout=out,stderr=err)
             save_json(ACTIVE,{"running":True,"run_dir":str(run),"pid":emu.pid})
             worker=subprocess.Popen([sys.executable,"-u",str(ROOT / "play_segment.py"),"--output",str(run),"--mode",args.mode,
+                "--policy",args.policy,
                 "--max-calls",str(args.max_calls),"--mock-delay-ms",str(args.mock_delay_ms),
                 "--warmup",str(args.warmup),"--frames",str(args.frames),"--interval",str(args.interval)]
                 +(["--expected-start-frame",str(args.expected_start_frame)] if args.expected_start_frame else [])
@@ -199,7 +205,18 @@ def main():
             wall_seconds=round(time.monotonic()-started,3),state_unchanged=sha256(save)==manifest["slot1_sha256"])
         save_json(run / "manifest.json",manifest)
         save_json(ACTIVE,{"running":False,"run_dir":str(run)})
-    if not (run / "summary.json").exists() or not validate(run,args.max_calls):
+    if not (run / "summary.json").exists():
+        raise SystemExit("Run has no summary; evidence preserved in "+str(run))
+    passed = validate(run,args.max_calls)
+    # Death / guard stops still contain gameplay evidence. Analyze before reporting
+    # validation failure, so the run table and benchmark never silently miss them.
+    from analyze_segment import analyze
+    analysis = analyze(run)
+    outcomes = analysis.get("candidate_table_events")
+    print(json.dumps({"analysis_written":str(run / "decision_trace.json"),
+                      "hit_markers":len(outcomes["hit_marker_frames"]) if outcomes else None,
+                      "boss_parts_destroyed":len(outcomes["boss_parts_destroyed"]) if outcomes else None}),flush=True)
+    if not passed:
         raise SystemExit("Experiment did not pass; its own evidence is preserved in "+str(run))
 
 
