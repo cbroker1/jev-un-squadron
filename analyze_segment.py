@@ -6,7 +6,7 @@ from pathlib import Path
 import statistics
 
 from brain.digest import ACTIONS, player_position
-from brain.observations import RECORD_BYTES, TABLE_BASES, classify_record, fixed24
+from brain.observations import player_health, RECORD_BYTES, TABLE_BASES, classify_record, fixed24
 
 HIT_MARKER = (0x1040, bytes.fromhex("a1f804"))  # $04:F8A1 appears in 0x1040 when the player is hit (candidate)
 EXPLODING = bytes.fromhex("c0fc04")              # $04:FCC0 follows a destroyed object
@@ -21,8 +21,9 @@ def table_events(states):
     """Candidate outcome events from the exported object table; not a health or scoring decoder."""
     events = {"hit_marker_frames": [], "power_up_gone_near_player": [], "power_up_gone_elsewhere": [],
               "tanks_destroyed": [], "aircraft_destroyed": [], "turrets_destroyed": [],
-              "boss_parts_destroyed": [], "hit_causes": []}
+              "boss_parts_destroyed": [], "hit_causes": [], "damage_events": []}
     previous = None
+    previous_health = None
     for frame in sorted(states):
         state = states[frame]["state"]
         table = state.get("observation_profile", {}).get("object_table")
@@ -31,6 +32,16 @@ def table_events(states):
         data = bytes.fromhex(table["bytes_hex"])
         records = {b: data[i*RECORD_BYTES:(i+1)*RECORD_BYTES] for i, b in enumerate(TABLE_BASES)}
         px, py = state["player_x_candidate"], state["player_y_candidate"]
+        # Health is authoritative where the hit marker is a heuristic: the marker missed 6
+        # of 33 damage events across 20 runs, including the single event that took seven
+        # health at once and ended three runs.
+        health = player_health(data)
+        if previous is not None and health is not None:
+            was = previous_health
+            if was is not None and health < was:
+                events["damage_events"].append({"frame": frame, "lost": was-health,
+                                                "health_left": health,
+                                                "player_xy": [px, py]})
         if previous:
             base, routine = HIT_MARKER
             if records[base][1:4] == routine and previous[base][1:4] != routine:
@@ -60,6 +71,7 @@ def table_events(states):
                     field = {"ground_tank": "tanks_destroyed", "enemy_aircraft": "aircraft_destroyed",
                              "turret": "turrets_destroyed", "boss_part": "boss_parts_destroyed"}[kind]
                     events[field].append({"frame": frame, "target_xy": [round(x, 1), round(y, 1)], "player_xy": [px, py]})
+        previous_health = health
         previous = records
     return events
 

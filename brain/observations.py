@@ -70,6 +70,23 @@ SLOT1_SHA256 = "c1ea750e24cdb17e2050eb4f490c82b3e7544c11441f736f60df7c014fde0f3d
 ROM_SHA1 = "a2dd48574b9f7a49977c91d12d5c52c17c2c82aa"
 
 
+# Byte 8 of the player's own record is its health: 8 at the start of every one of 20 runs
+# checked, falling by 1 or 2 at each hit and constant otherwise, and 0 exactly when the run
+# ends in death. Carl authorised mapping this on 2026-09-20; before that the project rule
+# was to leave health unmapped. It is measurement of an outcome, and it is more reliable
+# than the hit-marker heuristic, which missed 6 of 33 damage events.
+PLAYER_HEALTH_BYTE = 8
+FULL_HEALTH = 8
+
+
+def player_health(table_bytes):
+    """The aircraft's health from an exported object table, or None if it is absent."""
+    if not table_bytes or len(table_bytes) <= PLAYER_HEALTH_BYTE:
+        return None
+    value = table_bytes[PLAYER_HEALTH_BYTE]
+    return value if 0 <= value <= FULL_HEALTH else None
+
+
 def fixed24(raw, address):
     """Signed 16.8 candidate, supported by continuous motion across the left edge."""
     return int.from_bytes(raw[address:address+3], "little", signed=True) / 256
