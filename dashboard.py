@@ -115,6 +115,8 @@ def live_state():
         feed.append({
             "attempt": request.get("attempt"), "frame": frame,
             "choice": reply.get("choice"), "confidence": reply.get("confidence"),
+            "raw_choice": reply.get("raw_choice"), "objective": reply.get("objective"),
+            "selection_reason": reply.get("selection_reason"),
             "probabilities": reply.get("probabilities") or {},
             "latency_ms": (answer or {}).get("latency_ms"),
             "source": (answer or {}).get("decision_source"),
@@ -127,6 +129,9 @@ def live_state():
                 tracks.append({"kind": track["kind"], "x": track["x"], "y": track["y"],
                                "vx": track.get("vx"), "vy": track.get("vy")})
     chosen = feed[-1] if feed else {}
+    question = chosen.get("objective") or "movement"
+    asked = ((latest or {}).get("request_body", {}).get("questions", {}).get(question, {}).get("instructions")
+             or "Which movement should the aircraft make now?")
     return {
         "running": bool(active.get("running")) and not finished,
         "run_label": manifest.get("run_label"), "run_id": run_dir.name,
@@ -137,9 +142,11 @@ def live_state():
         "tracks": tracks,
         "counts": {kind: sum(t["kind"] == kind for t in tracks) for kind in KINDS},
         "feed": feed,
-        "judgment": {"question": "MOVEMENT", "asked": "Which movement should the aircraft make now?",
+        "judgment": {"question": question.upper(), "asked": asked,
                      "probabilities": chosen.get("probabilities") or {},
-                     "confidence": chosen.get("confidence"), "choice": chosen.get("choice")},
+                     "confidence": chosen.get("confidence"), "choice": chosen.get("raw_choice") or chosen.get("choice"),
+                     "applied_choice": chosen.get("choice"), "source": chosen.get("source"),
+                     "selection_reason": chosen.get("selection_reason")},
         "station": (digest or {}).get("where_you_have_been_recently"),
         "terrain_note": (digest or {}).get("terrain_constraint_suspended"),
         "finished": finished,

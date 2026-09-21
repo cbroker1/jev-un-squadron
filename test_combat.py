@@ -810,7 +810,7 @@ class CombatTests(unittest.TestCase):
             self.assertFalse(player.reply_is_fresh(observed,state,20))
         self.assertTrue(player.reply_is_fresh(observed,dict(observed,frame=120),20))
 
-    def simulated_loop(self,delay=8,error=False,reload=False,lose_tracks=False,stepped=False,lua_freezes=True,threat_from=None):
+    def simulated_loop(self,delay=8,error=False,reload=False,lose_tracks=False,stepped=False,lua_freezes=True,threat_from=None,policy="legacy"):
         """Advance synthetic game frames while a future remains pending.
 
         With stepped=True the fake Lua holds the frame while the current command's
@@ -874,12 +874,18 @@ class CombatTests(unittest.TestCase):
                     def decide(body,mode,attempt,key=None,delay_ms=250):
                         submitted.append(cursor["seen"])
                         keys_used.append(key)
+                        if policy != "legacy":
+                            from brain.decisions import compose
+                            answers = {name:{"choice":"up","confidence":0.1,
+                                             "probabilities":{action:0.2 for action in ACTIONS}}
+                                       for name in body["questions"]}
+                            return compose(body, answers), 250
                         return Delayed(0).result()
                     stack.enter_context(patch.object(player,"decide",side_effect=decide))
                 stack.enter_context(patch.object(player.time,"sleep"))
                 stack.enter_context(patch("socket.socket",side_effect=AssertionError("No network")))
                 stack.enter_context(patch("builtins.print"))
-                report=player.run(output,"live",limit=3,warmup=2,frame_budget=150,key="unit-test-placeholder",stepped=stepped)
+                report=player.run(output,"live",limit=3,warmup=2,frame_budget=150,key="unit-test-placeholder",stepped=stepped,policy=policy)
             events=[json.loads(line) for line in (output / "events.jsonl").read_text().splitlines()]
             observations=[json.loads(line) for line in (output / "states.jsonl").read_text().splitlines()]
             self.assertEqual(stop.call_count,2)

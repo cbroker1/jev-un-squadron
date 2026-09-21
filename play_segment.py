@@ -17,6 +17,7 @@ import urllib.request
 import bridge
 from brain.observations import TableTracker, bridge_observation, fixed24
 from brain.combat import combat_digest, combat_request
+from brain.decisions import POLICY, categorical_request, compose, validate_choices
 from brain.digest import ACTIONS
 
 ROOT = Path(__file__).resolve().parent
@@ -61,11 +62,19 @@ def decide(body, mode, attempt, key=None, delay_ms=250):
         time.sleep(delay_ms/1000)
         choice = ("up", "down", "up", "down", "hold")[(attempt-1) % 5]
         response = {"choice": choice, "confidence": None, "probabilities": None}
+        if "selection" in body.get("state", {}):
+            answers = {name:{"choice":choice,"confidence":1.0,
+                             "probabilities":{action:float(action == choice) for action in ACTIONS}}
+                       for name in body["questions"]}
+            response = compose(body, answers)
+            response["decision_source"] = "deterministic_mock"
     elif mode == "live":
         request = urllib.request.Request("https://api.typesafe.ai/v1/systemone", data=json.dumps(body).encode(),
             headers={"Authorization": "Bearer "+key, "Content-Type": "application/json"}, method="POST")
         with urllib.request.urlopen(request, timeout=3) as reply:
-            response = validate_answer(json.loads(reply.read()))
+            answer = json.loads(reply.read())
+            response = (compose(body, validate_choices(answer, body["questions"]))
+                        if "selection" in body.get("state", {}) else validate_answer(answer))
     else:
         raise ValueError("Baseline must not request a decision")
     return response, round((time.perf_counter()-started)*1000, 2)
@@ -99,7 +108,9 @@ def wait_for_freeze(frame, timeout=1.0):
 
 def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_age=20, delay_ms=250, key=None,
         expected_start=SAVE_FRAME,
-        stepped=False, prelude_fire=False, recheck=6, replan_after=6):
+        stepped=False, prelude_fire=False, recheck=6, replan_after=6, policy="legacy"):
+    if policy not in ("legacy", POLICY) or (policy != "legacy" and not stepped):
+        raise ValueError("The categorical policy requires pause-and-step")
     replan_after = min(replan_after, interval)
     run_id = output.name
     last_decision = None
@@ -113,6 +124,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
     executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="bounded-jev-choice")
     pending = None
     requests = decisions = applied_jev = command_id = 0
+    applied_fallback = 0
     last_frame = last_preview_frame = None
     last_command = None
     acknowledged = set()
@@ -123,11 +135,11 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
     with (output / "events.jsonl").open("x", encoding="utf-8") as events, (output / "states.jsonl").open("x", encoding="utf-8") as states:
         def log(event, **fields):
             events.write(json.dumps({"event":event, "run_id":run_id, **fields})+"\n"); events.flush()
-        def command(state, action, fire, source, attempt=None, observed=None, freeze_at=0):
+        def command(state, action, fire, source, attempt=None, observed=None, freeze_at=0, selection=None):
             nonlocal command_id, last_command
             # Jev's own choices are the only thing carrying across decisions; the prelude's
             # deterministic commands are not choices and would drown them out.
-            if source in ("jev", "deterministic_mock"):
+            if source in ("jev", "jev_fallback", "deterministic_mock"):
                 recent_choices.append(action)
                 del recent_choices[:-8]
             command_id += 1
@@ -139,7 +151,11 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 "reload_epoch":state["reload_epoch"], "ts":time.time(), "freeze_at_frame":freeze_at}
             bridge.write_json(bridge.ACTION,value)
             last_command = dict(value, decision_source=source, attempt=attempt)
-            log("command", command=last_command, requested_action=action, override_reason=None)
+            if selection and selection.get("policy"):
+                last_command.update(policy=selection["policy"], objective=selection["objective"],
+                                    raw_choice=selection["raw_choice"], selection_reason=selection["selection_reason"])
+            log("command", command=last_command, requested_action=action,
+                override_reason=selection["selection_reason"] if source == "jev_fallback" else None)
         try:
             bridge.release_controls(run_id,0)
             fresh = bridge.wait_for_fresh_state(run_id)
@@ -151,7 +167,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 log(reason, experiment_start_frame=start, expected_start_frame=expected_start)
                 raise InterruptedError("Lua attached after the save frame; no request was made")
             decision_start, stop_frame = start+warmup, start+warmup+frame_budget
-            log("start", mode=mode, state=fresh, experiment_start_frame=start,
+            log("start", mode=mode, policy=policy, state=fresh, experiment_start_frame=start,
                 decision_start_frame=decision_start, stop_frame=stop_frame,
                 warmup_frames=warmup, frame_budget=frame_budget,
                 decision_interval_frames=interval, max_reply_age_frames=max_age, max_jev_attempts=limit if mode=="live" else 0,
@@ -263,6 +279,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                     if last_command["call"] not in acknowledged:
                         acknowledged.add(last_command["call"])
                         applied_jev += last_command["decision_source"] == "jev"
+                        applied_fallback += last_command["decision_source"] == "jev_fallback"
                         log("input_ack", command_id=last_command["call"], attempt=last_command["attempt"],
                             decision_source=last_command["decision_source"], first_apply_frame=state["first_apply_frame"],
                             observe_to_apply_frames=state["first_apply_frame"]-last_command["observed_frame"],
@@ -310,7 +327,7 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                             time.sleep(0.005); continue
                         if first_request is None:
                             first_request=last_frame
-                        body = combat_request(digest)
+                        body = categorical_request(digest) if policy == POLICY else combat_request(digest)
                         decisions += 1
                         requests += mode=="live"  # Count attempts, including HTTP errors; no retries.
                         log("request" if mode=="live" else "mock_request", attempt=decisions, jev_requests=requests,
@@ -323,7 +340,8 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                             current = bridge.read_state()
                         progress = time.monotonic()
                         log("response", attempt=decisions, source_frame=observed["frame"], received_frame=current["frame"],
-                            latency_ms=latency, response=response, decision_source="jev" if mode=="live" else "deterministic_mock",
+                            latency_ms=latency, response=response,
+                            decision_source=response.get("decision_source", "jev" if mode=="live" else "deterministic_mock"),
                             frozen_throughout=current["frame"] == observed["frame"] and current.get("frozen") is True)
                         if not reply_is_fresh(observed,current,max_age):
                             reason="stale_reply_rejected"
@@ -332,11 +350,12 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                             break
                         next_step = last_frame+interval
                         more = decisions < limit and next_step < stop_frame
-                        command(current,response["choice"],True,"jev" if mode=="live" else "deterministic_mock",decisions,observed,
-                                freeze_at=next_step if more else 0)
+                        command(current,response["choice"],True,
+                                response.get("decision_source", "jev" if mode=="live" else "deterministic_mock"),decisions,observed,
+                                freeze_at=next_step if more else 0, selection=response)
                         last_decision = {"frame":last_frame,"call":last_command["call"],"action":response["choice"],
                                          "gap":threat_gap(digest,response["choice"])}
-                        print(f"{'Jev' if mode=='live' else 'MOCK'} {decisions}/{limit}: {response['choice']} + Y fire; {latency:.0f} ms; "
+                        print(f"{response.get('decision_source', 'Jev' if mode=='live' else 'MOCK')} {decisions}/{limit}: {response['choice']} + Y fire; {latency:.0f} ms; "
                               f"game frames elapsed while deciding {current['frame']-observed['frame']}",flush=True)
                     elif (last_decision and decisions < limit and last_command["call"] == last_decision["call"]
                           and last_frame-last_decision["frame"] >= replan_after):
@@ -401,8 +420,9 @@ def run(output, mode, limit=5, interval=30, warmup=480, frame_budget=210, max_ag
                 except Exception as exc:
                     log("discarded_request_error_after_stop",attempt=pending["attempt"],
                         detail=type(exc).__name__,applied_action=None,stop_reason=reason)
-            report={"run_id":run_id,"mode":mode,"reason":reason,"jev_requests":requests,
+            report={"run_id":run_id,"mode":mode,"policy":policy,"reason":reason,"jev_requests":requests,
                     "decisions":decisions,"applied_jev_decisions":applied_jev,"commands":command_id,
+                    "applied_fallback_decisions":applied_fallback,
                     "final_frame":last_frame,"first_request_frame":first_request,
                     "wall_seconds":round(time.monotonic()-wall_start,3),"level_clear":None,
                     "health_damage_death":None,"stop_command_sent":True}
@@ -416,6 +436,7 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output",type=Path,required=True)
     ap.add_argument("--mode",choices=("dry","live","baseline"),default="dry")
+    ap.add_argument("--policy", choices=("legacy", POLICY), default="legacy")
     ap.add_argument("--max-calls",type=int,default=5)
     ap.add_argument("--expected-start-frame",type=int,default=SAVE_FRAME,
                     help="frame the loaded save resumes at; slot 2 resumes at the boss")
@@ -430,6 +451,8 @@ def main():
         ap.error("Run budgets out of range")
     if not 1 <= args.interval <= 30:
         ap.error("Decision interval must be 1..30 game frames")
+    if args.policy != "legacy" and not args.stepped:
+        ap.error("The categorical policy requires --stepped")
     output=args.output.resolve()
     if not output.is_relative_to(ROOT / "runs") or output==ROOT / "runs" or not output.is_dir():
         ap.error("Expected a unique existing run directory")
@@ -444,7 +467,7 @@ def main():
             raise SystemExit("Local key file must contain one key line; nothing was sent")
     result=run(output,args.mode,args.max_calls,interval=args.interval,warmup=args.warmup,frame_budget=args.frames,
                delay_ms=args.mock_delay_ms,key=key,stepped=args.stepped,prelude_fire=args.prelude_fire,
-               expected_start=args.expected_start_frame)
+               expected_start=args.expected_start_frame,policy=args.policy)
     if result["reason"] not in ("decision_budget","game_frame_budget"):
         raise SystemExit(1)
 

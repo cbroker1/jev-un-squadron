@@ -1,0 +1,169 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "selection": {
+      "objective": "attack",
+      "admissible_moves": [
+        "up",
+        "down",
+        "left",
+        "right",
+        "hold"
+      ],
+      "fallback_moves": [
+        "up"
+      ],
+      "previous_move": null,
+      "escape_required": false
+    },
+    "coverage": "Measured short forecasts; untracked terrain and threats remain unknown. Admissible is not guaranteed safe.",
+    "known_tracks": {
+      "aircraft": 3,
+      "bullets": 0,
+      "power_ups": 0,
+      "tanks": 0,
+      "turrets": 0,
+      "screen_clearing_power_ups": 0
+    }
+  },
+  "questions": {
+    "attack": {
+      "type": "choice",
+      "instructions": "If attacking, which admissible move best establishes a firing line? Turrets drop upgrades. Use the computed comparisons; keep an effective line or continue improving it.",
+      "criteria": {
+        "up": {
+          "what": "move up",
+          "admissible": true,
+          "gun": "hits enemy aircraft",
+          "alignment": "improves",
+          "future_shots": "targets enter this firing line",
+          "rear_approach": "worsens",
+          "computed_attack_comparison": "best",
+          "structure": "no measured obstruction"
+        },
+        "down": {
+          "what": "move down",
+          "admissible": true,
+          "gun": "no hit lined up",
+          "alignment": "worsens",
+          "future_shots": "targets enter this firing line",
+          "rear_approach": "improves",
+          "computed_attack_comparison": "other",
+          "structure": "no measured obstruction"
+        },
+        "left": {
+          "what": "move left",
+          "admissible": true,
+          "gun": "hits enemy aircraft",
+          "alignment": "improves",
+          "future_shots": "targets enter this firing line",
+          "rear_approach": "improves",
+          "computed_attack_comparison": "other",
+          "structure": "no measured obstruction"
+        },
+        "right": {
+          "what": "move right",
+          "admissible": true,
+          "gun": "hits enemy aircraft",
+          "alignment": "worsens",
+          "future_shots": "targets enter this firing line",
+          "rear_approach": "worsens",
+          "computed_attack_comparison": "other",
+          "structure": "no measured obstruction"
+        },
+        "hold": {
+          "what": "stay still",
+          "admissible": true,
+          "gun": "hits enemy aircraft",
+          "alignment": "unchanged",
+          "future_shots": "targets enter this firing line",
+          "rear_approach": "unchanged",
+          "computed_attack_comparison": "other",
+          "structure": "no measured obstruction"
+        }
+      }
+    },
+    "pickup": {
+      "type": "choice",
+      "instructions": "If collecting a power-up, which admissible move best advances the approach before it expires? Prefer the screen-clear item, then a weapon upgrade. Continue an effective approach.",
+      "criteria": {
+        "up": {
+          "what": "move up",
+          "admissible": true,
+          "screen_clear": "none tracked",
+          "weapon_upgrade": "none tracked"
+        },
+        "down": {
+          "what": "move down",
+          "admissible": true,
+          "screen_clear": "none tracked",
+          "weapon_upgrade": "none tracked"
+        },
+        "left": {
+          "what": "move left",
+          "admissible": true,
+          "screen_clear": "none tracked",
+          "weapon_upgrade": "none tracked"
+        },
+        "right": {
+          "what": "move right",
+          "admissible": true,
+          "screen_clear": "none tracked",
+          "weapon_upgrade": "none tracked"
+        },
+        "hold": {
+          "what": "stay still",
+          "admissible": true,
+          "screen_clear": "none tracked",
+          "weapon_upgrade": "none tracked"
+        }
+      }
+    },
+    "position": {
+      "type": "choice",
+      "instructions": "If repositioning, which admissible move best preserves maneuvering room? Use Carl's boss tactic when present; otherwise favor a passage past approaching enemies with room to retreat.",
+      "criteria": {
+        "up": {
+          "what": "move up",
+          "admissible": true,
+          "room": "at least one action of room to every movement limit",
+          "retreat_room": "unchanged",
+          "west_passage": "worsens",
+          "threats_after_move": "outside observed collision range"
+        },
+        "down": {
+          "what": "move down",
+          "admissible": true,
+          "room": "at least one action of room to every movement limit",
+          "retreat_room": "unchanged",
+          "west_passage": "improves",
+          "threats_after_move": "outside observed collision range"
+        },
+        "left": {
+          "what": "move left",
+          "admissible": true,
+          "room": "at least one action of room to every movement limit",
+          "retreat_room": "worsens",
+          "west_passage": "improves",
+          "threats_after_move": "outside observed collision range"
+        },
+        "right": {
+          "what": "move right",
+          "admissible": true,
+          "room": "at least one action of room to every movement limit",
+          "retreat_room": "improves",
+          "west_passage": "unchanged",
+          "threats_after_move": "outside observed collision range"
+        },
+        "hold": {
+          "what": "stay still",
+          "admissible": true,
+          "room": "at least one action of room to every movement limit",
+          "retreat_room": "unchanged",
+          "west_passage": "unchanged",
+          "threats_after_move": "outside observed collision range"
+        }
+      }
+    }
+  }
+}
