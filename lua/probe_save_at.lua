@@ -48,7 +48,7 @@ local function main()
   emu.frameadvance()
   local ok = pcall(savestate.saveslot, SLOT)
   memory.usememorydomain("WRAM")
-  local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+  local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
   note:write(string.format("slot %d %s at frame %d, player %d,%d\n", SLOT,
     ok and "saved" or "FAILED", emu.framecount(),
     memory.read_u8(0x1011), memory.read_u8(0x1014)))
@@ -57,7 +57,7 @@ end
 
 local ok, err = pcall(main)
 if not ok then
-  local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+  local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
   note:write("probe failed: " .. tostring(err) .. "\n")
   note:close()
 end

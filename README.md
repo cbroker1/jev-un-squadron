@@ -1,97 +1,169 @@
-# Jev U.N. Squadron experiment
+# Jev plays U.N. Squadron
 
-BizHawk/Lua handles the SNES game; Python reads observations and sends controller actions. **Level 1 completion is not demonstrated**: the boss is reached but has never been killed, and no boss part has ever been destroyed. The best full-level run destroyed 82 of the 108 units it met, taking 4 hits. The original D/L launcher is target-70 calibration.
+![Pixel title card reading "JEV plays U.N. SQUADRON", then gameplay from run R99 with the model's decision under each frame, ending on a GAME OVER card: 82 of 108 units, 1,015 decisions, 0 boss parts destroyed](docs/media/hero.gif)
 
-Before changing how Jev is asked anything, read [docs/typesafe/README.md](docs/typesafe/README.md):
-the vendor documentation is saved locally and this project currently breaks several of its
-rules, including asking a model that cannot do arithmetic to weigh numbers.
+This project has a decision model fly Capcom's 1991 SNES shooter *U.N. Squadron*, using the game's raw working memory. It doesn't use screen pixels, and nothing about the game is trained. BizHawk runs the ROM, a Lua script exports the game's RAM on every frame, and a Python controller asks [TypeSafe's Jev](https://docs.typesafe.ai) which way to move. The emulator stays frozen while the model thinks.
 
-For the next agent: read [CLAUDE_HANDOFF.md](CLAUDE_HANDOFF.md) first.
+**Status:** Jev flies level 1 from takeoff to the boss. The best full-level run (R99) destroyed **82 of the 108** enemies it met, then died at the boss. **The boss has never been killed, and no boss part has ever been destroyed.** Level completion has not been demonstrated.
 
-## Experimental combat (separate from D/L calibration)
+**Headline finding:** the vendor documentation says *"Jev is not a calculator. We strongly recommend implementing any mathematical logic in code."* The legacy request handed Jev about 1,600 characters of raw pixel distances per option and asked it to weigh them. The fix was to move every comparison into Python and split one overloaded question into three atomic ones. That took median confidence from **0.27 to 0.85** and made requests **83% smaller**.
 
-With BizHawk closed, `run_jev_segment.bat` opens slot 1 at 50% speed and uses the intentionally local key. It runs **pause-and-step**: the game pauses on each decision frame while Jev decides, and the choice applies from that frame. The gun fires from the start. It permits at most **300 paid attempts** over 1800 combat frames with a decision every 6 game frames (bounds allow up to 1600 attempts over 7200 frames for runs aimed at the level end), releases controls and closes only its own emulator. Jev now sees helicopters, bullets, the dropped power-up and ground tanks from the game's object table. It is asked to collect the power-up when safe and, at lowest priority, to shoot tanks from a distance. Stop with **Ctrl+C** or **stop_segment.bat**. Do not run both launchers at once. The bounded runner refuses an already-open emulator.
+## Contents
 
-The first 480 game frames are a deterministic prelude (gun firing with `--prelude-fire`, otherwise neutral and gun off; the gun-off prelude lets the player take a hit before Jev starts), followed by the combat window (`--frames`, default 210). Combat movement comes from Jev; Y firing is independent. Firing-only waiting/no-checked-track intervals are explicitly deterministic, not attributed to Jev. Logs, frames, provenance and failures are under a unique `runs/combat-*` folder. Observation now covers 7 checked aircraft slots and 6 projectile slots, including the orange helicopters missing from the first live test. Ground objects, terrain and other hazards are still unknown, so this is a research test, not a level-clear agent. Compare a run only against a baseline with the same prelude, frame budget and export: `runs/combat-20260919-162523-593790-baseline` (firing prelude, 420 frames) or `runs/combat-20260919-140905-903ba4-baseline` (gun off, 210 frames). See [the pause-and-step report](hazard_observation/PAUSE_AND_STEP_2026-09-19.md).
+- [What Jev is](#what-jev-is)
+- [How it works](#how-it-works)
+- [What moved the numbers](#what-moved-the-numbers)
+- [The request redesign](#the-request-redesign)
+- [Where it stands](#where-it-stands)
+- [Repository layout](#repository-layout)
+- [Running it](#running-it)
+- [Further reading](#further-reading)
 
-```powershell
-python run_segment.py --mode dry --stepped --prelude-fire --interval 6 --max-calls 300 --frames 1800
-python run_segment.py --mode baseline --prelude-fire --frames 420
-# Paid (what run_jev_segment.bat runs):
-python run_segment.py --mode live --stepped --prelude-fire --interval 6 --max-calls 300 --frames 1800
+## What Jev is
+
+Jev is TypeSafe's first "System One" model, named after Kahneman's fast, intuitive mode of thinking. It reads natural language and never writes any. You send it a **state** and typed **questions**, and it returns a typed answer, a probability for every option, and a **confidence**.
+
+- **It's trained for calibration, not preference.** TypeSafe calls its post-training RLCD: reinforcement learning for calibrated decisions. Chat models use RLHF, and reasoning models use RLVR. Across many answers, an option Jev rates at 0.8 should be right about 80% of the time, so code can branch on its confidence.
+- **Answers are typed.** A Choice picks from your list, a Score rates something against levels you describe, and a Noul gives the probability that a statement is true. There's no text to parse.
+- **It reads one state and answers many questions in parallel.** Adding questions barely changes latency, and the questions don't contaminate each other.
+- **It's cheap.** It costs $0.042 per million input tokens, and output is free. By rough estimate at 4 bytes per token, a full level with the legacy ~25 KB request costs about 26¢, and the redesigned ~4 KB request costs about 4¢. The project ran on the free tier.
+
+## How it works
+
+1. **BizHawk 2.11** (Snes9x core) runs the ROM. [`lua/main.lua`](lua/main.lua) writes the game state to `runtime_state.json` on every frame and injects whatever input is in `runtime_action.json`.
+2. **Reading the object table.** The game keeps its live objects in 64-byte records from WRAM `0x1000` to `0x1FC0`. Bytes 1–3 of each record hold the 24-bit address of the routine that updates the object, and that address is a stable type tag:
+
+   | Routine | What it drives |
+   |---|---|
+   | `$02:B04A` | helicopters |
+   | `$04:F97F` | enemy bullets |
+   | `$02:9274`, `$02:90F0`, … | ground tanks (a family of routines) |
+   | `$02:93DD` | turrets, which drop a power-up |
+   | `$04:FABA` / `$04:FAD9` | the dropped power-up / the screen-clearing power-up |
+
+   A type was adopted only after **two independent recordings** agreed. Player health is byte 8 of the player's own record: it starts at 8 and reaches 0 when the run ends.
+3. **Pause-and-step.** On each decision frame, Lua calls `client.pause()`. Python asks Jev and writes the answer, and Lua applies it from the exact frame that was observed. **No game frames pass while the model thinks.** A 5-second watchdog unpauses the game if Python dies.
+4. **Bounded runs.** Every run has a frame budget and a cap on paid requests, checks the ROM hash and the save-slot SHA-256, and closes only the emulator it opened.
+
+![A live stretch of run R141: the game on the left; the dashboard's radar of the decoded object table on the right; below, Jev's three parallel answers for attack, pickup and position with probability bars, and the move that was applied](docs/media/what-jev-sees.gif)
+
+## What moved the numbers
+
+**Facts helped and instructions hurt.**
+- **Measurements helped every time.** These include shot speed (11 px per frame), lopsided kill bands (aircraft from 8 px above to 17 px below; tanks from 6 px above to 10 px below), a 30-frame forecast for each move over a 4×8 grid (kills roughly doubled), walls learned from shots that stopped short, and the real health counter.
+- **Instructions cost kills every time.** Five plain-language instructions written by coding agents each cost kills and were reverted. The four that were logged left runs at 36, 41, 37 and 13 kills.
+- **Domain corrections from a human player were right every time.** These were: turrets first, boss parts can be damaged, tanks are reachable with a small drop, hug the ground, and hold the bottom left under the big missiles.
+
+**Baselines:** a jet that sits still and fires kills 5 enemies. A Jev decision every 30 frames kills 10. With the measurements added, 1,800-frame runs reach 42 kills.
+
+**The unit tests don't measure gameplay.** Every change gets a labelled run and is judged by `runs_table.py` and `benchmark.py`.
+
+## The request redesign
+
+`categorical-v1` ([`src/brain/decisions.py`](src/brain/decisions.py)) works out eligibility, objectives and gap comparisons in code. Jev then gets **three atomic questions in one call** (attack, pickup, position), and each option carries a categorical verdict instead of raw numbers.
+
+I ran each design three times, interleaved, on the same 900-frame opening:
+
+| | Request | Latency | Units destroyed | Median confidence |
+|---|---:|---:|---:|---:|
+| Legacy | 24.8 KB | 330 ms | 78% | **0.27** |
+| categorical-v1 | 4.1 KB | 253 ms | 71% | **0.85** |
+
+![Histograms of Jev's per-decision confidence: legacy clusters between 0.1 and 0.35 (median 0.27, 83% below 0.5); categorical-v1 spikes above 0.9 (median 0.85)](docs/media/confidence-ab.png)
+
+The first version lost units because of a blanket 0.5 confidence floor, which overrode 276 good answers across three runs. Removing the floor entirely killed three of five runs. The code now sets a **threshold per decision type, based on what a wrong answer costs**: 0.20 for attack, 0.30 for pickup, 0.45 for positioning, and 0.90 when escaping a collision. With those thresholds, the next three runs scored 75%, 75% and 81%. That matches legacy at a sixth of the request size. `categorical-v1` is opt-in and not the default yet.
+
+## Where it stands
+
+| | Best result |
+|---|---|
+| Full level | R99: 82 of 108 units (76%); reached the boss and died there |
+| Boss fight | mean survival rose from 184 to 382 frames; best single attempt 566 |
+| Boss parts destroyed | 0 |
+| Undamaged runs | one: R8, 1,800 frames, 40 of 54 units |
+
+**Open questions:**
+- **The prelude hit.** Every run since R124 is hit at frame 20582, before Jev's first decision (20663). R8 and R99 weren't, so something in the setup changed.
+- **Expected-unit manifest.** A per-column list of the enemies that should appear would turn each miss into a specific decision.
+- **Boss hull health.** The hull parts probably have a health counter like the player's.
+- **More A/B replicates** for `categorical-v1`.
+
+**Negative results worth keeping:**
+- Stage terrain can't be read from VRAM on this core. The best of about 900 tilemap alignments scored 92%, against a "sky above, ground below" null model at 93%.
+- A quoted "63 columns" in the structure map was stale. The file held 34 cells across 17 columns.
+
+![The Jev Squadron dashboard during run R141: status bar, radar of the object table, Jev's probability bars, a live decision feed and the run history](docs/media/dashboard.webp)
+
+## Repository layout
+
+```
+README.md, CLAUDE.md, config.json   entry points and emulator/ROM config
+launchers/   double-click .bat files (and their .ps1 runners); each one cd's to the repo root
+src/         Python controller, runners, dashboard and analysis tools
+  brain/     observation decoding, combat digest, request building, categorical-v1 policy
+tests/       offline unit tests (no emulator, no network, no key)
+lua/         BizHawk scripts: main.lua bridge, probes, replay
+data/        measured maps (terrain_map.json, danger_map.json) and sample Jev requests/responses
+evidence/    hazard/health captures, per-slot evidence reports, probe outputs, screenshots
+scripts/     PowerShell helpers that render evidence images
+docs/        typesafe/ (vendor docs, 109 pages), notes/ (handoffs, audits, project state), media/
 ```
 
-Dry/baseline modes make zero API calls and never read the key. `--max-calls` changes this runner's limit (1..1600); it does not use the old launcher's config limit. Its pending-result logging was amended after the live test; see the handoff's verification caveat.
+These are local only and gitignored: `runs/` (every run's logs and frames), `bizhawk/` (the emulator and save states), `typesafe_api_key.txt`, and the `runtime_*.json` IPC files at the root.
 
-## Measuring a change
+## Running it
 
-Gameplay regressions do not show up in unit tests, so every change is judged by running it:
+Everything runs on Windows with BizHawk in `bizhawk\` and the ROM path in `config.json`. Launchers can be double-clicked from `launchers\`. Python commands run from the repo root.
 
-```powershell
-python runs_table.py --last 12 --full-level-only   # units destroyed, share, hits, change under test
-python benchmark.py --recent 3 --baseline 12       # per level segment, against the previous band
-python replay_run.py --best-boss                   # watch a run back on screen
-```
-
-`run_segment.py --change "what this run tests"` records the change in the run's manifest so
-the table can attribute it.
-
-## Jev Squadron dashboard
-
-`dashboard.bat` (or `python dashboard.py`) serves **http://127.0.0.1:8770** and opens it. Leave it
-open across runs: it follows `runs/active_segment.json` and switches to each new run by itself.
-
-- Header: run label, frame, elapsed frames, decision id, chosen action, Jev's confidence, latency,
-  plane position and the aircraft's recent station-keeping.
-- **What Jev sees**: a radar of the classified object table only - the plane and its gun line,
-  aircraft, bullets, both power-up types, tanks and turrets, each with a 30-frame velocity trail.
-  Objects with no classified routine do not appear, which is the honest picture of what is tracked.
-- **Judgment**: Jev's own probabilities per movement option. There is exactly one question per
-  decision (movement); the feed's tags are derived from the facts Jev was given, not extra judgments.
-- **Live feed** and a **run history** table of kills, hits and what caused them, pickups and median X.
-
-It reads only the files runs already write, holds no state, and has no hook into the controller or
-the emulator, so it cannot affect a run.
-
-## Your existing D/L launcher
-
-1. Keep your existing BizHawk instance at the gameplay save, with the current `lua/main.lua` active. After code updates, reload that script once before using this manual workflow.
-2. Double-click `launch.bat`. Choose **D** for deterministic dry-run or **L** for live Jev calibration.
-3. Unpause during the five-second countdown. The checklist remains in the terminal.
-4. Stop early with **Ctrl+C in the bridge terminal**. The terminal closes when the run finishes. This launcher does not open or close your emulator.
-
-`config.json` controls `max_calls` (default **60**) and `decision_interval_frames` (default **30 actual game frames**, not seconds). The local `typesafe_api_key.txt` is intentionally reused by `launch_live.ps1`, without printing it. Leave it local; do not paste it into chat or commit it. Dry-run/preview modes need no key. A live API error stops instead of choosing a gameplay fallback.
-
-Controls have bounded frame leases. On a stopped/lost bridge, injected controls expire; a paused emulator observes a STOP on its next frame. Loading a save invalidates the old run. Physical input is not an injected action.
-
-## Automatic, no-key checks
-
-With BizHawk closed, `run_brain_preview.bat` opens the ROM at slot 1, watches 900 game frames at **50% speed**, writes passive observations and Choice previews under `runs/bridge-check-*`, then closes its own emulator. **It does not move or fire, and makes zero Jev requests.** Ctrl+C stops the runner. It refuses to replace an already-open emulator.
-
-`run_projectile_probe.bat` instead performs deterministic neutral/firing captures under `hazard_observation/probe_*`. Stop that capture using Esc in BizHawk, Ctrl+C, or `stop_projectile_probe.bat`. It also uses zero Jev requests.
-
-For a programmer/agent continuing development:
+**Experimental combat** (pause-and-step, gun on from the start). With BizHawk closed, `launchers\run_jev_segment.bat` opens slot 1 and makes at most **300 paid attempts** over 1,800 frames. It stops with **Ctrl+C** or `launchers\stop_segment.bat`, and it refuses to run if an emulator is already open.
 
 ```powershell
-python -m unittest test_bridge test_brain test_combat -v
-python check_bridge.py --mode calibrate
-python check_bridge.py --mode reload
-python check_bridge.py --mode expiry
-python replay_brain.py hazard_observation\probe_20260919-121654-34c1a8_pulse6 --at-sample 862
-python replay_brain.py hazard_observation\probe_20260919-132216-1dd64b_pulse8 --combat --horizon-frames 30 --at-sample 540
-python analyze_aircraft_slot.py hazard_observation\probe_20260919-114543-d95c1f_neutral --base 0x1840
-python probe_hazards.py --modes replay --replay-run runs\combat-20260919-170320-486fe9-live --frames 1380 --capture-from 480 --capture-to 1380
-python survey_objects.py hazard_observation\<probe_folder> --from-sample 480
-python build_terrain_map.py
-python analyze_segment.py runs\<run> --baseline runs\combat-20260919-163609-585d4f-baseline
+python src/run_segment.py --mode dry --stepped --prelude-fire --interval 6 --max-calls 300 --frames 1800   # zero API calls
+python src/run_segment.py --mode baseline --prelude-fire --frames 420                                       # zero API calls
+python src/run_segment.py --mode live --stepped --prelude-fire --interval 3 --max-calls 2400 --frames 6000 --change "what this run tests"
+python src/run_segment.py ... --load-slot 3 --expected-start-frame 24121 --warmup 12                       # boss practice
 ```
 
-`replay_brain.py` reads saved evidence only: no emulator, API, credentials, or controller writes. `observe_brain.py` is the passive reader for an already-running current `main.lua`; it clears stale injection at startup but never requests movement/fire. Its preview interval counts game frames.
+Compare a run only against a baseline with the same prelude, frame budget and export.
 
-The older discovery launchers and `run_live_smoke.bat` are not the recommended path. In particular, the legacy smoke helper can close other emulator instances; the new check runners preserve them.
+**Measuring a change:**
 
-## What is genuinely established
+```powershell
+python src/runs_table.py --last 12 --full-level-only   # units destroyed, share, damage, change under test
+python src/benchmark.py --recent 3 --baseline 12       # per level segment, against the previous band
+python src/replay_run.py --best-boss                   # watch a run back on screen (no API calls)
+```
 
-Player reference X/Y, cardinal directions, tested movement limits, pulsed-Y gunfire, bounded action timing, and save-reload/expiry safety have recorded run evidence. Six slots in one enemy-projectile family and seven aircraft slots have per-slot visual and lifetime evidence; they are **not** complete hazard detection. Health, recovery, death, terrain and collision sizes remain unknown. Lua overlays are omitted by BizHawk's saved screenshots; independent annotations validate reference positions, not live overlay rendering.
+**Dashboard:** `launchers\dashboard.bat` (or `python src/dashboard.py`) serves http://127.0.0.1:8770. It follows `runs/active_segment.json`, so leave it open across runs. It only reads run files, so it can't affect a run.
 
-See [PROJECT_STATE.md](PROJECT_STATE.md), [MEMORY_MAP.md](MEMORY_MAP.md), the [aircraft slot report](hazard_observation/AIRCRAFT_SLOTS_2026-09-19.md) and the [2026-09-19 adoption report](hazard_observation/BRAIN_ADOPTION_2026-09-19.md) for precise evidence, caveats and the single next experiment.
+**D/L calibration launcher:** with your own BizHawk at the gameplay save and `lua/main.lua` active, double-click `launchers\launch.bat` and choose **D** (dry run) or **L** (live). `config.json` sets `max_calls` (default 60) and `decision_interval_frames` (default 30).
+
+**No-key checks:**
+- `launchers\run_brain_preview.bat` is a passive 900-frame watch with zero Jev requests.
+- `launchers\run_projectile_probe.bat` runs deterministic captures into `evidence/hazard_observation/probe_*`.
+
+**Tests and tools:**
+
+```powershell
+python -m unittest discover -s tests -t tests          # 115 offline tests
+python src/check_bridge.py --mode calibrate
+python src/replay_brain.py evidence/hazard_observation/probe_20260919-121654-34c1a8_pulse6 --at-sample 862
+python src/survey_objects.py evidence/hazard_observation/<probe_folder> --from-sample 480
+python src/build_terrain_map.py; python src/build_danger_map.py
+```
+
+**Rules for anyone continuing this:**
+- **Keep the key local.** `typesafe_api_key.txt` must never be printed, logged or committed.
+- **Slot 1 is read-only.** It must hash `c1ea750e…` and is never written.
+- **Adopt a RAM slot only with evidence from two recordings.** Keep `lua/main.lua`'s `enemy_bases` equal to `ENEMY_BASES`.
+- **Run `benchmark.py` after every change.**
+- **Don't claim level completion.**
+
+## Further reading
+
+- [docs/notes/CLAUDE_HANDOFF.md](docs/notes/CLAUDE_HANDOFF.md) and [docs/notes/CODEX_HANDOFF.md](docs/notes/CODEX_HANDOFF.md): current state and resume points
+- [docs/notes/SESSION_2026-09-20.md](docs/notes/SESSION_2026-09-20.md): the health re-scoring and the redesign
+- [docs/notes/AUDIT_2026-09-20.md](docs/notes/AUDIT_2026-09-20.md): VRAM terrain attempts and the stale-number audit
+- [docs/notes/MEMORY_MAP.md](docs/notes/MEMORY_MAP.md): every adopted WRAM address and its evidence
+- [docs/typesafe/README.md](docs/typesafe/README.md): the vendor rules this project broke, and how it fixed them
+- [evidence/hazard_observation/](evidence/hazard_observation/): per-slot adoption reports

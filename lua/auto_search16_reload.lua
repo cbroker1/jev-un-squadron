@@ -20,7 +20,7 @@ for name,pad in pairs(probes) do
   values[name]=snap()
 end
 memorysavestate.loadcorestate(anchor)
-local f=io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\ram_candidates16_reload.txt","w")
+local f=io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\probes\\ram_candidates16_reload.txt","w")
 local count=0
 if f then f:write("address,base,up,down,left,right\n") end
 for a=0,N-1 do

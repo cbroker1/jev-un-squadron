@@ -29,9 +29,9 @@ local function main()
   memory.usememorydomain("WRAM")
   local scroll = memory.read_u16_le(0x007B)
   local px, py = memory.read_u8(0x1011), memory.read_u8(0x1014)
-  client.screenshot(ROOT .. "tile_grid_frame.png")
+  client.screenshot(ROOT .. "evidence/probes/tile_grid_frame.png")
   memory.usememorydomain("VRAM")
-  local out = assert(io.open(ROOT .. "tile_grid.json", "w"))
+  local out = assert(io.open(ROOT .. "evidence/probes/tile_grid.json", "w"))
   local maps = {}
   for _, base in ipairs(MAPS) do
     local parts = {}
@@ -46,7 +46,7 @@ local function main()
 end
 
 local ok, err = pcall(main)
-local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
 note:write(ok and "tile grid written\n" or ("probe failed: " .. tostring(err) .. "\n"))
 note:close()
 client.exit()

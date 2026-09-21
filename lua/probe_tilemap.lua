@@ -62,7 +62,7 @@ local function main()
   -- so the probe never reaches the far half of the level. Holding up keeps it clear of
   -- the ground for longer. This is a deterministic capture: no Jev, no decisions.
   apply_input()
-  local out = assert(io.open(ROOT .. (os.getenv("JEV_PROBE_OUT") or "tilemap_samples.jsonl"), "w"))
+  local out = assert(io.open(ROOT .. "evidence/probes/" .. (os.getenv("JEV_PROBE_OUT") or "tilemap_samples.jsonl"), "w"))
   for step = 1, FRAMES do
     if step % EVERY == 1 then
       memory.usememorydomain("WRAM")
@@ -84,7 +84,7 @@ local function main()
 end
 
 local ok, err = pcall(main)
-local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
 note:write(ok and "tilemap samples written\n" or ("probe failed: " .. tostring(err) .. "\n"))
 note:close()
 client.exit()

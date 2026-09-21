@@ -1,4 +1,4 @@
--- BizHawk Lua bridge. Validated positions and remaining candidates are documented in MEMORY_MAP.md.
+-- BizHawk Lua bridge. Validated positions and remaining candidates are documented in docs/notes/MEMORY_MAP.md.
 local action_file = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\runtime_action.json"
 local state_file = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\runtime_state.json"
 local running = true

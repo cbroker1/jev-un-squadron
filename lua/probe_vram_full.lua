@@ -19,10 +19,10 @@ local function main()
   memory.usememorydomain("WRAM")
   local scroll = memory.read_u16_le(0x007B)
   local px, py = memory.read_u8(0x1011), memory.read_u8(0x1014)
-  client.screenshot(ROOT .. "vram_full_frame.png")
+  client.screenshot(ROOT .. "evidence/probes/vram_full_frame.png")
   memory.usememorydomain("VRAM")
   local size = memory.getmemorydomainsize("VRAM")
-  local out = assert(io.open(ROOT .. "vram_full.txt", "w"))
+  local out = assert(io.open(ROOT .. "evidence/probes/vram_full.txt", "w"))
   out:write(string.format("frame %d scroll %d player %d %d size %d\n",
     emu.framecount(), scroll, px, py, size))
   local parts = {}
@@ -38,7 +38,7 @@ local function main()
 end
 
 local ok, err = pcall(main)
-local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
 note:write(ok and "full vram written\n" or ("probe failed: " .. tostring(err) .. "\n"))
 note:close()
 client.exit()

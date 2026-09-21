@@ -40,7 +40,7 @@ local function main()
 end
 
 local ok, err = pcall(main)
-local note = assert(io.open(ROOT .. "vram_probe.txt", "w"))
+local note = assert(io.open(ROOT .. "evidence/probes/vram_probe.txt", "w"))
 note:write(ok and "dumps written\n" or ("probe failed: " .. tostring(err) .. "\n"))
 note:close()
 client.exit()

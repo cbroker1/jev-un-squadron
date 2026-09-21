@@ -1,7 +1,7 @@
 -- Continuous, passive marker check. No input injection, no savestate reloads.
 memory.usememorydomain("WRAM")
 client.unpause()
-local shotdir = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\screenshots"
+local shotdir = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\screenshots"
 os.execute('mkdir "' .. shotdir .. '" 2>nul')
 local log=io.open(shotdir .. "\\marker_observations.csv","w")
 if log then log:write("sample,frame,a_x1011,a_y1022,b_x0901,b_y002c,c_x0069,c_y1023,d_x0900,d_y1022\n") end

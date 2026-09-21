@@ -2,7 +2,7 @@
 -- Carl's idea: the stage geometry lives in the game's own layers, so the tilemap can be
 -- read the way the object table is, instead of discovering walls by flying into them.
 -- Writes one file and exits. Touches nothing, sends nothing.
-local report = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\vram_probe.txt"
+local report = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\probes\\vram_probe.txt"
 
 local function main()
   local out = assert(io.open(report, "w"))
