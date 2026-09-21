@@ -954,6 +954,20 @@ class CombatTests(unittest.TestCase):
         self.assertEqual(len(submitted),1)
         self.assertFalse(any(e["event"]=="command" and e["command"]["decision_source"]=="jev" for e in events))
 
+    def test_health_is_read_from_the_player_record(self):
+        """Carl authorised mapping health on 2026-09-20. It is byte 8 of the player's own
+        record: 8 at the start of all 20 runs checked, 0 exactly when a run ends dead."""
+        from brain.observations import player_health, FULL_HEALTH
+        table=bytearray(22)
+        table[8]=FULL_HEALTH
+        self.assertEqual(player_health(bytes(table)),8)
+        table[8]=0
+        self.assertEqual(player_health(bytes(table)),0)
+        table[8]=200                      # not a health value; the byte means something else
+        self.assertIsNone(player_health(bytes(table)))
+        self.assertIsNone(player_health(b""))
+        self.assertIsNone(player_health(None))
+
     def test_api_error_counts_attempt_and_stops_without_a_fallback(self):
         report,events,_,submitted=self.simulated_loop(error=True)
         self.assertEqual((report["reason"],report["jev_requests"],report["applied_jev_decisions"]),("error",1,0))
