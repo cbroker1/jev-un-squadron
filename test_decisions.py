@@ -116,5 +116,33 @@ class DecisionTests(unittest.TestCase):
         self.assertTrue(all("selection_reason" in command for command in commands))
 
 
+class PostureAndThresholdTests(unittest.TestCase):
+    """Carl's answers of 2026-09-20: spacing, risk against health, and per-action floors."""
+
+    def test_posture_comes_from_health_and_says_what_it_can_afford(self):
+        from brain.decisions import health_posture
+        self.assertIsNone(health_posture(None))
+        self.assertEqual(health_posture(8)["posture"], "healthy")
+        self.assertTrue(health_posture(8)["can_afford_a_hit"])
+        self.assertEqual(health_posture(5)["posture"], "careful")
+        self.assertEqual(health_posture(3)["posture"], "fragile")
+        self.assertFalse(health_posture(2)["can_afford_a_hit"])
+        self.assertEqual(health_posture(0)["posture"], "critical")
+
+    def test_each_objective_has_its_own_floor_and_escape_is_highest(self):
+        from brain.decisions import THRESHOLDS, ESCAPE_THRESHOLD
+        # Being wrong about an attack costs a missed shot; being wrong about position costs
+        # health, and an escape is never left to an uncertain answer.
+        self.assertLess(THRESHOLDS["attack"], THRESHOLDS["pickup"])
+        self.assertLess(THRESHOLDS["pickup"], THRESHOLDS["position"])
+        self.assertGreater(ESCAPE_THRESHOLD, max(THRESHOLDS.values()))
+
+    def test_spacing_is_wider_beside_a_boss(self):
+        from brain.decisions import spacing_for, SPACING
+        self.assertEqual(spacing_for({}), SPACING["default"])
+        self.assertEqual(spacing_for({"boss_hull_near": True}), SPACING["boss_part"])
+        self.assertGreater(SPACING["boss_part"], SPACING["default"])
+
+
 if __name__ == "__main__":
     unittest.main()

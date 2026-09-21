@@ -286,7 +286,10 @@ def bridge_observation(state, tracker):
             "lua_session_id": state["lua_session_id"], "reload_epoch": state["reload_epoch"],
             "mode": "passive_offline_bridge_preview",
             "player": {"x": state["player_x_candidate"], "y": state["player_y_candidate"],
-                       "liveness": "unknown", "health": None},
+                       "liveness": "unknown",
+                       "health": player_health(bytes.fromhex(
+                           (state.get("observation_profile") or {}).get("object_table", {}).get("bytes_hex", "")
+                           or "")) if (state.get("observation_profile") or {}).get("object_table") else None},
             "tracks": tracker.observe_bridge(state),
             "coverage": "six visually checked slots in one projectile family; other threats unknown",
             "actual_input_poll_mask": state["input_poll_mask"],

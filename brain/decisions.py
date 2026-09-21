@@ -18,6 +18,38 @@ import os
 CONFIDENCE_FLOOR = float(os.getenv("JEV_CONFIDENCE_FLOOR", "0.5"))
 COLLISION_BAND = 22     # Upper end of the observed reference-gap collision range.
 
+# Carl, asked how much room to keep: 20 px, judged the same in every direction because fire
+# comes from all of them, with more room around a boss than around an individual unit -
+# "individual units are more squishy and can be killed easily and bosses take more time".
+SPACING = {"default": 20, "boss_part": 34}
+
+# The documentation's confidence-gated routing sets a threshold per action from what it
+# costs to be wrong, rather than one floor for everything. Getting an attack move wrong
+# costs a missed shot; getting a positioning move wrong costs health, and an escape move is
+# the most expensive of all, so that one is never left to an uncertain answer.
+THRESHOLDS = {"attack": 0.20, "pickup": 0.30, "position": 0.45}
+ESCAPE_THRESHOLD = 0.90
+
+# Carl on risk: accept it for power-ups and for the orange units that drop them, because a
+# stronger weapon makes the rest of the level easier, but weigh it against health in hand.
+POSTURE = ((7, "healthy"), (4, "careful"), (2, "fragile"), (0, "critical"))
+
+
+def health_posture(health):
+    """What the aircraft can afford, from the health it has left."""
+    if health is None:
+        return None
+    for floor, name in POSTURE:
+        if health >= floor:
+            return {"health": health, "of": 8, "posture": name,
+                    "can_afford_a_hit": health > 2}
+    return {"health": health, "of": 8, "posture": "critical", "can_afford_a_hit": False}
+
+
+def spacing_for(option):
+    """The room to keep here: wider beside a boss, which takes time to kill."""
+    return SPACING["boss_part"] if option.get("boss_hull_near") else SPACING["default"]
+
 
 def gap(option):
     values = [option.get(name) for name in ("closest_anchor_distance_px", "enemy_body_anchor_gap_px")]
@@ -149,11 +181,21 @@ def categorical_request(digest, model="jev-latest"):
         if digest.get("boss_body"):
             position[action]["bottom_left_pocket"] = comparison(
                 -position_rank(option, True)[0], -position_rank(hold, True)[0])
+    posture = health_posture(digest.get("player_health"))
     state = {"selection": plan,
         "coverage": "Measured short forecasts; untracked terrain and threats remain unknown. Admissible is not guaranteed safe.",
         "known_tracks": {"aircraft":digest["enemy_count"], "bullets":digest["projectile_count"],
                          "power_ups":digest["power_up_count"], "tanks":digest["tank_count"],
                          "turrets":digest["turret_count"], "screen_clearing_power_ups":digest["clear_screen_power_up_count"]}}
+    if posture:
+        # Carl: accept risk for power-ups and the orange units that drop them, because a
+        # stronger weapon makes the rest easier - but weigh it against health in hand.
+        state["aircraft_condition"] = posture
+        state["risk_guidance_from_Carl"] = (
+            "A power-up, or an orange unit that drops one, is worth a risk that an ordinary "
+            "kill is not. Take fewer of those risks as health runs down."
+            if posture["can_afford_a_hit"] else
+            "Health is nearly gone: nothing is worth contact now.")
     if digest.get("boss_body"):
         state["boss_tactic_from_Carl"] = "Hold the bottom left under the invincible straight missiles. Leave when the hull crowds you; return when clear. Small turning missiles can be shot."
     return {"model":model, "state":state, "questions":{
@@ -187,7 +229,13 @@ def compose(body, answers):
     selected = answers[plan["objective"]]
     chosen = selected["choice"]
     source, reason = "jev", "confident_admissible_choice"
-    floor = float(os.getenv("JEV_CONFIDENCE_FLOOR", CONFIDENCE_FLOOR))
+    override = os.getenv("JEV_CONFIDENCE_FLOOR")
+    if override is not None:
+        floor = float(override)
+    elif plan.get("escape_required"):
+        floor = ESCAPE_THRESHOLD
+    else:
+        floor = THRESHOLDS.get(plan["objective"], CONFIDENCE_FLOOR)
     if chosen not in plan["admissible_moves"] or selected["confidence"] < floor:
         reason = "measured_constraint" if chosen not in plan["admissible_moves"] else "low_confidence"
         candidates = plan["fallback_moves"]
@@ -195,7 +243,7 @@ def compose(body, answers):
         chosen = previous if previous in candidates else "hold" if "hold" in candidates else candidates[0]
         source = "jev_fallback"
         reason += "_continue" if chosen == previous else "_computed_move"
-    return {"choice":chosen, "raw_choice":selected["choice"],
+    return {"choice":chosen, "raw_choice":selected["choice"], "confidence_floor":floor,
             "confidence":selected["confidence"], "probabilities":selected["probabilities"],
             "answers":answers, "objective":plan["objective"], "decision_source":source,
             "selection_reason":reason, "policy":POLICY}
