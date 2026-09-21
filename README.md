@@ -4,6 +4,8 @@
 
 This project has a decision model fly Capcom's 1991 SNES shooter *U.N. Squadron*, using the game's raw working memory. It doesn't use screen pixels, and nothing about the game is trained. BizHawk runs the ROM, a Lua script exports the game's RAM on every frame, and a Python controller asks [TypeSafe's Jev](https://docs.typesafe.ai) which way to move. The emulator stays frozen while the model thinks.
 
+**Write-up:** [Teaching a Decision Model to Fly U.N. Squadron from Raw SNES Memory](https://cbroker1.github.io/writing/jev-un-squadron/)
+
 **Status:** Jev flies level 1 from takeoff to the boss. The best full-level run (R99) destroyed **82 of the 108** enemies it met, then died at the boss. **The boss has never been killed, and no boss part has ever been destroyed.** Level completion has not been demonstrated.
 
 **Headline finding:** the vendor documentation says *"Jev is not a calculator. We strongly recommend implementing any mathematical logic in code."* The legacy request handed Jev about 1,600 characters of raw pixel distances per option and asked it to weigh them. The fix was to move every comparison into Python and split one overloaded question into three atomic ones. That took median confidence from **0.27 to 0.85** and made requests **83% smaller**.
@@ -106,7 +108,8 @@ lua/         BizHawk scripts: main.lua bridge, probes, replay
 data/        measured maps (terrain_map.json, danger_map.json) and sample Jev requests/responses
 evidence/    hazard/health captures, per-slot evidence reports, probe outputs, screenshots
 scripts/     PowerShell helpers that render evidence images
-docs/        typesafe/ (vendor docs, 109 pages), notes/ (handoffs, audits, project state), media/
+docs/        typesafe/ (a summary of the vendor rules; the vendor pages are kept locally, not redistributed),
+             notes/ (handoffs, audits, project state), media/
 ```
 
 These are local only and gitignored: `runs/` (every run's logs and frames), `bizhawk/` (the emulator and save states), `typesafe_api_key.txt`, and the `runtime_*.json` IPC files at the root.
@@ -165,5 +168,5 @@ python src/build_terrain_map.py; python src/build_danger_map.py
 - [docs/notes/SESSION_2026-09-20.md](docs/notes/SESSION_2026-09-20.md): the health re-scoring and the redesign
 - [docs/notes/AUDIT_2026-09-20.md](docs/notes/AUDIT_2026-09-20.md): VRAM terrain attempts and the stale-number audit
 - [docs/notes/MEMORY_MAP.md](docs/notes/MEMORY_MAP.md): every adopted WRAM address and its evidence
-- [docs/typesafe/README.md](docs/typesafe/README.md): the vendor rules this project broke, and how it fixed them
+- [docs/typesafe/README.md](docs/typesafe/README.md): the vendor rules this project broke, and how it fixed them (full documentation at [docs.typesafe.ai](https://docs.typesafe.ai))
 - [evidence/hazard_observation/](evidence/hazard_observation/): per-slot adoption reports
