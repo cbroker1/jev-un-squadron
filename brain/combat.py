@@ -455,7 +455,8 @@ def combat_digest(obs, horizon=20, entry_edges=None, lookahead=30, recent_positi
     digest["where_you_have_been_recently"] = where_you_have_been(recent_positions)
     digest["time_in_the_collision_range"] = time_in_the_collision_range(recent_body_gaps)
     digest["what_you_have_been_doing"] = what_you_have_been_doing(recent_choices)
-    digest["boss_body"] = boss_body([obs["player"]["x"], obs["player"]["y"]], tracks["boss_part"])
+    # Health is an outcome the policy is allowed to weigh, mapped with Carl's agreement.
+    digest["player_health"] = (obs.get("player") or {}).get("health")
     digest["boss_body"] = boss_body([obs["player"]["x"], obs["player"]["y"]], tracks["boss_part"])
     digest["quietest_altitude_right_now"] = quietest_altitude(
         [obs["player"]["x"], obs["player"]["y"]],
