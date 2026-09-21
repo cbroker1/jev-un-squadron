@@ -1,7 +1,9 @@
 # Handoff - 2026-09-20, America/Chicago
 
-Later work and the current resume checkpoint are in [HANDOFF_LATEST.md](HANDOFF_LATEST.md).
-Read that file before treating the status below as current.
+Later work and the current resume checkpoint are in [HANDOFF_LATEST.md](HANDOFF_LATEST.md),
+and the 2026-09-20 write-up is in [SESSION_2026-09-20.md](SESSION_2026-09-20.md).
+Read those before treating the status below as current: damage is now scored by health
+lost, not by the hit-marker heuristic that file still refers to.
 
 ## Where this stands
 
