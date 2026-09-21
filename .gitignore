@@ -18,3 +18,6 @@ hazard_observation/**/brain_frame_*.png
 __pycache__/
 # Separate upstream clone kept locally for reference
 third_party/
+
+# Locally downloaded GitHub CLI; not part of the project
+tools/
