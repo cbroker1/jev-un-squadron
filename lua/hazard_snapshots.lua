@@ -1,7 +1,7 @@
 -- Bounded, deterministic observation. No Jev calls or game-memory writes.
 -- The Python runner supplies a unique output folder; legacy launchers still work.
 local project = "C:/Users/Carl-MainRig/Projects/jev-un-squadron"
-local root = os.getenv("HAZARD_OUTPUT") or (project .. "/hazard_observation/snap_" .. os.time())
+local root = os.getenv("HAZARD_OUTPUT") or (project .. "/evidence/hazard_observation/snap_" .. os.time())
 -- Every setup or loop error lands in error.txt and closes BizHawk, so the runner
 -- never waits on an error that only the Lua console shows.
 local function main()

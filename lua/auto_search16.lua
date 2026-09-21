@@ -11,7 +11,7 @@ local function frames(n, pad)
   for i=1,n do joypad.set(pad or {},1); emu.frameadvance() end
   joypad.set({},1)
 end
-local f = io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\ram_candidates16.txt", "w")
+local f = io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\probes\\ram_candidates16.txt", "w")
 frames(10,{})
 local base=snap(); frames(30,{}); local neutral=snap()
 frames(20,{Up=true}); local up=snap()

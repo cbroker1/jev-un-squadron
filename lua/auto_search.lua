@@ -12,7 +12,7 @@ local function frames(n, pad)
   joypad.set({}, 1)
 end
 local function save_report(lines)
-  local f = io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\ram_candidates.txt", "w")
+  local f = io.open("C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\probes\\ram_candidates.txt", "w")
   if f then for _, line in ipairs(lines) do f:write(line, "\n") end; f:close() end
 end
 

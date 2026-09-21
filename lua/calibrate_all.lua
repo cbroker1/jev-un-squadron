@@ -2,7 +2,7 @@
 -- Start at active gameplay; stop other Lua scripts first.
 memory.usememorydomain("WRAM")
 client.unpause()
-local report_path = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\bizhawk_calibration.txt"
+local report_path = "C:\\Users\\Carl-MainRig\\Projects\\jev-un-squadron\\evidence\\probes\\bizhawk_calibration.txt"
 local anchor = memorysavestate.savecorestate()
 local probes = {
   {name="neutral", pad={}, frames=20},
