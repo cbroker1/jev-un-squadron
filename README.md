@@ -1,6 +1,6 @@
 # Jev plays U.N. Squadron
 
-![Pixel title card reading "JEV plays U.N. SQUADRON", then gameplay from run R99 with the model's decision under each frame, ending on a GAME OVER card: 82 of 108 units, 1,015 decisions, 0 boss parts destroyed](docs/media/hero.gif)
+![A live stretch of run R141: the game on the left; the dashboard's radar of the decoded object table on the right; below, Jev's three parallel answers for attack, pickup and position with probability bars, and the move that was applied](docs/media/what-jev-sees.gif)
 
 This project has a decision model fly Capcom's 1991 SNES shooter *U.N. Squadron*, using the game's raw working memory. It doesn't use screen pixels, and nothing about the game is trained. BizHawk runs the ROM, a Lua script exports the game's RAM on every frame, and a Python controller asks [TypeSafe's Jev](https://docs.typesafe.ai) which way to move. The emulator stays frozen while the model thinks.
 
@@ -47,7 +47,7 @@ Jev is TypeSafe's first "System One" model, named after Kahneman's fast, intuiti
 3. **Pause-and-step.** On each decision frame, Lua calls `client.pause()`. Python asks Jev and writes the answer, and Lua applies it from the exact frame that was observed. **No game frames pass while the model thinks.** A 5-second watchdog unpauses the game if Python dies.
 4. **Bounded runs.** Every run has a frame budget and a cap on paid requests, checks the ROM hash and the save-slot SHA-256, and closes only the emulator it opened.
 
-![A live stretch of run R141: the game on the left; the dashboard's radar of the decoded object table on the right; below, Jev's three parallel answers for attack, pickup and position with probability bars, and the move that was applied](docs/media/what-jev-sees.gif)
+![Pixel title card reading "JEV plays U.N. SQUADRON", then gameplay from run R99 with the model's decision under each frame, ending on a GAME OVER card: 82 of 108 units, 1,015 decisions, 0 boss parts destroyed](docs/media/hero.gif)
 
 ## What moved the numbers
 
